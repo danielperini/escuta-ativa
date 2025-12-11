@@ -7,12 +7,15 @@ import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Mic, Camera, Video, FileText, Upload, Loader2 } from "lucide-react";
 import GravadorAudio from "../components/audio/GravadorAudio";
 import RevisaoTranscricao from "../components/audio/RevisaoTranscricao";
+import DetectorContinuidade from "../components/continuidade/DetectorContinuidade";
 
 export default function RegistreEscuta() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [tipoInput, setTipoInput] = useState(null);
     const [dadosRevisao, setDadosRevisao] = useState(null);
+    const [verificandoContinuidade, setVerificandoContinuidade] = useState(false);
+    const [atividadeParaContinuidade, setAtividadeParaContinuidade] = useState(null);
 
     const processarInput = async (tipo, file = null, texto = null, metadados = null) => {
         setLoading(true);
@@ -425,6 +428,35 @@ IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não
                     }
                 }
 
+                // Detectar se demanda requer devolutiva
+                const requerDevolutiva = resultado.demandas && resultado.demandas.length > 0;
+                const prazoDevolutiva = new Date();
+                prazoDevolutiva.setDate(prazoDevolutiva.getDate() + 15);
+
+                // Detectar encaminhamento na fala
+                const deteccaoEncaminhamento = await base44.integrations.Core.InvokeLLM({
+                    prompt: `
+                Analise se há menção de ENCAMINHAMENTO neste registro:
+
+                "${resultado.transcricao}"
+
+                Procure por frases como:
+                - "Encaminhei para a empresa"
+                - "Solicitei retorno"
+                - "A demanda foi enviada"
+                - "Vou repassar"
+                - "Vou levar ao setor"
+
+                Retorne se há encaminhamento e detalhes.`,
+                    response_json_schema: {
+                        type: "object",
+                        properties: {
+                            encaminhamento_detectado: { type: "boolean" },
+                            detalhes: { type: "string" }
+                        }
+                    }
+                });
+
                 // Criar atividade com dados extraídos e conexões
                 const novaAtividade = await base44.entities.Atividade.create({
                     titulo: resultado.titulo || "Atividade registrada via " + tipo,
@@ -443,8 +475,19 @@ IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não
                     status_etapa: "Etapa 1",
                     data: new Date().toISOString(),
                     liderancas_relacionadas: liderancasIds,
-                    organizacoes_relacionadas: organizacoesIds
-                });
+                    organizacoes_relacionadas: organizacoesIds,
+                    demanda_requer_devolutiva: requerDevolutiva,
+                    status_devolutiva: requerDevolutiva ? 'pendente' : 'nao_requerida',
+                    prazo_devolutiva: requerDevolutiva ? prazoDevolutiva.toISOString().split('T')[0] : null,
+                    encaminhamento_realizado: deteccaoEncaminhamento.encaminhamento_detectado,
+                    detalhes_encaminhamento: deteccaoEncaminhamento.detalhes || null,
+                    data_encaminhamento: deteccaoEncaminhamento.encaminhamento_detectado ? new Date().toISOString() : null,
+                    linha_tempo_demanda: [{
+                        data: new Date().toISOString(),
+                        evento: 'Demanda registrada',
+                        registro_id: null
+                    }]
+                    });
 
                 // Verificação ética
                 const verificacaoEtica = await base44.integrations.Core.InvokeLLM({
@@ -475,6 +518,21 @@ Retorne lista de alertas ou lista vazia.`,
                 }
 
                 // Se for áudio, mostrar tela de revisão
+                // Verificar continuidade ANTES de finalizar
+                setAtividadeParaContinuidade({
+                    id: novaAtividade.id,
+                    titulo: novaAtividade.titulo,
+                    local: novaAtividade.local,
+                    temas_identificados: novaAtividade.temas_identificados,
+                    liderancas_relacionadas: liderancasIds,
+                    demandas: novaAtividade.demandas
+                });
+                setVerificandoContinuidade(true);
+                setLoading(false);
+
+                return; // Não continuar até resolver continuidade
+
+                /* CÓDIGO ANTERIOR MOVIDO PARA DEPOIS DA VERIFICAÇÃO
                 if (tipo === 'audio') {
                     setDadosRevisao({
                         audioUrl: anexos[0],
@@ -610,7 +668,16 @@ Retorne lista de alertas ou lista vazia.`,
 
             setTimeout(() => {
                 document.body.removeChild(divSucesso);
-                navigate(createPageUrl("Etapa1") + "?id=" + dadosRevisao.atividadeId);
+                // Verificar continuidade após confirmar revisão
+          setAtividadeParaContinuidade({
+              id: dadosRevisao.atividadeId,
+              titulo: dadosConfirmados.titulo,
+              local: dadosConfirmados.local,
+              temas_identificados: dadosConfirmados.temas,
+              demandas: dadosConfirmados.demandas
+          });
+          setVerificandoContinuidade(true);
+          setDadosRevisao(null);
             }, 2500);
 
         } catch (error) {
@@ -633,6 +700,71 @@ Retorne lista de alertas ou lista vazia.`,
                         </p>
                     </CardContent>
                 </Card>
+            </div>
+        );
+    }
+
+    if (verificandoContinuidade && atividadeParaContinuidade) {
+        return (
+            <div className="min-h-screen p-6" style={{ backgroundColor: '#f8f9fa' }}>
+                <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setVerificandoContinuidade(false);
+                                setAtividadeParaContinuidade(null);
+                            }}
+                            style={{ borderColor: '#0B1E33', color: '#0B1E33' }}
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Voltar
+                        </Button>
+                        <h1 className="text-3xl font-bold" style={{ color: '#0B1E33' }}>
+                            Verificação de Continuidade
+                        </h1>
+                    </div>
+
+                    <DetectorContinuidade
+                        atividadeNova={atividadeParaContinuidade}
+                        onVincular={async (registrosAnteriores) => {
+                            // Vincular registros
+                            const usuario = await base44.auth.me();
+
+                            for (const regId of registrosAnteriores) {
+                                const regAnterior = await base44.entities.Atividade.list();
+                                const reg = regAnterior.find(r => r.id === regId);
+
+                                // Atualizar registro anterior
+                                await base44.entities.Atividade.update(regId, {
+                                    registros_continuidade: [
+                                        ...(reg.registros_continuidade || []),
+                                        atividadeParaContinuidade.id
+                                    ],
+                                    linha_tempo_demanda: [
+                                        ...(reg.linha_tempo_demanda || []),
+                                        {
+                                            data: new Date().toISOString(),
+                                            evento: 'Registro de continuidade vinculado',
+                                            registro_id: atividadeParaContinuidade.id
+                                        }
+                                    ]
+                                });
+                            }
+
+                            // Atualizar novo registro
+                            await base44.entities.Atividade.update(atividadeParaContinuidade.id, {
+                                registro_origem_continuidade: registrosAnteriores[0]
+                            });
+
+                            alert('✓ Continuidade registrada com sucesso!');
+                            navigate(createPageUrl("Etapa1") + "?id=" + atividadeParaContinuidade.id);
+                        }}
+                        onIgnorar={() => {
+                            navigate(createPageUrl("Etapa1") + "?id=" + atividadeParaContinuidade.id);
+                        }}
+                    />
+                </div>
             </div>
         );
     }

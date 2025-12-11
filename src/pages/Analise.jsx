@@ -14,6 +14,7 @@ import LiderancasEmergentes from "../components/analise/LiderancasEmergentes";
 import ComparativoTerritorial from "../components/analise/ComparativoTerritorial";
 import StorytellingTerritorial from "../components/analise/StorytellingTerritorial";
 import ComparadorPeriodos from "../components/analise/ComparadorPeriodos";
+import PainelPendencias from "../components/devolutiva/PainelPendencias";
 
 export default function Analise() {
     const navigate = useNavigate();
