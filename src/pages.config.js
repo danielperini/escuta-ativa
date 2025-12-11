@@ -28,6 +28,7 @@ import Analise from './pages/Analise';
 import ReunioesRealizadas from './pages/ReunioesRealizadas';
 import Comunicacao from './pages/Comunicacao';
 import Documentos from './pages/Documentos';
+import GerenciarPermissoes from './pages/GerenciarPermissoes';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +63,7 @@ export const PAGES = {
     "ReunioesRealizadas": ReunioesRealizadas,
     "Comunicacao": Comunicacao,
     "Documentos": Documentos,
+    "GerenciarPermissoes": GerenciarPermissoes,
 }
 
 export const pagesConfig = {
