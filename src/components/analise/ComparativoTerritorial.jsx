@@ -175,6 +175,52 @@ Seja analítico, objetivo e baseado em dados.
                                 areas_criticas: { type: "array", items: { type: "string" } }
                             }
                         },
+                        elementos_comuns: {
+                            type: "object",
+                            properties: {
+                                riscos_compartilhados: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            risco: { type: "string" },
+                                            comunidades_afetadas: { type: "array", items: { type: "string" } },
+                                            nivel_gravidade: { type: "string", enum: ["baixo", "moderado", "alto", "critico"] }
+                                        }
+                                    }
+                                },
+                                oportunidades_comuns: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            oportunidade: { type: "string" },
+                                            comunidades: { type: "array", items: { type: "string" } },
+                                            potencial_sinergia: { type: "string" }
+                                        }
+                                    }
+                                },
+                                demandas_recorrentes: { type: "array", items: { type: "string" } }
+                            }
+                        },
+                        solucoes_regionais: {
+                            type: "object",
+                            properties: {
+                                acoes_conjuntas: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            acao: { type: "string" },
+                                            territorios_envolvidos: { type: "array", items: { type: "string" } },
+                                            beneficio_esperado: { type: "string" }
+                                        }
+                                    }
+                                },
+                                sinergias_identificadas: { type: "array", items: { type: "string" } },
+                                recursos_compartilhaveis: { type: "array", items: { type: "string" } }
+                            }
+                        },
                         recomendacoes: {
                             type: "array",
                             items: {
@@ -451,6 +497,141 @@ Seja analítico, objetivo e baseado em dados.
                                     ))}
                                 </ul>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-l-4 border-orange-600">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <AlertTriangle className="w-5 h-5 text-orange-600" />
+                                Riscos Compartilhados Entre Territórios
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Riscos comuns que exigem soluções regionais coordenadas:
+                            </p>
+                            <div className="space-y-3">
+                                {resultado.analise.elementos_comuns?.riscos_compartilhados?.map((item, idx) => (
+                                    <div key={idx} className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-400">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <h4 className="font-bold text-orange-900">{item.risco}</h4>
+                                            <Badge className={
+                                                item.nivel_gravidade === "critico" ? "bg-red-600 text-white" :
+                                                item.nivel_gravidade === "alto" ? "bg-red-100 text-red-800" :
+                                                item.nivel_gravidade === "moderado" ? "bg-yellow-100 text-yellow-800" :
+                                                "bg-green-100 text-green-800"
+                                            }>
+                                                {item.nivel_gravidade}
+                                            </Badge>
+                                        </div>
+                                        <div className="text-sm text-gray-700">
+                                            <span className="font-semibold">Comunidades afetadas:</span> {item.comunidades_afetadas?.join(", ")}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-l-4 border-green-600">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Lightbulb className="w-5 h-5 text-green-600" />
+                                Oportunidades Comuns e Potencial de Sinergia
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Oportunidades que podem ser aproveitadas de forma integrada:
+                            </p>
+                            <div className="space-y-3">
+                                {resultado.analise.elementos_comuns?.oportunidades_comuns?.map((item, idx) => (
+                                    <div key={idx} className="bg-green-50 p-4 rounded-lg border-l-4 border-green-400">
+                                        <h4 className="font-bold text-green-900 mb-2">{item.oportunidade}</h4>
+                                        <div className="text-sm text-gray-700 space-y-1">
+                                            <div>
+                                                <span className="font-semibold">Comunidades:</span> {item.comunidades?.join(", ")}
+                                            </div>
+                                            <div className="bg-white p-2 rounded mt-2">
+                                                <span className="font-semibold text-green-800">Potencial de Sinergia:</span>
+                                                <p className="text-xs mt-1">{item.potencial_sinergia}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {resultado.analise.elementos_comuns?.demandas_recorrentes && 
+                             resultado.analise.elementos_comuns.demandas_recorrentes.length > 0 && (
+                                <div className="mt-4 bg-blue-50 p-3 rounded">
+                                    <h4 className="font-semibold text-sm mb-2 text-blue-900">Demandas Recorrentes:</h4>
+                                    <ul className="space-y-1 text-sm text-blue-800">
+                                        {resultado.analise.elementos_comuns.demandas_recorrentes.map((dem, idx) => (
+                                            <li key={idx}>• {dem}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-indigo-50 border-l-4 border-indigo-600">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Users className="w-5 h-5 text-indigo-600" />
+                                Soluções Regionais e Ações Conjuntas
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <h4 className="font-semibold mb-3">Ações Conjuntas Recomendadas:</h4>
+                                <div className="space-y-3">
+                                    {resultado.analise.solucoes_regionais?.acoes_conjuntas?.map((acao, idx) => (
+                                        <div key={idx} className="bg-white p-4 rounded-lg shadow-sm">
+                                            <h5 className="font-bold text-indigo-900 mb-2">{acao.acao}</h5>
+                                            <div className="text-sm space-y-1">
+                                                <div className="flex flex-wrap gap-1">
+                                                    <span className="font-semibold">Territórios:</span>
+                                                    {acao.territorios_envolvidos?.map((terr, tidx) => (
+                                                        <Badge key={tidx} variant="outline" className="text-xs">
+                                                            {terr}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                                <div className="bg-green-50 p-2 rounded mt-2">
+                                                    <span className="font-semibold text-green-800">Benefício Esperado:</span>
+                                                    <p className="text-xs mt-1 text-gray-700">{acao.beneficio_esperado}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {resultado.analise.solucoes_regionais?.sinergias_identificadas && 
+                             resultado.analise.solucoes_regionais.sinergias_identificadas.length > 0 && (
+                                <div className="bg-purple-50 p-3 rounded">
+                                    <h4 className="font-semibold text-sm mb-2 text-purple-900">Sinergias Identificadas:</h4>
+                                    <ul className="space-y-1 text-sm text-purple-800">
+                                        {resultado.analise.solucoes_regionais.sinergias_identificadas.map((sin, idx) => (
+                                            <li key={idx}>✦ {sin}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {resultado.analise.solucoes_regionais?.recursos_compartilhaveis && 
+                             resultado.analise.solucoes_regionais.recursos_compartilhaveis.length > 0 && (
+                                <div className="bg-amber-50 p-3 rounded">
+                                    <h4 className="font-semibold text-sm mb-2 text-amber-900">Recursos Compartilháveis:</h4>
+                                    <ul className="space-y-1 text-sm text-amber-800">
+                                        {resultado.analise.solucoes_regionais.recursos_compartilhaveis.map((rec, idx) => (
+                                            <li key={idx}>→ {rec}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
