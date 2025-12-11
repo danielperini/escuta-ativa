@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
@@ -16,8 +16,12 @@ import {
   MapPin,
   Calendar,
   Users,
-  Save
+  Save,
+  AlertCircle,
+  Zap,
+  CheckCircle2
 } from 'lucide-react';
+import AnalisadorMidia from '@/components/registro/AnalisadorMidia';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,6 +68,10 @@ export default function NovoRegistro() {
   const [novoProximoPasso, setNovoProximoPasso] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [arquivoParaAnalisar, setArquivoParaAnalisar] = useState(null);
+  const [camposPreenchidosAuto, setCamposPreenchidosAuto] = useState([]);
+  const [camposPendentes, setCamposPendentes] = useState([]);
+  const [statusSincronizacao, setStatusSincronizacao] = useState('concluido');
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
@@ -83,13 +91,71 @@ export default function NovoRegistro() {
     if (!file) return;
 
     setIsUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setStatusSincronizacao('sincronizando');
     
-    setFormData(prev => ({
-      ...prev,
-      arquivos: [...prev.arquivos, { url: file_url, tipo, nome: file.name }]
-    }));
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      const arquivoInfo = { url: file_url, tipo, nome: file.name };
+      
+      setFormData(prev => ({
+        ...prev,
+        arquivos: [...prev.arquivos, arquivoInfo]
+      }));
+      
+      // Automatically trigger analysis for the first media file
+      if (formData.arquivos.length === 0) {
+        setArquivoParaAnalisar(arquivoInfo);
+      }
+      
+      setStatusSincronizacao('concluido');
+    } catch (error) {
+      setStatusSincronizacao('erro');
+      console.error('Erro no upload:', error);
+    }
+    
     setIsUploading(false);
+  };
+
+  const handleAnaliseCompleta = (resultado) => {
+    const { analise, transcricao, camposPreenchidos } = resultado;
+    
+    // Auto-fill form data
+    const novosValores = {
+      titulo: analise.titulo_sugerido || formData.titulo,
+      tipo: analise.tipo_sugerido || formData.tipo,
+      descricao: analise.resumo_automatico || formData.descricao,
+      transcricao: transcricao,
+      participantes: [...formData.participantes, ...(analise.participantes || [])],
+      comunidade: analise.comunidade || formData.comunidade,
+      temas_identificados: [...formData.temas_identificados, ...(analise.temas || [])],
+      sentimento: analise.sentimento || formData.sentimento,
+      temperatura_territorio: analise.temperatura_territorio,
+      indicadores_risco: analise.indicadores_risco || [],
+      demandas: [...formData.demandas, ...(analise.demandas?.map(d => ({ ...d, status: 'pendente' })) || [])],
+      compromissos: [...formData.compromissos, ...(analise.compromissos?.map(c => ({ ...c, status: 'pendente' })) || [])],
+      proximos_passos: [...formData.proximos_passos, ...(analise.proximos_passos || [])],
+      resumo_automatico: analise.resumo_automatico,
+      preenchimento_automatico: {
+        origem: resultado.origem,
+        campos_preenchidos: camposPreenchidos,
+        confianca: resultado.confianca,
+        timestamp: new Date().toISOString()
+      }
+    };
+
+    setFormData(prev => ({ ...prev, ...novosValores }));
+    setCamposPreenchidosAuto(camposPreenchidos);
+    
+    // Identify pending fields
+    const pendentes = [];
+    if (!novosValores.titulo) pendentes.push('titulo');
+    if (!novosValores.comunidade) pendentes.push('comunidade');
+    if (novosValores.participantes.length === 0) pendentes.push('participantes');
+    if (novosValores.proximos_passos.length === 0) pendentes.push('proximos_passos');
+    
+    setCamposPendentes(pendentes);
+    setArquivoParaAnalisar(null);
   };
 
   const removeArquivo = (index) => {
@@ -242,16 +308,35 @@ Participantes: ${formData.participantes.join(', ') || 'Não especificados'}`;
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link to={createPageUrl('Registros')}>
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-        </Link>
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Novo Registro</h2>
-          <p className="text-slate-500">Registre uma interação comunitária</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Link to={createPageUrl('Registros')}>
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Novo Registro</h2>
+            <p className="text-slate-500">Grave ou envie mídia para preenchimento automático</p>
+          </div>
         </div>
+        
+        {/* Sync status */}
+        {statusSincronizacao !== 'concluido' && (
+          <Badge 
+            variant="secondary" 
+            className={cn(
+              statusSincronizacao === 'sincronizando' && "bg-blue-100 text-blue-700 animate-pulse",
+              statusSincronizacao === 'pendente' && "bg-amber-100 text-amber-700",
+              statusSincronizacao === 'erro' && "bg-red-100 text-red-700"
+            )}
+          >
+            {statusSincronizacao === 'sincronizando' && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
+            {statusSincronizacao === 'pendente' && <Clock className="w-3 h-3 mr-1" />}
+            {statusSincronizacao === 'erro' && <AlertCircle className="w-3 h-3 mr-1" />}
+            {statusSincronizacao}
+          </Badge>
+        )}
       </div>
 
       {/* Form */}
@@ -264,12 +349,25 @@ Participantes: ${formData.participantes.join(', ') || 'Não especificados'}`;
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="titulo">Título *</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="titulo">Título *</Label>
+                  {camposPreenchidosAuto.includes('titulo_sugerido') && (
+                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 text-xs">
+                      <Zap className="w-3 h-3 mr-1" /> Auto
+                    </Badge>
+                  )}
+                  {camposPendentes.includes('titulo') && (
+                    <Badge variant="secondary" className="bg-amber-100 text-amber-700 text-xs">
+                      <AlertCircle className="w-3 h-3 mr-1" /> Pendente
+                    </Badge>
+                  )}
+                </div>
                 <Input
                   id="titulo"
                   placeholder="Ex: Reunião com associação de moradores"
                   value={formData.titulo}
                   onChange={(e) => setFormData(prev => ({ ...prev, titulo: e.target.value }))}
+                  className={cn(camposPendentes.includes('titulo') && "border-amber-300 bg-amber-50/50")}
                 />
               </div>
               <div className="space-y-2">
@@ -291,12 +389,24 @@ Participantes: ${formData.participantes.join(', ') || 'Não especificados'}`;
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="comunidade">Comunidade</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="comunidade">Comunidade</Label>
+                {camposPreenchidosAuto.includes('comunidade') && (
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 text-xs">
+                    <Zap className="w-3 h-3 mr-1" /> Auto
+                  </Badge>
+                )}
+                {camposPendentes.includes('comunidade') && (
+                  <Badge variant="secondary" className="bg-amber-100 text-amber-700 text-xs">
+                    <AlertCircle className="w-3 h-3 mr-1" /> Pendente
+                  </Badge>
+                )}
+              </div>
               <Select
                 value={formData.comunidade}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, comunidade: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className={cn(camposPendentes.includes('comunidade') && "border-amber-300 bg-amber-50/50")}>
                   <SelectValue placeholder="Selecione uma comunidade" />
                 </SelectTrigger>
                 <SelectContent>
@@ -414,12 +524,24 @@ Participantes: ${formData.participantes.join(', ') || 'Não especificados'}`;
         </Button>
 
         {/* Participantes */}
-        <Card>
+        <Card className={cn(camposPendentes.includes('participantes') && "border-amber-300 bg-amber-50/30")}>
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Participantes
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Participantes
+              </CardTitle>
+              {camposPreenchidosAuto.includes('participantes') && (
+                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                  <Zap className="w-3 h-3 mr-1" /> {formData.participantes.length} detectados
+                </Badge>
+              )}
+              {camposPendentes.includes('participantes') && (
+                <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+                  <AlertCircle className="w-3 h-3 mr-1" /> Adicione participantes
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">

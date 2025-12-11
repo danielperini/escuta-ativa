@@ -21,7 +21,8 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
+  Shield
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -146,13 +147,13 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-4 flex-1">
           <Link to={createPageUrl('Registros')}>
             <Button variant="ghost" size="icon">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-bold text-slate-900">{registro.titulo}</h2>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <Badge variant="secondary" className={cn(tipo.color)}>
@@ -175,6 +176,14 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
               )}
             </div>
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link to={createPageUrl(`AuditoriaRegistro?id=${registro.id}`)}>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Shield className="w-4 h-4" />
+              Ver Auditoria
+            </Button>
+          </Link>
         </div>
       </div>
 

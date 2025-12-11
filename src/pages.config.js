@@ -8,6 +8,7 @@ import VozComunidade from './pages/VozComunidade';
 import Atores from './pages/Atores';
 import Compromissos from './pages/Compromissos';
 import Configuracoes from './pages/Configuracoes';
+import AuditoriaRegistro from './pages/AuditoriaRegistro';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "Atores": Atores,
     "Compromissos": Compromissos,
     "Configuracoes": Configuracoes,
+    "AuditoriaRegistro": AuditoriaRegistro,
 }
 
 export const pagesConfig = {
