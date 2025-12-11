@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, FileText, Book, Shield, Users, AlertTriangle } from "lucide-react";
+import { Plus, FileText, Book, Shield, Users, AlertTriangle, MessageSquare, Star, Building, BarChart3, Lightbulb, ShieldCheck } from "lucide-react";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -15,12 +15,12 @@ export default function Dashboard() {
     };
 
     const menuItems = [
-        { title: "Atividades", icon: Users, path: "Atividades", description: "Gerencie reuniões, diálogos e demandas" },
-        { title: "Lideranças Comunitárias", icon: Users, path: "GerenciarLiderancas", description: "Cadastro de lideranças e interlocutores" },
-        { title: "Organizações", icon: Users, path: "GerenciarOrganizacoes", description: "Gerenciar projetos e organizações" },
-        { title: "Relatórios", icon: FileText, path: "Relatorios", description: "Gere relatórios em PDF, DOCX e XLSX" },
-        { title: "Código de Ética", icon: Shield, path: "CodigoEtica", description: "Diretrizes éticas e de conduta" },
-        { title: "Dicas de Relacionamento", icon: Book, path: "DicasRelacionamento", description: "Boas práticas comunitárias" }
+        { title: "Atividades", icon: MessageSquare, path: "Atividades", description: "Gerencie reuniões, diálogos e demandas" },
+        { title: "Lideranças Comunitárias", icon: Star, path: "GerenciarLiderancas", description: "Cadastro de lideranças e interlocutores" },
+        { title: "Organizações", icon: Building, path: "GerenciarOrganizacoes", description: "Gerenciar projetos e organizações" },
+        { title: "Relatórios", icon: BarChart3, path: "Relatorios", description: "Gere relatórios em PDF, DOCX e XLSX" },
+        { title: "Código de Ética", icon: ShieldCheck, path: "CodigoEtica", description: "Diretrizes éticas e de conduta" },
+        { title: "Dicas de Relacionamento", icon: Lightbulb, path: "DicasRelacionamento", description: "Boas práticas comunitárias" }
     ];
 
     return (

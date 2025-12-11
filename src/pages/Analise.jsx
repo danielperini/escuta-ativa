@@ -5,6 +5,8 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import GrafoRede from "../components/analise/GrafoRede";
+import GraficosAnalise from "../components/analise/GraficosAnalise";
+import IndicadoresCompromissos from "../components/analise/IndicadoresCompromissos";
 
 export default function Analise() {
     const navigate = useNavigate();
@@ -38,15 +40,11 @@ export default function Analise() {
                     </TabsContent>
 
                     <TabsContent value="graficos" className="mt-6">
-                        <div className="text-center py-12 text-gray-500">
-                            Módulo de Gráficos em desenvolvimento
-                        </div>
+                        <GraficosAnalise />
                     </TabsContent>
 
                     <TabsContent value="indicadores" className="mt-6">
-                        <div className="text-center py-12 text-gray-500">
-                            Módulo de Indicadores em desenvolvimento
-                        </div>
+                        <IndicadoresCompromissos />
                     </TabsContent>
                 </Tabs>
             </div>
