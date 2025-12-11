@@ -5,11 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Mic, Camera, Video, FileText, Upload, Loader2 } from "lucide-react";
+import GravadorAudio from "../components/audio/GravadorAudio";
+import RevisaoTranscricao from "../components/audio/RevisaoTranscricao";
 
 export default function RegistreEscuta() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [tipoInput, setTipoInput] = useState(null);
+    const [dadosRevisao, setDadosRevisao] = useState(null);
 
     const processarInput = async (tipo, file = null, texto = null) => {
         setLoading(true);
@@ -297,8 +300,30 @@ Retorne lista de alertas ou lista vazia.`,
                     });
                 }
 
-                setLoading(false);
-                navigate(createPageUrl("Etapa1") + "?id=" + novaAtividade.id);
+                // Se for áudio, mostrar tela de revisão
+                if (tipo === 'audio') {
+                    setDadosRevisao({
+                        audioUrl: anexos[0],
+                        transcricao: resultado.transcricao,
+                        interpretacao: {
+                            titulo: resultado.titulo,
+                            local: resultado.local,
+                            temas: resultado.temas,
+                            demandas: resultado.demandas,
+                            compromissos: resultado.compromissos,
+                            participantes: resultado.participantes,
+                            sentimento: resultado.sentimento,
+                            risco_identificado: resultado.riscos_identificados && resultado.riscos_identificados.length > 0 
+                                ? { nivel: "moderado", descricao: resultado.riscos_identificados[0].titulo }
+                                : null
+                        },
+                        atividadeId: novaAtividade.id
+                    });
+                    setLoading(false);
+                } else {
+                    setLoading(false);
+                    navigate(createPageUrl("Etapa1") + "?id=" + novaAtividade.id);
+                }
             } else if (texto) {
                 // Input de texto direto
                 navigate(createPageUrl("Etapa1") + "?texto=" + encodeURIComponent(texto));
@@ -314,15 +339,7 @@ Retorne lista de alertas ou lista vazia.`,
     };
 
     const handleAudio = () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'audio/*';
-        input.capture = 'microphone';
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) processarInput('audio', file);
-        };
-        input.click();
+        setTipoInput('audio');
     };
 
     const handleFoto = () => {
@@ -352,12 +369,32 @@ Retorne lista de alertas ou lista vazia.`,
     const handleDocumento = () => {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.pdf,.doc,.docx';
+        input.accept = '.pdf,.doc,.docx,.txt';
         input.onchange = (e) => {
             const file = e.target.files[0];
             if (file) processarInput('documento', file);
         };
         input.click();
+    };
+
+    const handleAudioFinalizado = (audioFile) => {
+        processarInput('audio', audioFile);
+        setTipoInput(null);
+    };
+
+    const confirmarRevisao = async (dadosConfirmados) => {
+        try {
+            await base44.entities.Atividade.update(dadosRevisao.atividadeId, {
+                titulo: dadosConfirmados.titulo,
+                local: dadosConfirmados.local,
+                temas_identificados: dadosConfirmados.temas,
+                demandas: dadosConfirmados.demandas
+            });
+
+            navigate(createPageUrl("Etapa1") + "?id=" + dadosRevisao.atividadeId);
+        } catch (error) {
+            alert("Erro ao salvar: " + error.message);
+        }
     };
 
     if (loading) {
@@ -374,6 +411,84 @@ Retorne lista de alertas ou lista vazia.`,
                         </p>
                     </CardContent>
                 </Card>
+            </div>
+        );
+    }
+
+    if (dadosRevisao) {
+        return (
+            <div className="min-h-screen p-6" style={{ backgroundColor: '#f8f9fa' }}>
+                <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => setDadosRevisao(null)}
+                            style={{ borderColor: '#0B1E33', color: '#0B1E33' }}
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Voltar
+                        </Button>
+                        <h1 className="text-3xl font-bold" style={{ color: '#0B1E33' }}>
+                            Revisão de Transcrição
+                        </h1>
+                    </div>
+
+                    <RevisaoTranscricao
+                        audioUrl={dadosRevisao.audioUrl}
+                        transcricao={dadosRevisao.transcricao}
+                        interpretacao={dadosRevisao.interpretacao}
+                        onConfirmar={confirmarRevisao}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    if (tipoInput === 'audio') {
+        return (
+            <div className="min-h-screen p-6" style={{ backgroundColor: '#f8f9fa' }}>
+                <div className="max-w-2xl mx-auto space-y-6">
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => setTipoInput(null)}
+                            style={{ borderColor: '#0B1E33', color: '#0B1E33' }}
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Voltar
+                        </Button>
+                        <h1 className="text-3xl font-bold" style={{ color: '#0B1E33' }}>
+                            Gravar Áudio
+                        </h1>
+                    </div>
+
+                    <GravadorAudio onAudioFinalizado={handleAudioFinalizado} />
+
+                    <Card style={{ backgroundColor: '#DBEAFE' }}>
+                        <CardContent className="pt-6">
+                            <h3 className="font-bold mb-2" style={{ color: '#0B1E33' }}>
+                                Você também pode anexar áudio externo:
+                            </h3>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    const input = document.createElement('input');
+                                    input.type = 'file';
+                                    input.accept = 'audio/mp3,audio/wav,audio/ogg,audio/m4a,audio/*';
+                                    input.onchange = (e) => {
+                                        const file = e.target.files[0];
+                                        if (file) handleAudioFinalizado(file);
+                                    };
+                                    input.click();
+                                }}
+                                className="w-full"
+                            >
+                                <Upload className="w-4 h-4 mr-2" />
+                                Enviar arquivo de áudio (MP3, WAV, OGG, M4A)
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         );
     }
@@ -428,7 +543,7 @@ Retorne lista de alertas ou lista vazia.`,
                             >
                                 <Mic className="w-12 h-12" style={{ color: '#F2B632' }} />
                                 <span className="font-semibold" style={{ color: '#0B1E33' }}>Áudio</span>
-                                <span className="text-xs text-gray-500">Grave sua fala</span>
+                                <span className="text-xs text-gray-500">Grave ou envie áudio</span>
                             </Button>
 
                             <Button
@@ -500,10 +615,34 @@ Retorne lista de alertas ou lista vazia.`,
                                 <span style={{ color: '#F2B632' }}>✓</span>
                                 Verificação ética automática
                             </li>
-                        </ul>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    );
-}
+                            <li className="flex gap-2">
+                                <span style={{ color: '#F2B632' }}>✓</span>
+                                Gravação de áudio nativa com controles
+                            </li>
+                            <li className="flex gap-2">
+                                <span style={{ color: '#F2B632' }}>✓</span>
+                                Suporte a MP3, WAV, OGG, M4A
+                            </li>
+                            <li className="flex gap-2">
+                                <span style={{ color: '#F2B632' }}>✓</span>
+                                Revisão antes de salvar
+                            </li>
+                            </ul>
+                            </CardContent>
+                            </Card>
+
+                            <Card style={{ backgroundColor: '#FEF3C7' }}>
+                            <CardContent className="pt-6">
+                            <h3 className="font-bold mb-2" style={{ color: '#0B1E33' }}>
+                            ⚠️ Fotos e vídeos:
+                            </h3>
+                            <p className="text-sm text-gray-700">
+                            Fotos e vídeos são anexados apenas como <strong>evidências</strong>. Nenhuma análise visual é feita pela IA. 
+                            Toda interpretação vem do texto, áudio transcrito ou documentos processados.
+                            </p>
+                            </CardContent>
+                            </Card>
+                            </div>
+                            </div>
+                            );
+                            }
