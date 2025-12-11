@@ -4,13 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, BookOpen, MapPin, Users, Building2, Newspaper, RefreshCw } from "lucide-react";
+import { Loader2, BookOpen, MapPin, Users, Building2, Newspaper, RefreshCw, Download, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { exportarParaPDF } from "../relatorios/ExportadorPDF";
+import { exportarParaCSV } from "../relatorios/ExportadorCSV";
 
 export default function StorytellingTerritorial() {
     const [comunidadeSelecionada, setComunidadeSelecionada] = useState("");
     const [gerando, setGerando] = useState(false);
     const [storytelling, setStorytelling] = useState(null);
+    const [exportando, setExportando] = useState(false);
 
     const { data: comunidades = [] } = useQuery({
         queryKey: ['comunidades-storytelling'],
@@ -206,6 +209,125 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
         }
     };
 
+    const exportarStorytellingPDF = () => {
+        if (!storytelling) return;
+
+        setExportando(true);
+
+        const dadosRelatorio = {
+            titulo: `Storytelling Territorial - ${comunidadeSelecionada}`,
+            resumo: storytelling.narrativa_territorial?.introducao || '',
+            kpis: {
+                'População': storytelling.dados_demograficos?.populacao_total || 'N/A',
+                'IDHM': storytelling.dados_demograficos?.idhm || 'N/A',
+                'Extensão': storytelling.dados_demograficos?.extensao_territorial || 'N/A'
+            },
+            tabela: [
+                {
+                    aspecto: 'Formação da Comunidade',
+                    descricao: storytelling.narrativa_territorial?.formacao_comunidade || ''
+                },
+                {
+                    aspecto: 'Características Culturais',
+                    descricao: storytelling.narrativa_territorial?.caracteristicas_culturais || ''
+                },
+                {
+                    aspecto: 'Contexto Municipal',
+                    descricao: storytelling.narrativa_territorial?.contexto_municipal || ''
+                },
+                {
+                    aspecto: 'Prefeito(a)',
+                    descricao: storytelling.dados_institucionais?.prefeito || 'N/A'
+                },
+                {
+                    aspecto: 'Partido',
+                    descricao: storytelling.dados_institucionais?.partido || 'N/A'
+                }
+            ],
+            insights: [
+                ...(storytelling.narrativa_territorial?.linha_tempo || []),
+                ...(storytelling.integracao_interna?.falas_relevantes || []).slice(0, 3)
+            ]
+        };
+
+        exportarParaPDF(dadosRelatorio, 'storytelling', {
+            periodo: 'Narrativa completa',
+            comunidade: comunidadeSelecionada
+        });
+
+        setExportando(false);
+    };
+
+    const exportarStorytellingCSV = () => {
+        if (!storytelling) return;
+
+        setExportando(true);
+
+        const dadosRelatorio = {
+            titulo: `Storytelling Territorial - ${comunidadeSelecionada}`,
+            tabela: [
+                {
+                    categoria: 'Demografia',
+                    campo: 'População Total',
+                    valor: storytelling.dados_demograficos?.populacao_total || 'N/A',
+                    fonte: storytelling.dados_demograficos?.fonte || ''
+                },
+                {
+                    categoria: 'Demografia',
+                    campo: 'IDHM',
+                    valor: storytelling.dados_demograficos?.idhm || 'N/A',
+                    fonte: storytelling.dados_demograficos?.fonte || ''
+                },
+                {
+                    categoria: 'Demografia',
+                    campo: 'Extensão Territorial',
+                    valor: storytelling.dados_demograficos?.extensao_territorial || 'N/A',
+                    fonte: storytelling.dados_demograficos?.fonte || ''
+                },
+                {
+                    categoria: 'Institucional',
+                    campo: 'Prefeito(a)',
+                    valor: storytelling.dados_institucionais?.prefeito || 'N/A',
+                    fonte: storytelling.dados_institucionais?.fonte || ''
+                },
+                {
+                    categoria: 'Institucional',
+                    campo: 'Partido',
+                    valor: storytelling.dados_institucionais?.partido || 'N/A',
+                    fonte: storytelling.dados_institucionais?.fonte || ''
+                },
+                {
+                    categoria: 'Economia',
+                    campo: 'Caracterização',
+                    valor: storytelling.economia?.caracterizacao || 'N/A',
+                    fonte: storytelling.economia?.fonte || ''
+                },
+                ...(storytelling.economia?.principais_atividades || []).map(ativ => ({
+                    categoria: 'Economia',
+                    campo: 'Atividade Econômica',
+                    valor: ativ,
+                    fonte: storytelling.economia?.fonte || ''
+                })),
+                ...(storytelling.noticias_recentes || []).map(noticia => ({
+                    categoria: 'Notícias',
+                    campo: noticia.titulo,
+                    valor: noticia.resumo,
+                    fonte: noticia.fonte
+                })),
+                ...(storytelling.integracao_interna?.demandas_historicas || []).map(dem => ({
+                    categoria: 'Demandas Históricas',
+                    campo: 'Demanda',
+                    valor: dem,
+                    fonte: 'Dados internos Escuta Ativa'
+                }))
+            ]
+        };
+
+        exportarParaCSV(dadosRelatorio, 'storytelling');
+
+        setExportando(false);
+    };
+
     return (
         <div className="space-y-6">
             <Card>
@@ -257,6 +379,40 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
             </Card>
 
             {storytelling && (
+                <>
+                    <Card className="bg-green-50 border-green-200">
+                        <CardContent className="pt-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-green-700" />
+                                    <p className="text-sm font-semibold text-green-900">
+                                        Storytelling gerado com sucesso!
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={exportarStorytellingPDF}
+                                        disabled={exportando}
+                                    >
+                                        <Download className="w-4 h-4 mr-2" />
+                                        PDF
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={exportarStorytellingCSV}
+                                        disabled={exportando}
+                                    >
+                                        <Download className="w-4 h-4 mr-2" />
+                                        CSV
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                 <Tabs defaultValue="narrativa" className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="narrativa">
@@ -529,6 +685,7 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                         </Card>
                     </TabsContent>
                 </Tabs>
+                </>
             )}
         </div>
     );
