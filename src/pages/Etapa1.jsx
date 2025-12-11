@@ -201,11 +201,12 @@ export default function Etapa1() {
                                 )}
 
                                 <LinhaTempodemanda atividadeId={registroId} />
-                            </>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
+                                </>
+                                )}
+                                </div>
+                                </div>
+                                </div>
+                                </div>
+                                </div>
+                                );
+                                }

@@ -530,38 +530,8 @@ Retorne lista de alertas ou lista vazia.`,
                 setVerificandoContinuidade(true);
                 setLoading(false);
 
-                return; // Não continuar até resolver continuidade
-
-                /* CÓDIGO ANTERIOR MOVIDO PARA DEPOIS DA VERIFICAÇÃO
-                if (tipo === 'audio') {
-                    setDadosRevisao({
-                        audioUrl: anexos[0],
-                        transcricao: resultado.transcricao,
-                        interpretacao: {
-                            titulo: resultado.titulo,
-                            tipo_registro: resultado.tipo_registro_sugerido,
-                            justificativa_tipo: resultado.justificativa_tipo,
-                            sentimento: resultado.sentimento_predominante,
-                            nivel_urgencia: resultado.nivel_urgencia,
-                            acionamentos: resultado.acionamentos_sugeridos || [],
-                            local: resultado.local,
-                            temas: resultado.temas,
-                            demandas: resultado.demandas,
-                            compromissos: resultado.compromissos,
-                            participantes: resultado.participantes,
-                            risco_identificado: resultado.riscos_identificados && resultado.riscos_identificados.length > 0 
-                                ? { nivel: "moderado", descricao: resultado.riscos_identificados[0].titulo }
-                                : null
-                        },
-                        atividadeId: novaAtividade.id
-                    });
-                    setLoading(false);
-                } else {
-                    setLoading(false);
-                    navigate(createPageUrl("Etapa1") + "?id=" + novaAtividade.id);
-                }
+                return;
             } else if (texto) {
-                // Input de texto direto
                 navigate(createPageUrl("Etapa1") + "?texto=" + encodeURIComponent(texto));
             }
         } catch (error) {
