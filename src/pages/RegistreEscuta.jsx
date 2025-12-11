@@ -514,6 +514,7 @@ Retorne lista de alertas ou lista vazia.`,
     };
 
     const confirmarRevisao = async (dadosConfirmados) => {
+        setLoading(true);
         try {
             await base44.entities.Atividade.update(dadosRevisao.atividadeId, {
                 titulo: dadosConfirmados.titulo,
@@ -522,8 +523,51 @@ Retorne lista de alertas ou lista vazia.`,
                 demandas: dadosConfirmados.demandas
             });
 
-            navigate(createPageUrl("Etapa1") + "?id=" + dadosRevisao.atividadeId);
+            // Mostrar mensagem de sucesso
+            setLoading(false);
+            setDadosRevisao(null);
+            
+            // Exibir confirmação visual
+            const divSucesso = document.createElement('div');
+            divSucesso.className = 'registro-finalizado-overlay';
+            divSucesso.innerHTML = `
+                <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9998;"></div>
+                <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                            background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                            z-index: 9999; text-align: center; min-width: 400px; max-width: 90vw;">
+                    <div style="width: 80px; height: 80px; background: #22c55e; border-radius: 50%; 
+                                margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+                                animation: scaleIn 0.5s ease-out;">
+                        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <h2 style="color: #0B1E33; font-size: 24px; font-weight: bold; margin-bottom: 12px;">
+                        ✓ Registro Finalizado com Sucesso!
+                    </h2>
+                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 8px;">
+                        Seu registro foi salvo e processado pela IA.
+                    </p>
+                    <p style="color: #6b7280; font-size: 14px;">
+                        Todas as conexões foram estabelecidas automaticamente.
+                    </p>
+                </div>
+                <style>
+                    @keyframes scaleIn {
+                        from { transform: scale(0); }
+                        to { transform: scale(1); }
+                    }
+                </style>
+            `;
+            document.body.appendChild(divSucesso);
+
+            setTimeout(() => {
+                document.body.removeChild(divSucesso);
+                navigate(createPageUrl("Etapa1") + "?id=" + dadosRevisao.atividadeId);
+            }, 2500);
+
         } catch (error) {
+            setLoading(false);
             alert("Erro ao salvar: " + error.message);
         }
     };
