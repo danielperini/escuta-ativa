@@ -42,17 +42,12 @@ export default function Dashboard() {
             <div className="max-w-6xl mx-auto space-y-8">
                 <div className="text-center space-y-4">
                     <img 
-                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/efb30c403_ChatGPTImage11dedezde202511_08_47.png"
-                        alt="Escuta Ativa"
-                        className="h-20 mx-auto object-contain"
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/0e1bf5b7b_ChatGPTImage11dedezde202515_14_03.png"
+                        alt="Escutativa"
+                        className="h-24 mx-auto object-contain"
                     />
-                    <div>
-                        <h1 className="text-3xl font-bold" style={{ color: '#0B1E33' }}>
-                            Escuta Ativa
-                        </h1>
-                        <p className="text-gray-600 mt-1">Inteligência Aplicada ao Território</p>
-                    </div>
-                    </div>
+                    <p className="text-gray-600 mt-1">Inteligência Aplicada ao Território</p>
+                        </div>
 
                     <div className="mt-6">
                         <BuscaInteligenteGlobal />

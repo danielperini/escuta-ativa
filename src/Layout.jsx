@@ -136,23 +136,11 @@ export default function Layout({ children, currentPageName }) {
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
             <div className="flex items-center gap-3">
-              <div className="relative w-9 h-9">
-                {/* Sound wave icon with circular background */}
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#52B788] to-[#2D6A4F] flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 4V20M8 7V17M16 7V17M4 10V14M20 10V14" 
-                          stroke="white" 
-                          strokeWidth="2.5" 
-                          strokeLinecap="round"/>
-                  </svg>
-                </div>
-                {/* Subtle pulse effect */}
-                <div className="absolute inset-0 rounded-xl bg-[#52B788] opacity-30 animate-ping" style={{ animationDuration: '2s' }} />
-              </div>
-              <div>
-                <span className="text-white font-bold text-lg tracking-tight block leading-none">Escuta Ativa</span>
-                <span className="text-[#74C69D] text-[10px] font-medium tracking-wide uppercase">Inteligência Territorial</span>
-              </div>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/0e1bf5b7b_ChatGPTImage11dedezde202515_14_03.png"
+                alt="Escutativa"
+                className="h-8 object-contain"
+              />
             </div>
             <button 
               onClick={() => setSidebarOpen(false)}

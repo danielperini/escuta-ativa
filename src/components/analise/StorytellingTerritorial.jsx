@@ -13,6 +13,8 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 import "leaflet/dist/leaflet.css";
 import "../analise/LeafletFix";
 import EnriquecedorDadosExternos from "../integracao/EnriquecedorDadosExternos";
+import AnalisadorCruzamento from "./AnalisadorCruzamento";
+import { Sparkles, GitCompare } from "lucide-react";
 
 export default function StorytellingTerritorial() {
     const [comunidadeSelecionada, setComunidadeSelecionada] = useState("");
@@ -712,33 +714,37 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                     </Card>
 
                 <Tabs defaultValue="narrativa" className="w-full">
-                    <TabsList className="grid w-full grid-cols-7">
+                    <TabsList className="grid w-full grid-cols-8 text-xs">
                         <TabsTrigger value="narrativa">
-                            <BookOpen className="w-4 h-4 mr-2" />
+                            <BookOpen className="w-4 h-4 mr-1" />
                             História
                         </TabsTrigger>
                         <TabsTrigger value="dados">
-                            <MapPin className="w-4 h-4 mr-2" />
+                            <MapPin className="w-4 h-4 mr-1" />
                             Dados
                         </TabsTrigger>
                         <TabsTrigger value="visualizacoes">
-                            <TrendingUp className="w-4 h-4 mr-2" />
+                            <TrendingUp className="w-4 h-4 mr-1" />
                             Visualizações
                         </TabsTrigger>
                         <TabsTrigger value="series-temporais">
-                            <BarChart3 className="w-4 h-4 mr-2" />
-                            Séries Temporais
+                            <BarChart3 className="w-4 h-4 mr-1" />
+                            Séries
                         </TabsTrigger>
                         <TabsTrigger value="externos">
-                            <Building2 className="w-4 h-4 mr-2" />
-                            Dados Externos
+                            <Building2 className="w-4 h-4 mr-1" />
+                            Externos
+                        </TabsTrigger>
+                        <TabsTrigger value="cruzamento">
+                            <Sparkles className="w-4 h-4 mr-1" />
+                            Cruzamento IA
                         </TabsTrigger>
                         <TabsTrigger value="comparacao" disabled={comunidadesComparacao.length < 2}>
-                            <GitCompare className="w-4 h-4 mr-2" />
+                            <GitCompare className="w-4 h-4 mr-1" />
                             Comparação
                         </TabsTrigger>
                         <TabsTrigger value="integracao">
-                            <Users className="w-4 h-4 mr-2" />
+                            <Users className="w-4 h-4 mr-1" />
                             Integração
                         </TabsTrigger>
                     </TabsList>
@@ -1260,6 +1266,10 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                                 onDadosObtidos={(dados) => setDadosExternos(dados)}
                             />
                         )}
+                    </TabsContent>
+
+                    <TabsContent value="cruzamento" className="space-y-6">
+                        <AnalisadorCruzamento />
                     </TabsContent>
 
                     <TabsContent value="comparacao" className="space-y-6">
