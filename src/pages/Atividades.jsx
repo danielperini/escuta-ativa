@@ -9,11 +9,13 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Plus, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import AtividadeConexoes from "../components/AtividadeConexoes";
+import SugestoesConexoes from "../components/SugestoesConexoes";
 
 export default function Atividades() {
     const navigate = useNavigate();
+    const [atividadeExpandida, setAtividadeExpandida] = React.useState(null);
 
-    const { data: atividades, isLoading } = useQuery({
+    const { data: atividades, isLoading, refetch } = useQuery({
         queryKey: ['atividades'],
         queryFn: () => base44.entities.Atividade.list('-created_date'),
         initialData: []
@@ -138,6 +140,28 @@ export default function Atividades() {
                                                 atividadeId={atividade.id}
                                                 liderancasIds={atividade.liderancas_relacionadas}
                                                 organizacoesIds={atividade.organizacoes_relacionadas}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="mt-4">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setAtividadeExpandida(
+                                                atividadeExpandida === atividade.id ? null : atividade.id
+                                            )}
+                                            style={{ borderColor: '#F2B632', color: '#0B1E33' }}
+                                        >
+                                            {atividadeExpandida === atividade.id ? 'Ocultar' : 'Sugestões de Conexões (IA)'}
+                                        </Button>
+                                    </div>
+
+                                    {atividadeExpandida === atividade.id && (
+                                        <div className="mt-4">
+                                            <SugestoesConexoes 
+                                                atividade={atividade}
+                                                onConexoesAtualizadas={refetch}
                                             />
                                         </div>
                                     )}
