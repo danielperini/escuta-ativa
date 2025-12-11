@@ -29,6 +29,7 @@ import ReunioesRealizadas from './pages/ReunioesRealizadas';
 import Comunicacao from './pages/Comunicacao';
 import Documentos from './pages/Documentos';
 import GerenciarPermissoes from './pages/GerenciarPermissoes';
+import PreferenciasUsuario from './pages/PreferenciasUsuario';
 import __Layout from './Layout.jsx';
 
 
@@ -64,6 +65,7 @@ export const PAGES = {
     "Comunicacao": Comunicacao,
     "Documentos": Documentos,
     "GerenciarPermissoes": GerenciarPermissoes,
+    "PreferenciasUsuario": PreferenciasUsuario,
 }
 
 export const pagesConfig = {

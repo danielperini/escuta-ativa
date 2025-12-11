@@ -6,7 +6,7 @@ import {
   LayoutDashboard, 
   FileText, 
   MapPin, 
-  Users, 
+  Users as UsersIcon, 
   Target, 
   MessageCircle,
   CheckSquare,
@@ -16,7 +16,8 @@ import {
   LogOut,
   ChevronDown,
   CalendarDays,
-  BarChart3
+  BarChart3,
+  User
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -39,7 +40,7 @@ const navigation = [
   { name: 'Mapa', href: 'Mapa', icon: MapPin },
   { name: 'Materialidade', href: 'Materialidade', icon: Target },
   { name: 'Voz da Comunidade', href: 'VozComunidade', icon: MessageCircle },
-  { name: 'Atores', href: 'Atores', icon: Users },
+  { name: 'Atores', href: 'Atores', icon: UsersIcon },
   { name: 'Compromissos', href: 'Compromissos', icon: CheckSquare },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
 ];
@@ -185,7 +186,14 @@ export default function Layout({ children, currentPageName }) {
           </nav>
 
           {/* User section */}
-          <div className="p-4 border-t border-white/10">
+          <div className="p-4 border-t border-white/10 space-y-1">
+            <Link
+              to={createPageUrl('PreferenciasUsuario')}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white text-sm font-medium transition-all"
+            >
+              <User className="w-5 h-5" />
+              Meu Perfil
+            </Link>
             <Link
               to={createPageUrl('Configuracoes')}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white text-sm font-medium transition-all"
