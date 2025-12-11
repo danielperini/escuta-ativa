@@ -4,16 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, BookOpen, MapPin, Users, Building2, Newspaper, RefreshCw, Download, FileText } from "lucide-react";
+import { Loader2, BookOpen, MapPin, Users, Building2, Newspaper, RefreshCw, Download, FileText, TrendingUp, BarChart3, GitCompare } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { exportarParaPDF } from "../relatorios/ExportadorPDF";
 import { exportarParaCSV } from "../relatorios/ExportadorCSV";
+import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
+import "leaflet/dist/leaflet.css";
 
 export default function StorytellingTerritorial() {
     const [comunidadeSelecionada, setComunidadeSelecionada] = useState("");
     const [gerando, setGerando] = useState(false);
     const [storytelling, setStorytelling] = useState(null);
     const [exportando, setExportando] = useState(false);
+    const [modoComparacao, setModoComparacao] = useState(false);
+    const [comunidadesComparacao, setComunidadesComparacao] = useState([]);
+    const [storytellingsComparacao, setStorytellingsComparacao] = useState({});
 
     const { data: comunidades = [] } = useQuery({
         queryKey: ['comunidades-storytelling'],
@@ -171,7 +177,36 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                             properties: {
                                 principais_atividades: { type: "array", items: { type: "string" } },
                                 caracterizacao: { type: "string" },
+                                pib_per_capita: { type: "string" },
                                 fonte: { type: "string" }
+                            }
+                        },
+                        evolucao_demografica: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    ano: { type: "string" },
+                                    populacao: { type: "number" }
+                                }
+                            }
+                        },
+                        evolucao_economica: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    ano: { type: "string" },
+                                    pib: { type: "number" },
+                                    setor: { type: "string" }
+                                }
+                            }
+                        },
+                        localizacao: {
+                            type: "object",
+                            properties: {
+                                latitude: { type: "number" },
+                                longitude: { type: "number" }
                             }
                         },
                         noticias_recentes: {
@@ -328,6 +363,49 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
         setExportando(false);
     };
 
+    const adicionarComparacao = () => {
+        if (!comunidadeSelecionada || comunidadesComparacao.includes(comunidadeSelecionada)) {
+            alert("Selecione uma comunidade diferente para comparar");
+            return;
+        }
+
+        setComunidadesComparacao([...comunidadesComparacao, comunidadeSelecionada]);
+        
+        if (storytelling) {
+            setStorytellingsComparacao({
+                ...storytellingsComparacao,
+                [comunidadeSelecionada]: storytelling
+            });
+        }
+    };
+
+    const removerComparacao = (comunidade) => {
+        setComunidadesComparacao(comunidadesComparacao.filter(c => c !== comunidade));
+        const novo = { ...storytellingsComparacao };
+        delete novo[comunidade];
+        setStorytellingsComparacao(novo);
+    };
+
+    const compararComunidades = () => {
+        if (comunidadesComparacao.length < 2) {
+            alert("Selecione pelo menos 2 comunidades para comparar");
+            return;
+        }
+
+        const dadosComparacao = comunidadesComparacao.map(c => {
+            const st = storytellingsComparacao[c];
+            return {
+                nome: c,
+                populacao: parseInt(st?.dados_demograficos?.populacao_total?.replace(/\D/g, '') || 0),
+                idhm: parseFloat(st?.dados_demograficos?.idhm?.replace(',', '.') || 0),
+                densidade: parseFloat(st?.dados_demograficos?.densidade?.replace(/\D/g, '') || 0),
+                renda: parseFloat(st?.dados_demograficos?.renda_media?.replace(/\D/g, '') || 0)
+            };
+        });
+
+        return dadosComparacao;
+    };
+
     return (
         <div className="space-y-6">
             <Card>
@@ -357,24 +435,52 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                         </select>
                     </div>
 
-                    <Button
-                        onClick={gerarStorytelling}
-                        disabled={gerando || !comunidadeSelecionada}
-                        className="w-full"
-                        style={{ backgroundColor: '#0B1E33' }}
-                    >
-                        {gerando ? (
-                            <>
-                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                Gerando Storytelling...
-                            </>
-                        ) : (
-                            <>
-                                <RefreshCw className="w-5 h-5 mr-2" />
-                                Gerar Storytelling Territorial
-                            </>
-                        )}
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={gerarStorytelling}
+                            disabled={gerando || !comunidadeSelecionada}
+                            className="flex-1"
+                            style={{ backgroundColor: '#0B1E33' }}
+                        >
+                            {gerando ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                    Gerando...
+                                </>
+                            ) : (
+                                <>
+                                    <RefreshCw className="w-5 h-5 mr-2" />
+                                    Gerar
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            onClick={adicionarComparacao}
+                            disabled={!storytelling || !comunidadeSelecionada}
+                            variant="outline"
+                        >
+                            <GitCompare className="w-5 h-5 mr-2" />
+                            Adicionar à Comparação
+                        </Button>
+                    </div>
+
+                    {comunidadesComparacao.length > 0 && (
+                        <div className="bg-blue-50 p-3 rounded">
+                            <p className="text-sm font-semibold mb-2">Comunidades para Comparação:</p>
+                            <div className="flex flex-wrap gap-2">
+                                {comunidadesComparacao.map(c => (
+                                    <Badge
+                                        key={c}
+                                        className="cursor-pointer"
+                                        style={{ backgroundColor: '#3b82f6' }}
+                                        onClick={() => removerComparacao(c)}
+                                    >
+                                        {c} ✕
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -414,7 +520,7 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                     </Card>
 
                 <Tabs defaultValue="narrativa" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-5">
                         <TabsTrigger value="narrativa">
                             <BookOpen className="w-4 h-4 mr-2" />
                             História
@@ -422,6 +528,14 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                         <TabsTrigger value="dados">
                             <MapPin className="w-4 h-4 mr-2" />
                             Dados
+                        </TabsTrigger>
+                        <TabsTrigger value="visualizacoes">
+                            <TrendingUp className="w-4 h-4 mr-2" />
+                            Visualizações
+                        </TabsTrigger>
+                        <TabsTrigger value="comparacao" disabled={comunidadesComparacao.length < 2}>
+                            <GitCompare className="w-4 h-4 mr-2" />
+                            Comparação
                         </TabsTrigger>
                         <TabsTrigger value="integracao">
                             <Users className="w-4 h-4 mr-2" />
@@ -620,6 +734,200 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                                 </div>
                             </CardContent>
                         </Card>
+                    </TabsContent>
+
+                    <TabsContent value="visualizacoes" className="space-y-6">
+                        {storytelling?.localizacao && (
+                            <Card className="border-l-4 border-blue-600">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <MapPin className="w-5 h-5" />
+                                        Mapa da Localização
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div style={{ height: '400px', borderRadius: '8px', overflow: 'hidden' }}>
+                                        <MapContainer
+                                            center={[storytelling.localizacao.latitude, storytelling.localizacao.longitude]}
+                                            zoom={12}
+                                            style={{ height: '100%', width: '100%' }}
+                                        >
+                                            <TileLayer
+                                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                            />
+                                            <Marker position={[storytelling.localizacao.latitude, storytelling.localizacao.longitude]}>
+                                                <Popup>
+                                                    <strong>{comunidadeSelecionada}</strong>
+                                                    <br />
+                                                    {storytelling.dados_demograficos?.populacao_total}
+                                                </Popup>
+                                            </Marker>
+                                            <Circle
+                                                center={[storytelling.localizacao.latitude, storytelling.localizacao.longitude]}
+                                                radius={5000}
+                                                pathOptions={{ color: '#0B1E33', fillColor: '#F2B632', fillOpacity: 0.2 }}
+                                            />
+                                        </MapContainer>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {storytelling?.evolucao_demografica && storytelling.evolucao_demografica.length > 0 && (
+                            <Card className="border-l-4 border-green-600">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <TrendingUp className="w-5 h-5" />
+                                        Evolução Demográfica
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ResponsiveContainer width="100%" height={300}>
+                                        <LineChart data={storytelling.evolucao_demografica}>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="ano" />
+                                            <YAxis />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="populacao" 
+                                                stroke="#0B1E33" 
+                                                strokeWidth={3}
+                                                name="População"
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {storytelling?.evolucao_economica && storytelling.evolucao_economica.length > 0 && (
+                            <Card className="border-l-4 border-amber-600">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <BarChart3 className="w-5 h-5" />
+                                        Evolução Econômica (PIB)
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ResponsiveContainer width="100%" height={300}>
+                                        <BarChart data={storytelling.evolucao_economica}>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="ano" />
+                                            <YAxis />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Bar dataKey="pib" fill="#F2B632" name="PIB" />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {storytelling?.dados_demograficos && (
+                            <Card className="border-l-4 border-purple-600">
+                                <CardHeader>
+                                    <CardTitle>Indicadores Sociais (Radar)</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ResponsiveContainer width="100%" height={350}>
+                                        <RadarChart data={[
+                                            { indicador: 'IDHM', valor: parseFloat(storytelling.dados_demograficos?.idhm?.replace(',', '.') || 0) * 100 },
+                                            { indicador: 'Renda', valor: Math.min(parseFloat(storytelling.dados_demograficos?.renda_media?.replace(/\D/g, '') || 0) / 50, 100) },
+                                            { indicador: 'Densidade', valor: Math.min(parseFloat(storytelling.dados_demograficos?.densidade?.replace(/\D/g, '') || 0), 100) }
+                                        ]}>
+                                            <PolarGrid />
+                                            <PolarAngleAxis dataKey="indicador" />
+                                            <PolarRadiusAxis domain={[0, 100]} />
+                                            <Radar name="Indicadores" dataKey="valor" stroke="#0B1E33" fill="#F2B632" fillOpacity={0.6} />
+                                        </RadarChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="comparacao" className="space-y-6">
+                        {comunidadesComparacao.length >= 2 && (
+                            <>
+                                <Card className="border-l-4 border-indigo-600">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <GitCompare className="w-5 h-5" />
+                                            Comparação Demográfica
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <ResponsiveContainer width="100%" height={300}>
+                                            <BarChart data={compararComunidades()}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="nome" />
+                                                <YAxis />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Bar dataKey="populacao" fill="#0B1E33" name="População" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="border-l-4 border-green-600">
+                                    <CardHeader>
+                                        <CardTitle>Comparação IDHM e Renda</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <ResponsiveContainer width="100%" height={300}>
+                                            <BarChart data={compararComunidades()}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="nome" />
+                                                <YAxis />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Bar dataKey="idhm" fill="#22c55e" name="IDHM" />
+                                                <Bar dataKey="renda" fill="#F2B632" name="Renda Média" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="border-l-4 border-purple-600">
+                                    <CardHeader>
+                                        <CardTitle>Tabela Comparativa</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full border-collapse text-sm">
+                                                <thead>
+                                                    <tr className="bg-gray-100">
+                                                        <th className="border px-3 py-2 text-left">Comunidade</th>
+                                                        <th className="border px-3 py-2 text-left">População</th>
+                                                        <th className="border px-3 py-2 text-left">IDHM</th>
+                                                        <th className="border px-3 py-2 text-left">Renda Média</th>
+                                                        <th className="border px-3 py-2 text-left">Densidade</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {comunidadesComparacao.map(c => {
+                                                        const st = storytellingsComparacao[c];
+                                                        return (
+                                                            <tr key={c} className="hover:bg-gray-50">
+                                                                <td className="border px-3 py-2 font-semibold">{c}</td>
+                                                                <td className="border px-3 py-2">{st?.dados_demograficos?.populacao_total || 'N/A'}</td>
+                                                                <td className="border px-3 py-2">{st?.dados_demograficos?.idhm || 'N/A'}</td>
+                                                                <td className="border px-3 py-2">{st?.dados_demograficos?.renda_media || 'N/A'}</td>
+                                                                <td className="border px-3 py-2">{st?.dados_demograficos?.densidade || 'N/A'}</td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </>
+                        )}
                     </TabsContent>
 
                     <TabsContent value="integracao" className="space-y-6">
