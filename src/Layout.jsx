@@ -14,11 +14,12 @@ import {
   Menu,
   X,
   LogOut,
-  Bell,
   ChevronDown,
-  CalendarDays
+  CalendarDays,
+  BarChart3
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import NotificationCenter from "@/components/NotificationCenter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +38,7 @@ const navigation = [
   { name: 'Voz da Comunidade', href: 'VozComunidade', icon: MessageCircle },
   { name: 'Atores', href: 'Atores', icon: Users },
   { name: 'Compromissos', href: 'Compromissos', icon: CheckSquare },
+  { name: 'Análise', href: 'Analise', icon: BarChart3 },
 ];
 
 export default function Layout({ children, currentPageName }) {
@@ -176,10 +178,7 @@ export default function Layout({ children, currentPageName }) {
             </div>
 
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5 text-slate-600" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full" />
-              </Button>
+              <NotificationCenter />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

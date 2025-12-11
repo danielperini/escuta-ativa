@@ -16,7 +16,8 @@ export default function Dashboard() {
 
     const menuItems = [
         { title: "Atividades", icon: Users, path: "Atividades", description: "Gerencie reuniões, diálogos e demandas" },
-        { title: "Lideranças Comunitárias", icon: Users, path: "Liderancas", description: "Cadastro de lideranças e interlocutores" },
+        { title: "Lideranças Comunitárias", icon: Users, path: "GerenciarLiderancas", description: "Cadastro de lideranças e interlocutores" },
+        { title: "Organizações", icon: Users, path: "GerenciarOrganizacoes", description: "Gerenciar projetos e organizações" },
         { title: "Relatórios", icon: FileText, path: "Relatorios", description: "Gere relatórios em PDF, DOCX e XLSX" },
         { title: "Código de Ética", icon: Shield, path: "CodigoEtica", description: "Diretrizes éticas e de conduta" },
         { title: "Dicas de Relacionamento", icon: Book, path: "DicasRelacionamento", description: "Boas práticas comunitárias" }

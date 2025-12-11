@@ -22,6 +22,8 @@ import DicasRelacionamento from './pages/DicasRelacionamento';
 import Relatorios from './pages/Relatorios';
 import RegistreEscuta from './pages/RegistreEscuta';
 import Liderancas from './pages/Liderancas';
+import GerenciarLiderancas from './pages/GerenciarLiderancas';
+import GerenciarOrganizacoes from './pages/GerenciarOrganizacoes';
 import __Layout from './Layout.jsx';
 
 
@@ -50,6 +52,8 @@ export const PAGES = {
     "Relatorios": Relatorios,
     "RegistreEscuta": RegistreEscuta,
     "Liderancas": Liderancas,
+    "GerenciarLiderancas": GerenciarLiderancas,
+    "GerenciarOrganizacoes": GerenciarOrganizacoes,
 }
 
 export const pagesConfig = {
