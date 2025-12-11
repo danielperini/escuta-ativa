@@ -18,7 +18,8 @@ import {
     Target,
     AlertTriangle,
     Loader2,
-    ArrowLeft
+    ArrowLeft,
+    BarChart3
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
