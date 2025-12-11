@@ -39,6 +39,8 @@ import {
 import { cn } from "@/lib/utils";
 import DetectorContinuidade from '@/components/continuidade/DetectorContinuidade';
 import DetectorAtores from '@/components/atores/DetectorAtores';
+import ProcessadorMidia from '@/components/registro/ProcessadorMidia';
+import { criarAgendasAutomaticas, atualizarHistoricoAtor, registrarAuditoria } from '@/components/registro/AutomacaoAgenda';
 
 const tipoOptions = [
   { value: 'reuniao', label: 'Reunião' },
@@ -287,12 +289,31 @@ Extraia:
   };
 
   const finalizarComVinculacoes = async (atoresVinculados = [], continuidades = []) => {
-    createMutation.mutate({
+    const dadosFinais = {
       ...formData,
       status: 'finalizado',
       liderancas_vinculadas: atoresVinculados,
       registros_continuidade: continuidades
-    });
+    };
+
+    try {
+      const registroCriado = await base44.entities.Registro.create(dadosFinais);
+      
+      // Automações pós-criação
+      await Promise.all([
+        criarAgendasAutomaticas(registroCriado),
+        ...atoresVinculados.map(atorId => atualizarHistoricoAtor(atorId, registroCriado.id)),
+        registrarAuditoria('Registro', registroCriado.id, 'criacao_completa', null, dadosFinais, 'criacao')
+      ]);
+
+      queryClient.invalidateQueries({ queryKey: ['registros'] });
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
+      queryClient.invalidateQueries({ queryKey: ['atores'] });
+      
+      navigate(createPageUrl('Registros'));
+    } catch (error) {
+      alert('Erro ao finalizar registro: ' + error.message);
+    }
   };
 
   const SecaoCollapsible = ({ id, titulo, icone: Icone, children, badge }) => (
