@@ -33,7 +33,12 @@ export default function RegistreEscuta() {
                     : `Leia o documento fornecido e extraia: temas principais, demandas, compromissos, participantes, próximos passos, datas futuras e localidades.`;
 
                 const resultado = await base44.integrations.Core.InvokeLLM({
-                    prompt: prompt,
+                    prompt: prompt + `
+
+Adicionalmente, identifique e extraia:
+- Lideranças comunitárias mencionadas (nome, papel, comunidade, avaliação de interlocução se mencionado)
+- Organizações mencionadas (nome, natureza, área de atuação)
+- Geolocalização aproximada (coordenadas se possível identificar a localidade)`,
                     file_urls: [file_url],
                     response_json_schema: {
                         type: "object",
@@ -46,12 +51,101 @@ export default function RegistreEscuta() {
                             participantes: { type: "array", items: { type: "string" } },
                             proximos_passos: { type: "array", items: { type: "string" } },
                             datas_futuras: { type: "array", items: { type: "string" } },
-                            local: { type: "string" }
+                            local: { type: "string" },
+                            geolocalizacao: { type: "string" },
+                            liderancas_identificadas: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        nome: { type: "string" },
+                                        papel_na_comunidade: { type: "string" },
+                                        comunidade: { type: "string" },
+                                        avaliacao_interlocucao: { type: "string" }
+                                    }
+                                }
+                            },
+                            organizacoes_identificadas: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        nome: { type: "string" },
+                                        natureza: { type: "string" },
+                                        area_de_atuacao: { type: "string" }
+                                    }
+                                }
+                            }
                         }
                     }
                 });
 
-                // Criar atividade com dados extraídos
+                // Processar lideranças identificadas
+                const liderancasIds = [];
+                if (resultado.liderancas_identificadas && resultado.liderancas_identificadas.length > 0) {
+                    for (const lid of resultado.liderancas_identificadas) {
+                        if (lid.nome && lid.comunidade) {
+                            // Verificar se liderança já existe
+                            const existentes = await base44.entities.LiderancaComunitaria.list();
+                            const existe = existentes.find(l => 
+                                l.nome.toLowerCase().includes(lid.nome.toLowerCase()) || 
+                                lid.nome.toLowerCase().includes(l.nome.toLowerCase())
+                            );
+                            
+                            if (existe) {
+                                liderancasIds.push(existe.id);
+                                // Atualizar última interação
+                                await base44.entities.LiderancaComunitaria.update(existe.id, {
+                                    ultima_interacao: new Date().toISOString()
+                                });
+                            } else {
+                                // Criar nova liderança
+                                const novaLideranca = await base44.entities.LiderancaComunitaria.create({
+                                    nome: lid.nome,
+                                    comunidade: lid.comunidade,
+                                    papel_na_comunidade: lid.papel_na_comunidade || "",
+                                    avaliacao_interlocucao: lid.avaliacao_interlocucao || "neutro",
+                                    ultima_interacao: new Date().toISOString()
+                                });
+                                liderancasIds.push(novaLideranca.id);
+                            }
+                        }
+                    }
+                }
+
+                // Processar organizações identificadas
+                const organizacoesIds = [];
+                if (resultado.organizacoes_identificadas && resultado.organizacoes_identificadas.length > 0) {
+                    for (const org of resultado.organizacoes_identificadas) {
+                        if (org.nome) {
+                            // Verificar se organização já existe
+                            const existentes = await base44.entities.ProjetoOrganizacao.list();
+                            const existe = existentes.find(o => 
+                                o.nome_oficial.toLowerCase().includes(org.nome.toLowerCase()) ||
+                                org.nome.toLowerCase().includes(o.nome_oficial.toLowerCase())
+                            );
+                            
+                            if (existe) {
+                                organizacoesIds.push(existe.id);
+                                // Atualizar última interação
+                                await base44.entities.ProjetoOrganizacao.update(existe.id, {
+                                    ultima_interacao: new Date().toISOString()
+                                });
+                            } else {
+                                // Criar nova organização
+                                const novaOrg = await base44.entities.ProjetoOrganizacao.create({
+                                    nome_oficial: org.nome,
+                                    natureza: org.natureza || "outro",
+                                    area_de_atuacao: org.area_de_atuacao || "",
+                                    ultima_interacao: new Date().toISOString()
+                                });
+                                organizacoesIds.push(novaOrg.id);
+                            }
+                        }
+                    }
+                }
+
+                // Criar atividade com dados extraídos e conexões
                 const novaAtividade = await base44.entities.Atividade.create({
                     titulo: resultado.titulo || "Atividade registrada via " + tipo,
                     descricao: resultado.transcricao || "",
@@ -64,8 +158,11 @@ export default function RegistreEscuta() {
                     proximos_passos: resultado.proximos_passos || [],
                     datas_futuras: resultado.datas_futuras || [],
                     local: resultado.local || "",
+                    geolocalizacao: resultado.geolocalizacao || "",
                     status_etapa: "Etapa 1",
-                    data: new Date().toISOString()
+                    data: new Date().toISOString(),
+                    liderancas_relacionadas: liderancasIds,
+                    organizacoes_relacionadas: organizacoesIds
                 });
 
                 // Verificação ética

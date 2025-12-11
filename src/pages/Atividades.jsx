@@ -8,6 +8,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Plus, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
+import AtividadeConexoes from "../components/AtividadeConexoes";
 
 export default function Atividades() {
     const navigate = useNavigate();
@@ -130,6 +131,16 @@ export default function Atividades() {
                                     <p className="text-xs text-gray-400 mt-2">
                                         Registrado em: {format(new Date(atividade.created_date), 'dd/MM/yyyy HH:mm')}
                                     </p>
+
+                                    {(atividade.liderancas_relacionadas || atividade.organizacoes_relacionadas) && (
+                                        <div className="mt-4">
+                                            <AtividadeConexoes 
+                                                atividadeId={atividade.id}
+                                                liderancasIds={atividade.liderancas_relacionadas}
+                                                organizacoesIds={atividade.organizacoes_relacionadas}
+                                            />
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         ))}
