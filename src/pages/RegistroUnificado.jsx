@@ -75,13 +75,14 @@ export default function RegistroUnificado() {
     status: 'rascunho'
   });
   
-  const [isUploading, setIsUploading] = useState(false);
+  const [processando, setProcessando] = useState(false);
   const [analisando, setAnalisando] = useState(false);
-  const [textoDigitado, setTextoDigitado] = useState('');
-  const [modoTexto, setModoTexto] = useState(false);
+  const [textoConsolidado, setTextoConsolidado] = useState('');
+  const [arquivosProcessados, setArquivosProcessados] = useState([]);
   const [novoParticipante, setNovoParticipante] = useState('');
   const [mostrarDetectores, setMostrarDetectores] = useState(false);
   const [registroTemporario, setRegistroTemporario] = useState(null);
+  const [errosProcessamento, setErrosProcessamento] = useState([]);
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
@@ -111,120 +112,60 @@ export default function RegistroUnificado() {
   };
 
   const processarArquivo = async (file, tipo) => {
-    setIsUploading(true);
-    setAnalisando(true);
+    setProcessando(true);
+    setErrosProcessamento([]);
     
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       const arquivoInfo = { url: file_url, tipo, nome: file.name };
+      setArquivosProcessados(prev => [...prev, arquivoInfo]);
+      
       setFormData(prev => ({
         ...prev,
         arquivos: [...prev.arquivos, arquivoInfo]
       }));
 
-      // Análise com IA
-      const promptAnalise = `Analise este ${tipo} de interação comunitária e extraia:
+      // Extrair texto do arquivo
+      const promptExtracao = `Extraia TODO o texto deste ${tipo}:
 
-1. Título sugerido
-2. Tipo de interação (reuniao, conversa_campo, visita, demanda, ocorrencia)
-3. Participantes mencionados
-4. Comunidade/território
-5. Data mencionada (YYYY-MM-DD)
-6. Temas discutidos
-7. Demandas da comunidade (cada uma com descricao e urgencia: baixa/media/alta/critica)
-8. Compromissos assumidos pela empresa (cada um com descricao, responsavel, prazo se mencionado)
-9. Próximos passos
-10. Sentimento geral (positivo/neutro/negativo/misto)
-11. Temperatura do território (baixo/medio/alto/critico)
-12. Resumo em 2-3 parágrafos
+Para ${tipo === 'audio' ? 'áudio, faça transcrição completa' : tipo === 'video' ? 'vídeo, extraia o áudio e transcreva' : tipo === 'foto' ? 'foto/imagem, extraia todo texto visível (OCR)' : tipo === 'documento' ? 'PDF/DOC, extraia todo o texto preservando estrutura' : 'arquivo, extraia todo o conteúdo textual'}
 
-Retorne null se não encontrar.`;
+IMPORTANTE: 
+- Retorne APENAS o texto extraído/transcrito
+- Não faça análise nem interpretação
+- Mantenha ordem e formatação quando possível
+- Se for conversa, mantenha falas identificadas
+- Se for documento, preserve títulos e parágrafos`;
 
-      const analise = await base44.integrations.Core.InvokeLLM({
-        prompt: promptAnalise,
+      const extracao = await base44.integrations.Core.InvokeLLM({
+        prompt: promptExtracao,
         file_urls: [file_url],
         response_json_schema: {
           type: "object",
           properties: {
-            titulo_sugerido: { type: "string" },
-            tipo_sugerido: { type: "string" },
-            participantes: { type: "array", items: { type: "string" } },
-            comunidade: { type: "string" },
-            data_mencionada: { type: "string" },
-            temas: { type: "array", items: { type: "string" } },
-            demandas: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  descricao: { type: "string" },
-                  urgencia: { type: "string" }
-                }
-              }
-            },
-            compromissos: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  descricao: { type: "string" },
-                  responsavel: { type: "string" },
-                  prazo: { type: "string" }
-                }
-              }
-            },
-            proximos_passos: { type: "array", items: { type: "string" } },
-            sentimento: { type: "string" },
-            temperatura_territorio: { type: "string" },
-            resumo_automatico: { type: "string" },
-            transcricao: { type: "string" }
+            texto_extraido: { type: "string" },
+            tipo_conteudo: { type: "string" },
+            qualidade_extracao: { type: "string" }
           }
         }
       });
 
-      // Processar demandas com prazos automáticos
-      const demandasProcessadas = (analise.demandas || []).map(d => ({
-        ...d,
-        status: 'pendente',
-        requer_devolutiva: true,
-        prazo_devolutiva: calcularPrazoDevolutiva(d.urgencia),
-        devolutiva_realizada: false
-      }));
+      if (!extracao.texto_extraido) {
+        throw new Error('Não foi possível extrair texto do arquivo');
+      }
 
-      // Processar compromissos com prazos automáticos
-      const compromissosProcessados = (analise.compromissos || []).map(c => ({
-        ...c,
-        status: 'pendente',
-        prazo: c.prazo || calcularPrazoDevolutiva('media')
-      }));
-
-      setFormData(prev => ({
-        ...prev,
-        titulo: analise.titulo_sugerido || prev.titulo,
-        tipo: analise.tipo_sugerido || prev.tipo,
-        descricao: analise.resumo_automatico || prev.descricao,
-        transcricao: analise.transcricao || prev.transcricao,
-        participantes: [...new Set([...prev.participantes, ...(analise.participantes || [])])],
-        comunidade: analise.comunidade || prev.comunidade,
-        data_registro: analise.data_mencionada || prev.data_registro,
-        temas_identificados: [...new Set([...prev.temas_identificados, ...(analise.temas || [])])],
-        sentimento: analise.sentimento || prev.sentimento,
-        temperatura_territorio: analise.temperatura_territorio || prev.temperatura_territorio,
-        demandas: [...prev.demandas, ...demandasProcessadas],
-        compromissos: [...prev.compromissos, ...compromissosProcessados],
-        proximos_passos: [...new Set([...prev.proximos_passos, ...(analise.proximos_passos || [])])],
-        resumo_automatico: analise.resumo_automatico
-      }));
-
-      setEtapaAtual('formulario');
-      setSecaoExpandida('basico');
+      // Adicionar texto extraído à caixa consolidada
+      const blocoTexto = `\n\n[${tipo.toUpperCase()} - ${file.name}]\n${extracao.texto_extraido}\n`;
+      setTextoConsolidado(prev => prev + blocoTexto);
+      
+      setEtapaAtual('texto');
     } catch (error) {
-      console.error('Erro:', error);
-      alert('Erro ao processar arquivo: ' + error.message);
+      console.error('Erro ao processar:', error);
+      setErrosProcessamento(prev => [...prev, { arquivo: file.name, erro: error.message }]);
+      alert('Erro ao processar arquivo: ' + error.message + '\n\nTente reprocessar ou digite o conteúdo manualmente.');
     } finally {
-      setIsUploading(false);
-      setAnalisando(false);
+      setProcessando(false);
     }
   };
 
@@ -233,13 +174,34 @@ Retorne null se não encontrar.`;
     if (file) processarArquivo(file, tipo);
   };
 
-  const analisarTexto = async () => {
-    if (!textoDigitado.trim()) return;
+  const analisarTextoConsolidado = async () => {
+    if (!textoConsolidado.trim()) {
+      alert('A caixa de texto está vazia. Adicione conteúdo antes de analisar.');
+      return;
+    }
+    
     setAnalisando(true);
 
     try {
       const analise = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analise este texto de interação comunitária: "${textoDigitado}". Extraia todos os dados estruturados conforme schema.`,
+        prompt: `Analise APENAS este texto consolidado de interação comunitária e extraia dados estruturados:
+
+TEXTO PARA ANÁLISE:
+${textoConsolidado}
+
+Extraia:
+1. Título sugerido
+2. Tipo (reuniao, conversa_campo, visita, demanda, ocorrencia)
+3. Participantes mencionados
+4. Comunidade/território
+5. Data (YYYY-MM-DD)
+6. Temas discutidos
+7. Demandas (cada uma com descricao e urgencia)
+8. Compromissos (cada um com descricao, responsavel, prazo)
+9. Próximos passos
+10. Sentimento (positivo/neutro/negativo/misto)
+11. Temperatura do território (baixo/medio/alto/critico)
+12. Resumo em 2-3 parágrafos`,
         response_json_schema: {
           type: "object",
           properties: {
@@ -291,17 +253,22 @@ Retorne null se não encontrar.`;
         ...prev,
         titulo: analise.titulo_sugerido || prev.titulo,
         tipo: analise.tipo_sugerido || prev.tipo,
-        descricao: analise.resumo_automatico || textoDigitado,
+        descricao: analise.resumo_automatico || textoConsolidado.substring(0, 500),
+        transcricao: textoConsolidado,
         participantes: analise.participantes || [],
         comunidade: analise.comunidade || '',
+        data_registro: analise.data_mencionada || prev.data_registro,
         temas_identificados: analise.temas || [],
+        sentimento: analise.sentimento || '',
+        temperatura_territorio: analise.temperatura_territorio || '',
         demandas: demandasProcessadas,
         compromissos: compromissosProcessados,
+        proximos_passos: analise.proximos_passos || [],
         resumo_automatico: analise.resumo_automatico
       }));
 
       setEtapaAtual('formulario');
-      setModoTexto(false);
+      setSecaoExpandida('basico');
     } catch (error) {
       alert('Erro ao analisar texto: ' + error.message);
     } finally {
@@ -347,7 +314,7 @@ Retorne null se não encontrar.`;
     </Card>
   );
 
-  if (etapaAtual === 'upload') {
+  if (etapaAtual === 'upload' || etapaAtual === 'texto') {
     return (
       <div className="space-y-6 max-w-4xl mx-auto">
         <div className="flex items-center gap-4">
@@ -358,85 +325,147 @@ Retorne null se não encontrar.`;
           </Link>
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Novo Registro</h2>
-            <p className="text-slate-500">Envie um documento para análise automática</p>
+            <p className="text-slate-500">
+              {etapaAtual === 'upload' ? 'Envie arquivos ou digite o texto' : 'Revise o texto antes de analisar'}
+            </p>
           </div>
         </div>
 
-        <Card className="border-2 border-dashed border-[#40916C]/30">
-          <CardContent className="p-8">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-[#40916C]/10 flex items-center justify-center mx-auto">
-                <Sparkles className="w-8 h-8 text-[#40916C]" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">Envie seu documento</h3>
-                <p className="text-sm text-slate-500">A IA vai processar e preencher tudo automaticamente</p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 max-w-3xl mx-auto pt-4">
-                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C]">
-                  <Mic className="w-8 h-8 text-[#40916C] mb-2" />
-                  <span className="text-sm font-medium">Áudio</span>
-                  <input type="file" accept="audio/*" className="hidden" onChange={(e) => handleFileUpload(e, 'audio')} disabled={isUploading} />
-                </label>
-                
-                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C]">
-                  <Video className="w-8 h-8 text-[#40916C] mb-2" />
-                  <span className="text-sm font-medium">Vídeo</span>
-                  <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={isUploading} />
-                </label>
-                
-                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C]">
-                  <Camera className="w-8 h-8 text-[#40916C] mb-2" />
-                  <span className="text-sm font-medium">Foto</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={isUploading} />
-                </label>
-                
-                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C]">
-                  <FileText className="w-8 h-8 text-[#40916C] mb-2" />
-                  <span className="text-sm font-medium">PDF/Doc</span>
-                  <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => handleFileUpload(e, 'documento')} disabled={isUploading} />
-                </label>
-                
-                <button
-                  onClick={() => setModoTexto(!modoTexto)}
-                  className={cn(
-                    "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl",
-                    modoTexto ? "bg-[#40916C] text-white" : "hover:bg-slate-50 hover:border-[#40916C]"
-                  )}
-                >
-                  <FileText className={cn("w-8 h-8 mb-2", modoTexto ? "text-white" : "text-[#40916C]")} />
-                  <span className="text-sm font-medium">Texto</span>
-                </button>
-              </div>
-
-              {(isUploading || analisando) && (
-                <div className="flex items-center justify-center gap-2 text-slate-600 pt-4">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{isUploading ? 'Enviando...' : 'Analisando com IA...'}</span>
+        {etapaAtual === 'upload' && (
+          <Card className="border-2 border-dashed border-[#40916C]/30">
+            <CardContent className="p-8">
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-[#40916C]/10 flex items-center justify-center mx-auto">
+                  <Upload className="w-8 h-8 text-[#40916C]" />
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                <div>
+                  <h3 className="text-lg font-semibold">Envie arquivos ou digite</h3>
+                  <p className="text-sm text-slate-500">Todos os arquivos serão convertidos em texto editável</p>
+                </div>
 
-        {modoTexto && (
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <h3 className="font-semibold">Digite ou Cole o Texto</h3>
-              <Textarea
-                className="min-h-[300px]"
-                placeholder="Cole ou digite aqui..."
-                value={textoDigitado}
-                onChange={(e) => setTextoDigitado(e.target.value)}
-              />
-              <Button onClick={analisarTexto} disabled={!textoDigitado.trim() || analisando} className="w-full">
-                <Sparkles className="w-4 h-4 mr-2" />
-                {analisando ? 'Analisando...' : 'Analisar com IA'}
-              </Button>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 max-w-3xl mx-auto pt-4">
+                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                    <Mic className="w-8 h-8 text-[#40916C] mb-2" />
+                    <span className="text-sm font-medium">Áudio</span>
+                    <input type="file" accept="audio/*" className="hidden" onChange={(e) => handleFileUpload(e, 'audio')} disabled={processando} />
+                  </label>
+                  
+                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                    <Video className="w-8 h-8 text-[#40916C] mb-2" />
+                    <span className="text-sm font-medium">Vídeo</span>
+                    <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={processando} />
+                  </label>
+                  
+                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                    <Camera className="w-8 h-8 text-[#40916C] mb-2" />
+                    <span className="text-sm font-medium">Foto</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={processando} />
+                  </label>
+                  
+                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                    <FileText className="w-8 h-8 text-[#40916C] mb-2" />
+                    <span className="text-sm font-medium">PDF/Doc</span>
+                    <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => handleFileUpload(e, 'documento')} disabled={processando} />
+                  </label>
+                  
+                  <button
+                    onClick={() => setEtapaAtual('texto')}
+                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all"
+                  >
+                    <FileText className="w-8 h-8 text-[#40916C] mb-2" />
+                    <span className="text-sm font-medium">Digitar</span>
+                  </button>
+                </div>
+
+                {processando && (
+                  <div className="flex items-center justify-center gap-2 text-slate-600 pt-4">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Processando e extraindo texto...</span>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
+
+        {/* CAIXA DE TEXTO CONSOLIDADA */}
+        <Card className="border-2 border-[#40916C]">
+          <CardHeader className="bg-emerald-50">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Texto Consolidado
+              {arquivosProcessados.length > 0 && (
+                <Badge className="bg-emerald-600">{arquivosProcessados.length} arquivo(s)</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            {arquivosProcessados.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {arquivosProcessados.map((arq, i) => (
+                  <Badge key={i} variant="secondary" className="text-xs">
+                    {arq.tipo}: {arq.nome}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            <Textarea
+              className="min-h-[400px] font-mono text-sm"
+              placeholder="O texto extraído dos arquivos aparecerá aqui. Você pode editar antes de analisar.
+
+Ou digite/cole o conteúdo diretamente..."
+              value={textoConsolidado}
+              onChange={(e) => setTextoConsolidado(e.target.value)}
+            />
+
+            {errosProcessamento.length > 0 && (
+              <div className="bg-red-50 p-3 rounded border border-red-200">
+                <p className="text-sm font-semibold text-red-900 mb-2">⚠️ Erros de Processamento:</p>
+                {errosProcessamento.map((err, i) => (
+                  <p key={i} className="text-xs text-red-700">• {err.arquivo}: {err.erro}</p>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <Button
+                onClick={analisarTextoConsolidado}
+                disabled={!textoConsolidado.trim() || analisando}
+                className="flex-1 bg-[#2D6A4F]"
+                size="lg"
+              >
+                {analisando ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Analisando com IA...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Analisar Texto com IA
+                  </>
+                )}
+              </Button>
+              {textoConsolidado && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setTextoConsolidado('');
+                    setArquivosProcessados([]);
+                    setErrosProcessamento([]);
+                  }}
+                >
+                  Limpar
+                </Button>
+              )}
+            </div>
+
+            <p className="text-xs text-slate-500 text-center">
+              ⚠️ A análise será baseada APENAS no texto desta caixa. Revise antes de continuar.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
