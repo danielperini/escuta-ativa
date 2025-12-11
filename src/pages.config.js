@@ -7,6 +7,7 @@ import Materialidade from './pages/Materialidade';
 import VozComunidade from './pages/VozComunidade';
 import Atores from './pages/Atores';
 import Compromissos from './pages/Compromissos';
+import Configuracoes from './pages/Configuracoes';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "VozComunidade": VozComunidade,
     "Atores": Atores,
     "Compromissos": Compromissos,
+    "Configuracoes": Configuracoes,
 }
 
 export const pagesConfig = {
