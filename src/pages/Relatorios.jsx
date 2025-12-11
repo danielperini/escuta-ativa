@@ -10,6 +10,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, FileText, Download, Loader2, Brain } from "lucide-react";
 import RelatorioNarrativoEstrategico from "../components/relatorios/RelatorioNarrativoEstrategico";
+import { exportarParaPDF } from "../components/relatorios/ExportadorPDF";
+import { exportarParaCSV, exportarParaExcel } from "../components/relatorios/ExportadorCSV";
 
 export default function Relatorios() {
     const navigate = useNavigate();
@@ -18,7 +20,7 @@ export default function Relatorios() {
     const [filtroPeriodo, setFiltroPeriodo] = useState("30");
     const [filtroComunidade, setFiltroComunidade] = useState("todas");
     const [filtroTema, setFiltroTema] = useState("todos");
-    const [filtroAtor, setFiltroAtor] = useState("todos");
+    const [filtroTipoRegistro, setFiltroTipoRegistro] = useState("todos");
     const [loading, setLoading] = useState(false);
 
     const { data: atividades = [] } = useQuery({
@@ -56,6 +58,11 @@ export default function Relatorios() {
         queryFn: () => base44.entities.Comunidade.list()
     });
 
+    const { data: temas = [] } = useQuery({
+        queryKey: ['temas-rel'],
+        queryFn: () => base44.entities.Tema.list()
+    });
+
     const tiposRelatorio = [
         { value: "atividades", label: "Relatório de Atividades" },
         { value: "demandas", label: "Relatório de Demandas" },
@@ -68,9 +75,18 @@ export default function Relatorios() {
     ];
 
     const formatos = [
-        { value: "pdf", label: "PDF - Documento" },
-        { value: "docx", label: "DOCX - Ata para Devolutiva" },
-        { value: "xlsx", label: "XLSX - Planilha Excel" }
+        { value: "pdf", label: "PDF - Documento Profissional" },
+        { value: "xlsx", label: "XLSX - Planilha Excel" },
+        { value: "csv", label: "CSV - Dados Tabulares" }
+    ];
+
+    const tiposRegistro = [
+        { value: "todos", label: "Todos os tipos" },
+        { value: "reuniao", label: "Reunião" },
+        { value: "conversa_de_campo", label: "Conversa de Campo" },
+        { value: "visita", label: "Visita" },
+        { value: "visita_institucional", label: "Visita Institucional" },
+        { value: "dialogo_individualizado", label: "Diálogo Individualizado" }
     ];
 
     const aplicarFiltros = (dados, tipo) => {
@@ -81,10 +97,14 @@ export default function Relatorios() {
         return dados.filter(item => {
             const dataItem = new Date(item.created_date || item.data);
             const matchPeriodo = dataItem >= dataLimite;
-            const matchComunidade = filtroComunidade === "todas" || item.comunidade === filtroComunidade;
+            const matchComunidade = filtroComunidade === "todas" || 
+                item.comunidade === filtroComunidade || 
+                item.local === filtroComunidade;
             const matchTema = filtroTema === "todos" || 
                 (item.temas_identificados && item.temas_identificados.includes(filtroTema));
-            return matchPeriodo && matchComunidade && matchTema;
+            const matchTipoRegistro = filtroTipoRegistro === "todos" || 
+                item.tipo === filtroTipoRegistro;
+            return matchPeriodo && matchComunidade && matchTema && matchTipoRegistro;
         });
     };
 
@@ -277,20 +297,130 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
 `;
 
             const resultado = await base44.integrations.Core.InvokeLLM({
-                prompt: prompt
+                prompt: prompt,
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        titulo: { type: "string" },
+                        resumo: { type: "string" },
+                        kpis: { type: "object" },
+                        insights: { type: "array", items: { type: "string" } }
+                    }
+                }
             });
+
+            // Preparar dados estruturados para exportação
+            const dadosRelatorio = {
+                titulo: tiposRelatorio.find(t => t.value === tipoRelatorio)?.label,
+                resumo: resultado.resumo,
+                kpis: resultado.kpis || {},
+                insights: resultado.insights || [],
+                tabela: []
+            };
+
+            // Montar tabela de dados conforme tipo
+            if (tipoRelatorio === "atividades") {
+                dadosRelatorio.tabela = atividadesFiltradas.map(a => ({
+                    data: new Date(a.created_date).toLocaleDateString('pt-BR'),
+                    tipo: a.tipo,
+                    titulo: a.titulo,
+                    comunidade: a.local,
+                    temas: a.temas_identificados?.join(', ') || '-',
+                    demandas: a.demandas?.length || 0,
+                    status: a.status_etapa
+                }));
+            } else if (tipoRelatorio === "demandas") {
+                const todasDemandas = atividadesFiltradas.flatMap(a => 
+                    (a.demandas || []).map(d => ({
+                        data: new Date(a.created_date).toLocaleDateString('pt-BR'),
+                        demanda: d,
+                        comunidade: a.local,
+                        tipo_registro: a.tipo,
+                        status: 'Identificada'
+                    }))
+                );
+                dadosRelatorio.tabela = todasDemandas;
+            } else if (tipoRelatorio === "compromissos") {
+                const compromissosFiltrados = aplicarFiltros(compromissos, 'compromisso');
+                dadosRelatorio.tabela = compromissosFiltrados.map(c => ({
+                    titulo: c.titulo,
+                    comunidade: c.comunidade,
+                    responsavel: c.responsavel,
+                    prazo: c.prazo,
+                    status: c.status,
+                    prioridade: c.prioridade
+                }));
+            } else if (tipoRelatorio === "atores") {
+                dadosRelatorio.tabela = [
+                    ...liderancas.map(l => ({
+                        tipo: 'Liderança',
+                        nome: l.nome,
+                        comunidade: l.comunidade,
+                        papel: l.papel_na_comunidade,
+                        avaliacao: l.avaliacao_interlocucao,
+                        contato: l.telefone || l.email || '-'
+                    })),
+                    ...organizacoes.map(o => ({
+                        tipo: 'Organização',
+                        nome: o.nome_oficial,
+                        comunidade: '-',
+                        papel: o.natureza,
+                        avaliacao: o.avaliacao_interlocucao || '-',
+                        contato: o.email || o.telefone || '-'
+                    }))
+                ];
+            } else if (tipoRelatorio === "oportunidades") {
+                const oportunidadesFiltradas = aplicarFiltros(oportunidades, 'oportunidade');
+                dadosRelatorio.tabela = oportunidadesFiltradas.map(o => ({
+                    titulo: o.titulo,
+                    tipo: o.tipo,
+                    comunidade: o.comunidade,
+                    relevancia: o.relevancia,
+                    maturidade: o.maturidade,
+                    contato: o.contato_principal || '-'
+                }));
+            } else if (tipoRelatorio === "riscos") {
+                const riscosFiltrados = aplicarFiltros(riscos, 'risco');
+                dadosRelatorio.tabela = riscosFiltrados.map(r => ({
+                    titulo: r.titulo,
+                    nivel: r.nivel,
+                    tipo: r.tipo,
+                    comunidade: r.comunidade,
+                    status: r.status,
+                    previsao_agravamento: r.previsao_agravamento || '-'
+                }));
+            }
+
+            // Exportar conforme formato
+            let nomeArquivo = '';
+            if (formato === 'pdf') {
+                nomeArquivo = exportarParaPDF(dadosRelatorio, tipoRelatorio, {
+                    periodo: `Últimos ${filtroPeriodo} dias`,
+                    comunidade: filtroComunidade,
+                    tipoRegistro: filtroTipoRegistro,
+                    tema: filtroTema
+                });
+            } else if (formato === 'xlsx') {
+                nomeArquivo = exportarParaExcel(dadosRelatorio, tipoRelatorio);
+            } else if (formato === 'csv') {
+                nomeArquivo = exportarParaCSV(dadosRelatorio, tipoRelatorio);
+            }
 
             // Salvar relatório gerado
             await base44.entities.RelatorioGerado.create({
                 tipo_relatorio: tipoRelatorio,
                 formato: formato.toUpperCase(),
                 periodo: `${filtroPeriodo} dias`,
-                filtros: { comunidade: filtroComunidade, tema: filtroTema },
+                filtros: { 
+                    comunidade: filtroComunidade, 
+                    tema: filtroTema,
+                    tipoRegistro: filtroTipoRegistro 
+                },
                 descricao: `${tiposRelatorio.find(t => t.value === tipoRelatorio)?.label} - ${new Date().toLocaleDateString('pt-BR')}`
             });
 
             setLoading(false);
-            alert(`✅ Relatório gerado com sucesso pela IA!\n\nTipo: ${tiposRelatorio.find(t => t.value === tipoRelatorio)?.label}\nFormato: ${formato.toUpperCase()}\nPeíodo: ${filtroPeriodo} dias\n\n📊 O relatório foi processado com insights automáticos da IA.\n\n(Em produção, o arquivo seria baixado automaticamente)`);
+            alert(`✅ Relatório gerado e exportado com sucesso!\n\nArquivo: ${nomeArquivo}\nTipo: ${tiposRelatorio.find(t => t.value === tipoRelatorio)?.label}\nFormato: ${formato.toUpperCase()}\nRegistros: ${dadosRelatorio.tabela.length}\n\n📊 O download foi iniciado automaticamente.`);
         } catch (error) {
             setLoading(false);
             alert("Erro ao gerar relatório: " + error.message);
@@ -380,6 +510,36 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
                             </div>
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label className="block text-sm font-medium mb-2">Tipo de Registro</Label>
+                                <Select value={filtroTipoRegistro} onValueChange={setFiltroTipoRegistro}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {tiposRegistro.map(t => (
+                                            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label className="block text-sm font-medium mb-2">Tema</Label>
+                                <Select value={filtroTema} onValueChange={setFiltroTema}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="todos">Todos os temas</SelectItem>
+                                        {temas.map(t => (
+                                            <SelectItem key={t.id} value={t.nome}>{t.nome}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
                         <div>
                             <Label className="block text-sm font-medium mb-2" style={{ color: '#0B1E33' }}>
                                 Formato
@@ -463,9 +623,9 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
                             <div>
                                 <h3 className="font-bold text-blue-900 mb-2">Formatos de Exportação</h3>
                                 <ul className="text-sm text-blue-800 space-y-1">
-                                    <li><strong>PDF:</strong> Documento profissional para apresentações e arquivamento</li>
-                                    <li><strong>DOCX:</strong> Ata editável para devolutiva à comunidade</li>
-                                    <li><strong>XLSX:</strong> Planilha com dados estruturados para análise e gestão</li>
+                                    <li><strong>PDF:</strong> Documento profissional com gráficos e formatação completa</li>
+                                    <li><strong>XLSX:</strong> Planilha Excel com múltiplas abas e dados estruturados</li>
+                                    <li><strong>CSV:</strong> Dados tabulares simples para importação em outros sistemas</li>
                                 </ul>
                             </div>
                         </div>
