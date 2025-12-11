@@ -12,6 +12,9 @@ import AuditoriaRegistro from './pages/AuditoriaRegistro';
 import Agenda from './pages/Agenda';
 import Landing from './pages/Landing';
 import MaterialidadeViva from './pages/MaterialidadeViva';
+import Welcome from './pages/Welcome';
+import Etapa1 from './pages/Etapa1';
+import Etapa2 from './pages/Etapa2';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +33,9 @@ export const PAGES = {
     "Agenda": Agenda,
     "Landing": Landing,
     "MaterialidadeViva": MaterialidadeViva,
+    "Welcome": Welcome,
+    "Etapa1": Etapa1,
+    "Etapa2": Etapa2,
 }
 
 export const pagesConfig = {
