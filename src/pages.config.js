@@ -15,6 +15,11 @@ import MaterialidadeViva from './pages/MaterialidadeViva';
 import Welcome from './pages/Welcome';
 import Etapa1 from './pages/Etapa1';
 import Etapa2 from './pages/Etapa2';
+import NovaAtividade from './pages/NovaAtividade';
+import Atividades from './pages/Atividades';
+import CodigoEtica from './pages/CodigoEtica';
+import DicasRelacionamento from './pages/DicasRelacionamento';
+import Relatorios from './pages/Relatorios';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +41,11 @@ export const PAGES = {
     "Welcome": Welcome,
     "Etapa1": Etapa1,
     "Etapa2": Etapa2,
+    "NovaAtividade": NovaAtividade,
+    "Atividades": Atividades,
+    "CodigoEtica": CodigoEtica,
+    "DicasRelacionamento": DicasRelacionamento,
+    "Relatorios": Relatorios,
 }
 
 export const pagesConfig = {
