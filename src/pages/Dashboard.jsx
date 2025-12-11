@@ -72,7 +72,7 @@ export default function Dashboard() {
                     ))}
                 </div>
 
-                <div className="flex justify-center mt-8">
+                <div className="flex justify-start mt-8">
                     <Button
                         onClick={handlePanico}
                         variant="outline"
