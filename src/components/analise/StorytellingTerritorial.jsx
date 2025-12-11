@@ -21,6 +21,10 @@ export default function StorytellingTerritorial() {
     const [modoComparacao, setModoComparacao] = useState(false);
     const [comunidadesComparacao, setComunidadesComparacao] = useState([]);
     const [storytellingsComparacao, setStorytellingsComparacao] = useState({});
+    const [periodoSelecionado, setPeriodoSelecionado] = useState("12meses");
+    const [dadosIBGE, setDadosIBGE] = useState(null);
+    const [carregandoIBGE, setCarregandoIBGE] = useState(false);
+    const [periodoComparacao, setPeriodoComparacao] = useState([]);
 
     const { data: comunidades = [] } = useQuery({
         queryKey: ['comunidades-storytelling'],
@@ -41,6 +45,171 @@ export default function StorytellingTerritorial() {
         queryKey: ['temas-storytelling'],
         queryFn: () => base44.entities.Tema.list()
     });
+
+    const buscarDadosIBGE = async (municipio) => {
+        setCarregandoIBGE(true);
+        try {
+            const prompt = `Busque dados atualizados do IBGE para o município: ${municipio}
+            
+Retorne:
+1. Código IBGE do município
+2. Séries históricas (últimos 10 anos quando disponível):
+   - População total
+   - PIB per capita
+   - IDH-M
+   - Índice de Gini
+   - Taxa de alfabetização
+   - Mortalidade infantil
+   - Expectativa de vida
+   - Percentual de pobreza
+   
+3. Dados setoriais do PIB:
+   - Agropecuária
+   - Indústria
+   - Serviços
+   
+4. Infraestrutura:
+   - Estabelecimentos de saúde
+   - Escolas
+   - Saneamento básico
+   
+Use fontes oficiais do IBGE. Retorne dados reais, não estimativas.`;
+
+            const resultado = await base44.integrations.Core.InvokeLLM({
+                prompt: prompt,
+                add_context_from_internet: true,
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        codigo_ibge: { type: "string" },
+                        series_temporais: {
+                            type: "object",
+                            properties: {
+                                populacao: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            ano: { type: "number" },
+                                            valor: { type: "number" }
+                                        }
+                                    }
+                                },
+                                pib_per_capita: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            ano: { type: "number" },
+                                            valor: { type: "number" }
+                                        }
+                                    }
+                                },
+                                idhm: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            ano: { type: "number" },
+                                            valor: { type: "number" }
+                                        }
+                                    }
+                                },
+                                gini: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            ano: { type: "number" },
+                                            valor: { type: "number" }
+                                        }
+                                    }
+                                },
+                                alfabetizacao: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            ano: { type: "number" },
+                                            valor: { type: "number" }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        pib_setorial: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    setor: { type: "string" },
+                                    percentual: { type: "number" }
+                                }
+                            }
+                        },
+                        infraestrutura: {
+                            type: "object",
+                            properties: {
+                                saude: { type: "number" },
+                                educacao: { type: "number" },
+                                saneamento_percentual: { type: "number" }
+                            }
+                        },
+                        fonte: { type: "string" }
+                    }
+                }
+            });
+
+            setDadosIBGE(resultado);
+        } catch (error) {
+            console.error("Erro ao buscar dados IBGE:", error);
+            alert("Erro ao buscar dados do IBGE: " + error.message);
+        } finally {
+            setCarregandoIBGE(false);
+        }
+    };
+
+    const calcularSeriesTemporaisInternas = () => {
+        if (!comunidadeSelecionada) return null;
+
+        const atividadesCom = atividades.filter(a => a.local === comunidadeSelecionada);
+        
+        const mesesMap = {
+            "3meses": 3,
+            "6meses": 6,
+            "12meses": 12,
+            "24meses": 24
+        };
+        
+        const meses = mesesMap[periodoSelecionado] || 12;
+        const dataLimite = new Date();
+        dataLimite.setMonth(dataLimite.getMonth() - meses);
+        
+        const atividadesFiltradas = atividadesCom.filter(a => 
+            new Date(a.created_date) >= dataLimite
+        );
+
+        const dadosPorMes = {};
+        atividadesFiltradas.forEach(a => {
+            const data = new Date(a.created_date);
+            const mesAno = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`;
+            
+            if (!dadosPorMes[mesAno]) {
+                dadosPorMes[mesAno] = {
+                    mes: mesAno,
+                    atividades: 0,
+                    demandas: 0,
+                    riscos: 0,
+                    compromissos: 0
+                };
+            }
+            
+            dadosPorMes[mesAno].atividades++;
+            dadosPorMes[mesAno].demandas += (a.demandas || []).length;
+        });
+
+        return Object.values(dadosPorMes).sort((a, b) => a.mes.localeCompare(b.mes));
+    };
 
     const gerarStorytelling = async () => {
         if (!comunidadeSelecionada) {
@@ -236,6 +405,11 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
             });
 
             setStorytelling(resultado);
+            
+            // Buscar dados IBGE automaticamente
+            if (comunidade?.municipio) {
+                await buscarDadosIBGE(comunidade.municipio);
+            }
 
         } catch (error) {
             console.error("Erro ao gerar storytelling:", error);
@@ -422,18 +596,33 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                         integrados aos registros do Escuta Ativa.
                     </p>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Selecione a comunidade:</label>
-                        <select
-                            value={comunidadeSelecionada}
-                            onChange={(e) => setComunidadeSelecionada(e.target.value)}
-                            className="w-full border rounded px-3 py-2"
-                        >
-                            <option value="">Escolha uma comunidade</option>
-                            {comunidades.map(c => (
-                                <option key={c.id} value={c.nome}>{c.nome}</option>
-                            ))}
-                        </select>
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Selecione a comunidade:</label>
+                            <select
+                                value={comunidadeSelecionada}
+                                onChange={(e) => setComunidadeSelecionada(e.target.value)}
+                                className="w-full border rounded px-3 py-2"
+                            >
+                                <option value="">Escolha uma comunidade</option>
+                                {comunidades.map(c => (
+                                    <option key={c.id} value={c.nome}>{c.nome}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Período de análise interna:</label>
+                            <select
+                                value={periodoSelecionado}
+                                onChange={(e) => setPeriodoSelecionado(e.target.value)}
+                                className="w-full border rounded px-3 py-2"
+                            >
+                                <option value="3meses">Últimos 3 meses</option>
+                                <option value="6meses">Últimos 6 meses</option>
+                                <option value="12meses">Último ano</option>
+                                <option value="24meses">Últimos 2 anos</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div className="flex gap-2">
@@ -521,7 +710,7 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                     </Card>
 
                 <Tabs defaultValue="narrativa" className="w-full">
-                    <TabsList className="grid w-full grid-cols-5">
+                    <TabsList className="grid w-full grid-cols-6">
                         <TabsTrigger value="narrativa">
                             <BookOpen className="w-4 h-4 mr-2" />
                             História
@@ -533,6 +722,10 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                         <TabsTrigger value="visualizacoes">
                             <TrendingUp className="w-4 h-4 mr-2" />
                             Visualizações
+                        </TabsTrigger>
+                        <TabsTrigger value="series-temporais">
+                            <BarChart3 className="w-4 h-4 mr-2" />
+                            Séries Temporais
                         </TabsTrigger>
                         <TabsTrigger value="comparacao" disabled={comunidadesComparacao.length < 2}>
                             <GitCompare className="w-4 h-4 mr-2" />
@@ -845,6 +1038,210 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                                             <Radar name="Indicadores" dataKey="valor" stroke="#0B1E33" fill="#F2B632" fillOpacity={0.6} />
                                         </RadarChart>
                                     </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="series-temporais" className="space-y-6">
+                        {carregandoIBGE && (
+                            <Card>
+                                <CardContent className="pt-6 text-center">
+                                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-600" />
+                                    <p className="text-sm text-gray-600">Buscando dados do IBGE...</p>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {dadosIBGE?.series_temporais && (
+                            <>
+                                <Card className="border-l-4 border-blue-600">
+                                    <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="flex items-center gap-2">
+                                                <TrendingUp className="w-5 h-5" />
+                                                Evolução Populacional (IBGE)
+                                            </CardTitle>
+                                            <Badge variant="outline" className="text-xs">
+                                                {dadosIBGE.fonte}
+                                            </Badge>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <ResponsiveContainer width="100%" height={350}>
+                                            <LineChart data={dadosIBGE.series_temporais.populacao}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="ano" />
+                                                <YAxis />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Line 
+                                                    type="monotone" 
+                                                    dataKey="valor" 
+                                                    stroke="#0B1E33" 
+                                                    strokeWidth={3}
+                                                    name="População"
+                                                    dot={{ r: 4 }}
+                                                />
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </CardContent>
+                                </Card>
+
+                                {dadosIBGE.series_temporais.pib_per_capita && dadosIBGE.series_temporais.pib_per_capita.length > 0 && (
+                                    <Card className="border-l-4 border-green-600">
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <BarChart3 className="w-5 h-5" />
+                                                Evolução do PIB per Capita
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <ResponsiveContainer width="100%" height={350}>
+                                                <BarChart data={dadosIBGE.series_temporais.pib_per_capita}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="ano" />
+                                                    <YAxis />
+                                                    <Tooltip />
+                                                    <Legend />
+                                                    <Bar dataKey="valor" fill="#22c55e" name="PIB per Capita (R$)" />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {dadosIBGE.series_temporais.idhm && dadosIBGE.series_temporais.idhm.length > 0 && (
+                                    <Card className="border-l-4 border-purple-600">
+                                        <CardHeader>
+                                            <CardTitle>Evolução do IDH-M</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <ResponsiveContainer width="100%" height={300}>
+                                                <LineChart data={dadosIBGE.series_temporais.idhm}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="ano" />
+                                                    <YAxis domain={[0, 1]} />
+                                                    <Tooltip />
+                                                    <Legend />
+                                                    <Line 
+                                                        type="monotone" 
+                                                        dataKey="valor" 
+                                                        stroke="#a855f7" 
+                                                        strokeWidth={3}
+                                                        name="IDH-M"
+                                                    />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {dadosIBGE.series_temporais.gini && dadosIBGE.series_temporais.gini.length > 0 && (
+                                    <Card className="border-l-4 border-amber-600">
+                                        <CardHeader>
+                                            <CardTitle>Índice de Gini (Desigualdade)</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <ResponsiveContainer width="100%" height={300}>
+                                                <LineChart data={dadosIBGE.series_temporais.gini}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="ano" />
+                                                    <YAxis domain={[0, 1]} />
+                                                    <Tooltip />
+                                                    <Legend />
+                                                    <Line 
+                                                        type="monotone" 
+                                                        dataKey="valor" 
+                                                        stroke="#f59e0b" 
+                                                        strokeWidth={3}
+                                                        name="Índice de Gini"
+                                                    />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                            <p className="text-xs text-gray-600 mt-2">
+                                                * Quanto mais próximo de 1, maior a desigualdade
+                                            </p>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {dadosIBGE.pib_setorial && dadosIBGE.pib_setorial.length > 0 && (
+                                    <Card className="border-l-4 border-indigo-600">
+                                        <CardHeader>
+                                            <CardTitle>Composição Setorial do PIB</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <ResponsiveContainer width="100%" height={300}>
+                                                <BarChart data={dadosIBGE.pib_setorial}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="setor" />
+                                                    <YAxis />
+                                                    <Tooltip />
+                                                    <Legend />
+                                                    <Bar dataKey="percentual" fill="#6366f1" name="% do PIB" />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </>
+                        )}
+
+                        {calcularSeriesTemporaisInternas() && (
+                            <Card className="border-l-4 border-cyan-600">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <BarChart3 className="w-5 h-5" />
+                                        Séries Temporais Internas ({periodoSelecionado})
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ResponsiveContainer width="100%" height={350}>
+                                        <LineChart data={calcularSeriesTemporaisInternas()}>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="mes" />
+                                            <YAxis />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="atividades" 
+                                                stroke="#0B1E33" 
+                                                strokeWidth={2}
+                                                name="Atividades"
+                                            />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="demandas" 
+                                                stroke="#F2B632" 
+                                                strokeWidth={2}
+                                                name="Demandas"
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {!dadosIBGE && !carregandoIBGE && storytelling && (
+                            <Card>
+                                <CardContent className="pt-6 text-center">
+                                    <p className="text-gray-600 mb-4">
+                                        Gere o storytelling para buscar dados temporais do IBGE
+                                    </p>
+                                    <Button 
+                                        onClick={() => {
+                                            const comunidade = comunidades.find(c => c.nome === comunidadeSelecionada);
+                                            if (comunidade?.municipio) {
+                                                buscarDadosIBGE(comunidade.municipio);
+                                            }
+                                        }}
+                                        disabled={!comunidadeSelecionada}
+                                    >
+                                        <RefreshCw className="w-4 h-4 mr-2" />
+                                        Buscar Dados IBGE
+                                    </Button>
                                 </CardContent>
                             </Card>
                         )}
