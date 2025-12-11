@@ -5,20 +5,31 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Plus, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import AtividadeConexoes from "../components/AtividadeConexoes";
 import SugestoesConexoes from "../components/SugestoesConexoes";
+import AtividadeDetalhada from "../components/AtividadeDetalhada";
 
 export default function Atividades() {
     const navigate = useNavigate();
     const [atividadeExpandida, setAtividadeExpandida] = React.useState(null);
+    const [editando, setEditando] = React.useState(null);
+    const queryClient = useQueryClient();
 
     const { data: atividades, isLoading, refetch } = useQuery({
         queryKey: ['atividades'],
         queryFn: () => base44.entities.Atividade.list('-created_date'),
         initialData: []
+    });
+
+    const atualizarMutation = useMutation({
+        mutationFn: ({ id, data }) => base44.entities.Atividade.update(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['atividades'] });
+            setEditando(null);
+        }
     });
 
     const getCategoriaColor = (categoria) => {
@@ -144,7 +155,14 @@ export default function Atividades() {
                                         </div>
                                     )}
 
-                                    <div className="mt-4">
+                                    <div className="mt-4 flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            onClick={() => setEditando(atividade)}
+                                            style={{ backgroundColor: '#0B1E33', color: 'white' }}
+                                        >
+                                            Ver Detalhes Completos
+                                        </Button>
                                         <Button
                                             size="sm"
                                             variant="outline"
@@ -153,7 +171,7 @@ export default function Atividades() {
                                             )}
                                             style={{ borderColor: '#F2B632', color: '#0B1E33' }}
                                         >
-                                            {atividadeExpandida === atividade.id ? 'Ocultar' : 'Sugestões de Conexões (IA)'}
+                                            {atividadeExpandida === atividade.id ? 'Ocultar' : 'Sugestões IA'}
                                         </Button>
                                     </div>
 
@@ -169,6 +187,14 @@ export default function Atividades() {
                             </Card>
                         ))}
                     </div>
+                )}
+
+                {editando && (
+                    <AtividadeDetalhada
+                        atividade={editando}
+                        onUpdate={(data) => atualizarMutation.mutate({ id: editando.id, data })}
+                        onClose={() => setEditando(null)}
+                    />
                 )}
             </div>
         </div>

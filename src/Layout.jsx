@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
+import NotificationGenerator from "@/components/NotificationGenerator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +61,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <NotificationGenerator />
       <style>{`
         :root {
           --forest-900: #1B4332;

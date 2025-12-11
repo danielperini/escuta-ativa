@@ -24,6 +24,7 @@ import RegistreEscuta from './pages/RegistreEscuta';
 import Liderancas from './pages/Liderancas';
 import GerenciarLiderancas from './pages/GerenciarLiderancas';
 import GerenciarOrganizacoes from './pages/GerenciarOrganizacoes';
+import Analise from './pages/Analise';
 import __Layout from './Layout.jsx';
 
 
@@ -54,6 +55,7 @@ export const PAGES = {
     "Liderancas": Liderancas,
     "GerenciarLiderancas": GerenciarLiderancas,
     "GerenciarOrganizacoes": GerenciarOrganizacoes,
+    "Analise": Analise,
 }
 
 export const pagesConfig = {
