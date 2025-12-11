@@ -94,29 +94,54 @@ Extraia TODO o conteúdo falado e retorne como transcrição completa.`;
       // Step 2: Analyze with AI
       setEtapa('analisando');
 
-      const promptAnalise = `Analise o seguinte conteúdo de uma interação comunitária e extraia TODAS as informações estruturadas possíveis:
+      const promptAnalise = `Você é um especialista em análise de interações comunitárias. Analise o seguinte documento e extraia TODAS as informações com máxima precisão:
 
-CONTEÚDO:
+CONTEÚDO DO DOCUMENTO:
 ${conteudoExtraido.transcricao || conteudoExtraido.texto_extraido || conteudoExtraido.conteudo_principal || ''}
 
-Extraia e estruture:
+INSTRUÇÕES ESPECÍFICAS DE EXTRAÇÃO:
 
-1. TÍTULO SUGERIDO para o registro (seja específico e descritivo)
-2. TIPO de interação (reuniao, conversa_campo, ocorrencia, demanda, ou visita)
-3. PARTICIPANTES mencionados (nomes completos quando possível)
-4. COMUNIDADE/LOCAL mencionado
-5. DATA mencionada (se houver)
-6. TEMAS/PAUTAS principais discutidos
-7. DEMANDAS DA COMUNIDADE (liste cada uma com descrição e urgência: baixa, media, alta, critica)
-8. COMPROMISSOS ASSUMIDOS (descrição, responsável mencionado, prazo se houver)
-9. PRÓXIMOS PASSOS mencionados
-10. SENTIMENTO GERAL (positivo, neutro, negativo, misto)
-11. TEMPERATURA DO TERRITÓRIO (baixo, medio, alto, critico)
-12. INDICADORES DE RISCO SOCIAL identificados
-13. RESUMO AUTOMÁTICO (2-3 parágrafos)
-14. INSIGHTS e observações importantes
+1. TÍTULO SUGERIDO: Crie um título claro e específico que resuma o encontro
 
-Seja detalhado e preciso. Se alguma informação não estiver presente, indique como null.`;
+2. TIPO DE INTERAÇÃO: Identifique se é:
+   - reuniao (reunião formal agendada)
+   - conversa_campo (conversa informal no território)
+   - visita (visita técnica)
+   - demanda (demanda espontânea trazida pela comunidade)
+   - ocorrencia (atividade comunitária/evento)
+
+3. PARTICIPANTES: Extraia TODOS os nomes próprios mencionados
+
+4. COMUNIDADE: Identifique o nome do território, bairro ou comunidade
+
+5. DATA: Extraia a data se mencionada (formato YYYY-MM-DD)
+
+6. TEMAS IDENTIFICADOS: Liste TODOS os assuntos discutidos (emprego, saúde, água, etc)
+
+7. DEMANDAS DA COMUNIDADE: Separe tudo que foi SOLICITADO/PEDIDO pela comunidade
+   Para cada demanda indique:
+   - descricao: o que foi pedido
+   - urgencia: baixa, media, alta ou critica (baseado no tom e contexto)
+
+8. COMPROMISSOS ASSUMIDOS: Separe tudo que a EMPRESA/ORGANIZAÇÃO prometeu fazer
+   Para cada compromisso:
+   - descricao: o que foi prometido
+   - responsavel: quem assumiu (se mencionado)
+   - prazo: quando será feito (se mencionado, formato YYYY-MM-DD)
+
+9. PRÓXIMOS PASSOS: Liste ações futuras mencionadas ou implícitas
+
+10. SENTIMENTO: positivo, neutro, negativo ou misto
+
+11. TEMPERATURA DO TERRITÓRIO: baixo, medio, alto ou critico (tensão social)
+
+12. INDICADORES DE RISCO: Identifique menções a conflitos, insatisfação, problemas graves
+
+13. RESUMO AUTOMÁTICO: Escreva 2-3 parágrafos objetivos resumindo tudo
+
+14. INSIGHTS: Observações importantes que chamam atenção
+
+Retorne null apenas se a informação realmente não estiver presente no texto.`;
 
       const analiseIA = await base44.integrations.Core.InvokeLLM({
         prompt: promptAnalise,
