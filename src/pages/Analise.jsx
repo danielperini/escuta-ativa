@@ -12,6 +12,7 @@ import ModeloPredicaoTensao from "../components/analise/ModeloPredicaoTensao";
 import RadarGovernanca from "../components/analise/RadarGovernanca";
 import LiderancasEmergentes from "../components/analise/LiderancasEmergentes";
 import ComparativoTerritorial from "../components/analise/ComparativoTerritorial";
+import StorytellingTerritorial from "../components/analise/StorytellingTerritorial";
 
 export default function Analise() {
     const navigate = useNavigate();
