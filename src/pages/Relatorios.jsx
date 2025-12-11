@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileText, Download, Loader2, Brain } from "lucide-react";
+import { ArrowLeft, FileText, Download, Loader2, Brain, TrendingUp } from "lucide-react";
 import RelatorioNarrativoEstrategico from "../components/relatorios/RelatorioNarrativoEstrategico";
 import { exportarParaPDF } from "../components/relatorios/ExportadorPDF";
 import { exportarParaCSV, exportarParaExcel } from "../components/relatorios/ExportadorCSV";
@@ -1143,8 +1143,372 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
                         )}
 
                         <div className="grid grid-cols-2 gap-3">
+                            {resumoExecutivo && (
+                                    <Card className="border-2 border-purple-600">
+                                        <CardHeader className="bg-purple-50">
+                                            <CardTitle className="flex items-center gap-2 text-purple-900">
+                                                <FileText className="w-6 h-6" />
+                                                Resumo Executivo Automático
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-6 pt-6">
+                                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg">
+                                                <h3 className="font-bold mb-2 text-purple-900">📝 Síntese</h3>
+                                                <p className="text-gray-700 leading-relaxed">{resumoExecutivo.sintese}</p>
+                                            </div>
+
+                                            {resumoExecutivo.numeros_chave?.length > 0 && (
+                                                <div>
+                                                    <h3 className="font-bold mb-3 text-gray-900">📊 Números-Chave</h3>
+                                                    <div className="grid md:grid-cols-2 gap-3">
+                                                        {resumoExecutivo.numeros_chave.map((num, idx) => (
+                                                            <div key={idx} className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-200">
+                                                                <p className="text-sm font-semibold text-blue-900">{num.metrica}</p>
+                                                                <p className="text-2xl font-bold text-blue-600 my-1">{num.valor}</p>
+                                                                <p className="text-xs text-gray-600">{num.interpretacao}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {resumoExecutivo.principais_descobertas?.length > 0 && (
+                                                <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600">
+                                                    <h3 className="font-bold mb-3 text-blue-900">🔎 Principais Descobertas</h3>
+                                                    <ul className="space-y-2">
+                                                        {resumoExecutivo.principais_descobertas.map((desc, idx) => (
+                                                            <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
+                                                                <span className="text-blue-600 font-bold">•</span>
+                                                                {desc}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+
+                                            {resumoExecutivo.alertas_criticos?.length > 0 && (
+                                                <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-600">
+                                                    <h3 className="font-bold mb-3 text-red-900">🚨 Alertas Críticos</h3>
+                                                    <div className="space-y-3">
+                                                        {resumoExecutivo.alertas_criticos.map((alerta, idx) => (
+                                                            <div key={idx} className="bg-white p-3 rounded border-l-2 border-red-400">
+                                                                <p className="font-semibold text-sm text-red-900 mb-1">{alerta.alerta}</p>
+                                                                <p className="text-xs text-gray-600 mb-1">
+                                                                    Severidade: <span className="font-semibold">{alerta.severidade}</span>
+                                                                </p>
+                                                                <p className="text-xs text-red-700">
+                                                                    ➜ {alerta.acao_imediata}
+                                                                </p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {resumoExecutivo.recomendacoes_prioritarias?.length > 0 && (
+                                                <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-600">
+                                                    <h3 className="font-bold mb-3 text-green-900">✅ Recomendações Prioritárias</h3>
+                                                    <div className="space-y-3">
+                                                        {resumoExecutivo.recomendacoes_prioritarias.map((rec, idx) => (
+                                                            <div key={idx} className="bg-white p-3 rounded">
+                                                                <p className="font-semibold text-sm text-gray-900 mb-1">
+                                                                    {idx + 1}. {rec.acao}
+                                                                </p>
+                                                                <div className="flex items-center gap-4 text-xs text-gray-600">
+                                                                    <span>⏰ Prazo: {rec.prazo}</span>
+                                                                    <span>📈 Impacto: {rec.impacto}</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {resumoExecutivo.oportunidades_estrategicas?.length > 0 && (
+                                                <div className="bg-amber-50 p-4 rounded-lg border-l-4 border-amber-600">
+                                                    <h3 className="font-bold mb-3 text-amber-900">💡 Oportunidades Estratégicas</h3>
+                                                    <ul className="space-y-2">
+                                                        {resumoExecutivo.oportunidades_estrategicas.map((opo, idx) => (
+                                                            <li key={idx} className="text-sm text-gray-700">• {opo}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+
+                                            <Button
+                                                onClick={() => setResumoExecutivo(null)}
+                                                variant="outline"
+                                                className="w-full mt-4"
+                                            >
+                                                Fechar Resumo
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {tendenciasAnomalias && (
+                                    <Card className="border-2 border-indigo-600">
+                                        <CardHeader className="bg-indigo-50">
+                                            <CardTitle className="flex items-center gap-2 text-indigo-900">
+                                                <TrendingUp className="w-6 h-6" />
+                                                Análise de Tendências e Anomalias
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-6 pt-6">
+                                            {tendenciasAnomalias.tendencias_temporais?.length > 0 && (
+                                                <div>
+                                                    <h3 className="font-bold mb-3 text-gray-900">📈 Tendências Temporais</h3>
+                                                    <div className="space-y-3">
+                                                        {tendenciasAnomalias.tendencias_temporais.map((tend, idx) => (
+                                                            <div key={idx} className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg">
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <p className="font-semibold text-gray-900">{tend.tendencia}</p>
+                                                                    <Badge className="bg-indigo-600">{tend.direcao}</Badge>
+                                                                </div>
+                                                                <p className="text-sm text-gray-600 mb-1">
+                                                                    Intensidade: <span className="font-semibold">{tend.intensidade}</span>
+                                                                </p>
+                                                                <p className="text-sm text-gray-600 mb-2">
+                                                                    Período: {tend.periodo_observado}
+                                                                </p>
+                                                                <p className="text-sm text-gray-700">{tend.interpretacao}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {tendenciasAnomalias.anomalias_detectadas?.length > 0 && (
+                                                <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-600">
+                                                    <h3 className="font-bold mb-3 text-orange-900">⚠️ Anomalias Detectadas</h3>
+                                                    <div className="space-y-3">
+                                                        {tendenciasAnomalias.anomalias_detectadas.map((anom, idx) => (
+                                                            <div key={idx} className={cn(
+                                                                "bg-white p-3 rounded border-l-2",
+                                                                anom.requer_atencao ? "border-red-500" : "border-gray-300"
+                                                            )}>
+                                                                <p className="font-semibold text-sm text-gray-900 mb-1">
+                                                                    {anom.anomalia}
+                                                                    {anom.requer_atencao && <span className="ml-2 text-red-600">⚠️</span>}
+                                                                </p>
+                                                                <p className="text-xs text-gray-600">
+                                                                    Data: {anom.data_ocorrencia} | Desvio: {anom.desvio}
+                                                                </p>
+                                                                <p className="text-xs text-gray-700 mt-1">
+                                                                    Causa provável: {anom.causa_provavel}
+                                                                </p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {tendenciasAnomalias.correlacoes?.length > 0 && (
+                                                <div className="bg-teal-50 p-4 rounded-lg border-l-4 border-teal-600">
+                                                    <h3 className="font-bold mb-3 text-teal-900">🔗 Correlações Identificadas</h3>
+                                                    <div className="space-y-2">
+                                                        {tendenciasAnomalias.correlacoes.map((corr, idx) => (
+                                                            <div key={idx} className="bg-white p-3 rounded text-sm">
+                                                                <p className="text-gray-900">
+                                                                    <span className="font-semibold">{corr.variavel_1}</span> ↔ <span className="font-semibold">{corr.variavel_2}</span>
+                                                                </p>
+                                                                <p className="text-xs text-gray-600 mt-1">
+                                                                    Tipo: {corr.tipo_correlacao} | Força: {corr.forca}
+                                                                </p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {tendenciasAnomalias.previsoes && (
+                                                <div className="bg-gradient-to-r from-cyan-50 to-teal-50 p-4 rounded-lg border-l-4 border-cyan-600">
+                                                    <h3 className="font-bold mb-3 text-cyan-900">🔮 Previsões</h3>
+                                                    <div className="space-y-3">
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-gray-900 mb-1">Próximos 3 meses:</p>
+                                                            <p className="text-sm text-gray-700">{tendenciasAnomalias.previsoes.proximos_3_meses}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-gray-900 mb-1">Próximos 6 meses:</p>
+                                                            <p className="text-sm text-gray-700">{tendenciasAnomalias.previsoes.proximos_6_meses}</p>
+                                                        </div>
+                                                        <div className="grid md:grid-cols-3 gap-2 mt-3">
+                                                            <div className="bg-green-100 p-2 rounded">
+                                                                <p className="text-xs font-semibold text-green-900 mb-1">Otimista</p>
+                                                                <p className="text-xs text-gray-700">{tendenciasAnomalias.previsoes.cenario_otimista}</p>
+                                                            </div>
+                                                            <div className="bg-blue-100 p-2 rounded">
+                                                                <p className="text-xs font-semibold text-blue-900 mb-1">Realista</p>
+                                                                <p className="text-xs text-gray-700">{tendenciasAnomalias.previsoes.cenario_realista}</p>
+                                                            </div>
+                                                            <div className="bg-red-100 p-2 rounded">
+                                                                <p className="text-xs font-semibold text-red-900 mb-1">Pessimista</p>
+                                                                <p className="text-xs text-gray-700">{tendenciasAnomalias.previsoes.cenario_pessimista}</p>
+                                                            </div>
+                                                        </div>
+                                                        {tendenciasAnomalias.previsoes.indicadores_alerta?.length > 0 && (
+                                                            <div className="mt-3">
+                                                                <p className="text-sm font-semibold text-red-900 mb-2">🚨 Indicadores de Alerta:</p>
+                                                                <ul className="space-y-1">
+                                                                    {tendenciasAnomalias.previsoes.indicadores_alerta.map((ind, i) => (
+                                                                        <li key={i} className="text-xs text-red-700">• {ind}</li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {tendenciasAnomalias.insights_proativos?.length > 0 && (
+                                                <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-600">
+                                                    <h3 className="font-bold mb-3 text-purple-900">🎯 Insights Proativos</h3>
+                                                    <div className="space-y-3">
+                                                        {tendenciasAnomalias.insights_proativos.map((insight, idx) => (
+                                                            <div key={idx} className="bg-white p-3 rounded">
+                                                                <p className="text-sm font-semibold text-gray-900 mb-1">{insight.insight}</p>
+                                                                <p className="text-xs text-purple-700 mb-1">
+                                                                    ➜ Ação: {insight.acao_sugerida}
+                                                                </p>
+                                                                <p className="text-xs text-gray-600">⏰ {insight.prazo}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <Button
+                                                onClick={() => setTendenciasAnomalias(null)}
+                                                variant="outline"
+                                                className="w-full"
+                                            >
+                                                Fechar Análise
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {relatorioPersonalizado && (
+                                    <Card className="border-2 border-blue-600">
+                                        <CardHeader className="bg-blue-50">
+                                            <CardTitle className="flex items-center gap-2 text-blue-900">
+                                                <Brain className="w-6 h-6" />
+                                                {relatorioPersonalizado.titulo_personalizado}
+                                            </CardTitle>
+                                            <p className="text-sm text-blue-700 mt-2">
+                                                {relatorioPersonalizado.contexto_filtros}
+                                            </p>
+                                        </CardHeader>
+                                        <CardContent className="space-y-6 pt-6">
+                                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-600">
+                                                <h3 className="font-bold text-lg mb-2 text-blue-900">📊 Resumo Executivo</h3>
+                                                <p className="text-gray-700 leading-relaxed">
+                                                    {relatorioPersonalizado.resumo_executivo}
+                                                </p>
+                                            </div>
+
+                                            {relatorioPersonalizado.metricas_principais && (
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                                        <p className="text-xs text-gray-500 mb-1">Total de Registros</p>
+                                                        <p className="text-2xl font-bold text-gray-900">
+                                                            {relatorioPersonalizado.metricas_principais.total_registros}
+                                                        </p>
+                                                    </div>
+                                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                                        <p className="text-xs text-gray-500 mb-1">Média do Período</p>
+                                                        <p className="text-lg font-semibold text-gray-900">
+                                                            {relatorioPersonalizado.metricas_principais.media_periodo}
+                                                        </p>
+                                                    </div>
+                                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                                        <p className="text-xs text-gray-500 mb-1">Tendência</p>
+                                                        <p className="text-lg font-semibold text-gray-900">
+                                                            {relatorioPersonalizado.metricas_principais.tendencia}
+                                                        </p>
+                                                    </div>
+                                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                                        <p className="text-xs text-gray-500 mb-1">vs. Anterior</p>
+                                                        <p className="text-lg font-semibold text-gray-900">
+                                                            {relatorioPersonalizado.metricas_principais.comparacao_anterior}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {relatorioPersonalizado.analise_detalhada?.map((secao, idx) => (
+                                                <div key={idx} className="bg-white border rounded-lg p-4">
+                                                    <h4 className="font-bold text-lg mb-3 text-gray-900">{secao.secao}</h4>
+                                                    <p className="text-gray-700 mb-3 leading-relaxed">{secao.conteudo}</p>
+                                                    {secao.dados_suporte && secao.dados_suporte.length > 0 && (
+                                                        <ul className="space-y-1 text-sm text-gray-600">
+                                                            {secao.dados_suporte.map((dado, i) => (
+                                                                <li key={i} className="flex items-start gap-2">
+                                                                    <span className="text-blue-600">•</span>
+                                                                    {dado}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                </div>
+                                            ))}
+
+                                            {relatorioPersonalizado.padroes_identificados?.length > 0 && (
+                                                <div className="bg-amber-50 p-4 rounded-lg border-l-4 border-amber-600">
+                                                    <h4 className="font-bold mb-3 text-amber-900">🔍 Padrões Identificados</h4>
+                                                    <ul className="space-y-2">
+                                                        {relatorioPersonalizado.padroes_identificados.map((padrao, idx) => (
+                                                            <li key={idx} className="text-sm text-gray-700">• {padrao}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+
+                                            {relatorioPersonalizado.recomendacoes_especificas?.length > 0 && (
+                                                <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-600">
+                                                    <h4 className="font-bold mb-3 text-green-900">💡 Recomendações Específicas</h4>
+                                                    <div className="space-y-3">
+                                                        {relatorioPersonalizado.recomendacoes_especificas.map((rec, idx) => (
+                                                            <div key={idx} className="bg-white p-3 rounded">
+                                                                <p className="font-semibold text-sm text-gray-900 mb-1">
+                                                                    {rec.recomendacao}
+                                                                </p>
+                                                                <p className="text-xs text-gray-600">
+                                                                    Aplicabilidade: {rec.aplicabilidade}
+                                                                </p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {relatorioPersonalizado.proximos_passos?.length > 0 && (
+                                                <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600">
+                                                    <h4 className="font-bold mb-3 text-blue-900">🎯 Próximos Passos</h4>
+                                                    <ol className="space-y-2">
+                                                        {relatorioPersonalizado.proximos_passos.map((passo, idx) => (
+                                                            <li key={idx} className="text-sm text-gray-700">
+                                                                {idx + 1}. {passo}
+                                                            </li>
+                                                        ))}
+                                                    </ol>
+                                                </div>
+                                            )}
+
+                                            <Button
+                                                onClick={() => setRelatorioPersonalizado(null)}
+                                                variant="outline"
+                                                className="w-full"
+                                            >
+                                                Fechar Relatório
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
                             <Button
-                                onClick={gerarRelatorio}
+                                                onClick={gerarRelatorio}
                                 disabled={loading || !tipoRelatorio || !formato}
                                 size="lg"
                                 className="text-white font-semibold"
