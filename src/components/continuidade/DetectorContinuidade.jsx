@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
-import { Link2, Calendar, MapPin, Users, Loader2, Check, X } from "lucide-react";
+import { Link2, Calendar, MapPin, Users, Loader2, Check, X, Percent } from "lucide-react";
 import moment from "moment";
+import { detectarContinuidadeInteligente } from "@/components/analise/DetectorContinuidadeAvancado";
 
 export default function DetectorContinuidade({ atividadeNova, onVincular, onIgnorar }) {
     const [registrosRelacionados, setRegistrosRelacionados] = useState([]);
@@ -18,6 +19,43 @@ export default function DetectorContinuidade({ atividadeNova, onVincular, onIgno
     const verificarContinuidade = async () => {
         setVerificando(true);
         try {
+            const registros = await base44.entities.Registro.list('-created_date', 50);
+
+            // Usar detector avançado
+            const resultado = await detectarContinuidadeInteligente(atividadeNova, registros);
+
+            if (resultado.continuidades_detectadas.length === 0) {
+                setRegistrosRelacionados([]);
+                setVerificando(false);
+                return;
+            }
+
+            // Formatar para o formato esperado pelo componente
+            const relacionadosFormatados = resultado.continuidades_detectadas.map(cont => ({
+                registro_id: cont.registro_id,
+                titulo_registro: cont.titulo_registro,
+                data_registro: cont.data_registro,
+                grau_relacao: cont.grau_relacao,
+                score_similaridade: cont.score_similaridade,
+                motivo_continuidade: cont.motivo_continuidade,
+                elementos_comuns: [
+                    ...cont.elementos_comuns.temas_comuns.map(t => `Tema: ${t}`),
+                    ...cont.elementos_comuns.atores_comuns.map(a => `Ator: ${a}`),
+                    ...cont.elementos_comuns.demandas_relacionadas.map(d => `Demanda: ${d}`)
+                ],
+                sugestao: cont.recomendacao,
+                analise_detalhada: cont.analise_detalhada
+            }));
+
+            setRegistrosRelacionados(relacionadosFormatados);
+
+            // Auto-selecionar os de score >= 70
+            const autoSelecionar = relacionadosFormatados
+                .filter(r => r.score_similaridade >= 70)
+                .map(r => r.registro_id);
+            setSelecionados(autoSelecionar);
+
+            /* FALLBACK PARA ANÁLISE SIMPLES (caso o avançado falhe)
             const atividades = await base44.entities.Atividade.list('-created_date', 200);
 
             const prompt = `
@@ -88,13 +126,14 @@ IMPORTANTE: Seja preciso. Vincular registros incorretos causa confusão.
                 .filter(r => r.grau_relacao === 'alto' || r.grau_relacao === 'muito_alto')
                 .map(r => r.registro_id);
             setSelecionados(autoSelecionar);
+            */
 
-        } catch (error) {
+            } catch (error) {
             console.error("Erro ao verificar continuidade:", error);
-        } finally {
+            } finally {
             setVerificando(false);
-        }
-    };
+            }
+            };
 
     const toggleSelecao = (id) => {
         setSelecionados(
@@ -194,9 +233,17 @@ IMPORTANTE: Seja preciso. Vincular registros incorretos causa confusão.
                                                 <span>{moment(rel.data_registro).fromNow()}</span>
                                             </div>
                                         </div>
-                                        <Badge className={corGrau(rel.grau_relacao)}>
-                                            {rel.grau_relacao.replace('_', ' ').toUpperCase()}
-                                        </Badge>
+                                        <div className="flex gap-2">
+                                            <Badge className={corGrau(rel.grau_relacao)}>
+                                                {rel.grau_relacao.replace('_', ' ').toUpperCase()}
+                                            </Badge>
+                                            {rel.score_similaridade && (
+                                                <Badge variant="outline" className="flex items-center gap-1">
+                                                    <Percent className="w-3 h-3" />
+                                                    {rel.score_similaridade}%
+                                                </Badge>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <p className="text-sm text-gray-700 mb-2">{rel.motivo_continuidade}</p>

@@ -42,6 +42,10 @@ import DetectorAtores from '@/components/atores/DetectorAtores';
 import ProcessadorMidia from '@/components/registro/ProcessadorMidia';
 import { criarAgendasAutomaticas, atualizarHistoricoAtor, registrarAuditoria } from '@/components/registro/AutomacaoAgenda';
 import { sincronizarAposRegistro } from '@/components/registro/SincronizadorDados';
+import { analisarRiscosSociais, criarRiscosSociais } from '@/components/analise/AnalisadorRiscosAvancado';
+import { gerarCompromissosInteligentes, criarCompromissos } from '@/components/analise/GeradorCompromissosInteligente';
+import { detectarContinuidadeInteligente } from '@/components/analise/DetectorContinuidadeAvancado';
+import { gerarResumoExecutivo, gerarAtaReuniao } from '@/components/analise/GeradorResumoExecutivo';
 
 const tipoOptions = [
   { value: 'reuniao', label: 'Reunião' },
@@ -300,13 +304,40 @@ Extraia:
     try {
       const registroCriado = await base44.entities.Registro.create(dadosFinais);
       
-      // Automações pós-criação (paralelo para performance)
-      await Promise.all([
+      // Criar riscos e compromissos da análise avançada
+      const analiseAvancada = formData.auditoria?.analise_avancada;
+      
+      const automacoes = [
         criarAgendasAutomaticas(registroCriado),
         sincronizarAposRegistro(registroCriado),
         ...atoresVinculados.map(atorId => atualizarHistoricoAtor(atorId, registroCriado.id)),
         registrarAuditoria('Registro', registroCriado.id, 'criacao_completa', null, dadosFinais, 'criacao')
-      ]);
+      ];
+
+      // Criar riscos sociais detectados
+      if (analiseAvancada?.riscos?.riscos_identificados?.length > 0) {
+        automacoes.push(
+          criarRiscosSociais(
+            analiseAvancada.riscos.riscos_identificados,
+            registroCriado.id,
+            registroCriado.comunidade,
+            registroCriado.localizacao
+          )
+        );
+      }
+
+      // Criar compromissos sugeridos pela IA
+      if (analiseAvancada?.compromissos_ia?.compromissos_sugeridos?.length > 0) {
+        automacoes.push(
+          criarCompromissos(
+            analiseAvancada.compromissos_ia.compromissos_sugeridos.slice(0, 3), // Top 3
+            registroCriado.id,
+            registroCriado.comunidade
+          )
+        );
+      }
+
+      await Promise.all(automacoes);
 
       // Invalidar queries relevantes
       queryClient.invalidateQueries({ queryKey: ['registros'] });
@@ -314,6 +345,8 @@ Extraia:
       queryClient.invalidateQueries({ queryKey: ['atores'] });
       queryClient.invalidateQueries({ queryKey: ['comunidades'] });
       queryClient.invalidateQueries({ queryKey: ['temas'] });
+      queryClient.invalidateQueries({ queryKey: ['riscos'] });
+      queryClient.invalidateQueries({ queryKey: ['compromissos'] });
       
       navigate(createPageUrl('Registros'));
     } catch (error) {
