@@ -26,6 +26,7 @@ import GerenciarLiderancas from './pages/GerenciarLiderancas';
 import GerenciarOrganizacoes from './pages/GerenciarOrganizacoes';
 import Analise from './pages/Analise';
 import ReunioesRealizadas from './pages/ReunioesRealizadas';
+import Comunicacao from './pages/Comunicacao';
 import __Layout from './Layout.jsx';
 
 
@@ -58,6 +59,7 @@ export const PAGES = {
     "GerenciarOrganizacoes": GerenciarOrganizacoes,
     "Analise": Analise,
     "ReunioesRealizadas": ReunioesRealizadas,
+    "Comunicacao": Comunicacao,
 }
 
 export const pagesConfig = {

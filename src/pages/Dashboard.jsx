@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Plus, FileText, Book, Shield, Users, AlertTriangle, MessageSquare, Star, Building, BarChart3, Lightbulb, ShieldCheck } from "lucide-react";
 import BuscaInteligenteGlobal from "@/components/BuscaInteligenteGlobal";
+import VozComunidade from "@/components/dashboard/VozComunidade";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -16,12 +17,12 @@ export default function Dashboard() {
     };
 
     const menuItems = [
-        { title: "Atividades", icon: MessageSquare, path: "Atividades", description: "Gerencie reuniões, diálogos e demandas" },
-        { title: "Lideranças Comunitárias", icon: Star, path: "GerenciarLiderancas", description: "Cadastro de lideranças e interlocutores" },
-        { title: "Organizações", icon: Building, path: "GerenciarOrganizacoes", description: "Gerenciar projetos e organizações" },
-        { title: "Relatórios", icon: BarChart3, path: "Relatorios", description: "Gere relatórios em PDF, DOCX e XLSX" },
-        { title: "Código de Ética", icon: ShieldCheck, path: "CodigoEtica", description: "Diretrizes éticas e de conduta" },
-        { title: "Dicas de Relacionamento", icon: Lightbulb, path: "DicasRelacionamento", description: "Boas práticas comunitárias" }
+        { title: "Atividades", icon: MessageSquare, path: "Atividades", description: "Gerencie reuniões, diálogos e demandas", color: "#3b82f6" },
+        { title: "Lideranças Comunitárias", icon: Star, path: "GerenciarLiderancas", description: "Cadastro de lideranças e interlocutores", color: "#22c55e" },
+        { title: "Organizações", icon: Building, path: "GerenciarOrganizacoes", description: "Gerenciar projetos e organizações", color: "#a855f7" },
+        { title: "Relatórios", icon: BarChart3, path: "Relatorios", description: "Gere relatórios em PDF, DOCX e XLSX", color: "#f97316" },
+        { title: "Código de Ética", icon: ShieldCheck, path: "CodigoEtica", description: "Diretrizes éticas e de conduta", color: "#64748b" },
+        { title: "Dicas de Relacionamento", icon: Lightbulb, path: "DicasRelacionamento", description: "Boas práticas comunitárias", color: "#eab308" }
     ];
 
     return (
@@ -42,20 +43,24 @@ export default function Dashboard() {
                     </div>
 
                     <div className="mt-6">
-                    <BuscaInteligenteGlobal />
+                        <BuscaInteligenteGlobal />
                     </div>
 
-                <div className="flex justify-center">
-                    <Button
-                        onClick={() => navigate(createPageUrl("RegistreEscuta"))}
-                        size="lg"
-                        className="text-lg font-bold px-12 py-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-white"
-                        style={{ backgroundColor: '#F2B632' }}
-                    >
-                        <Plus className="w-8 h-8 mr-3" />
-                        Registre Escuta
-                    </Button>
-                </div>
+                    <div className="mt-6">
+                        <VozComunidade />
+                    </div>
+
+                    <div className="flex justify-center">
+                        <Button
+                            onClick={() => navigate(createPageUrl("RegistreEscuta"))}
+                            size="lg"
+                            className="text-lg font-bold px-12 py-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-white"
+                            style={{ backgroundColor: '#F2B632' }}
+                        >
+                            <Plus className="w-8 h-8 mr-3" />
+                            Registre Escuta
+                        </Button>
+                    </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     {menuItems.map((item) => (
@@ -67,7 +72,7 @@ export default function Dashboard() {
                         >
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-3 text-xl" style={{ color: '#0B1E33' }}>
-                                    <div className="p-3 rounded-lg" style={{ backgroundColor: '#F2B632' }}>
+                                    <div className="p-3 rounded-lg" style={{ backgroundColor: item.color }}>
                                         <item.icon className="w-6 h-6 text-white" />
                                     </div>
                                     {item.title}
@@ -84,7 +89,8 @@ export default function Dashboard() {
                     <Button
                         onClick={handlePanico}
                         variant="outline"
-                        className="bg-red-600 hover:bg-red-700 text-white border-0 px-8 py-4 rounded-xl shadow-lg"
+                        style={{ backgroundColor: '#C0392B' }}
+                        className="hover:opacity-90 text-white border-0 px-8 py-4 rounded-xl shadow-lg"
                     >
                         <AlertTriangle className="w-5 h-5 mr-2" />
                         Botão de Pânico
