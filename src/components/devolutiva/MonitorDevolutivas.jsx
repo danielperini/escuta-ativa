@@ -17,13 +17,18 @@ export default function MonitorDevolutivas() {
         queryFn: () => base44.entities.Atividade.list('-created_date', 500)
     });
 
+    const { data: user } = useQuery({
+        queryKey: ['user-config-devolutivas'],
+        queryFn: () => base44.auth.me()
+    });
+
     useEffect(() => {
         verificarDevolutivasAtrasadas();
-    }, [atividades]);
+    }, [atividades, user]);
 
     const verificarDevolutivasAtrasadas = () => {
         const hoje = new Date();
-        const prazoDevolutiva = 15; // dias
+        const prazoDevolutiva = user?.configuracoes?.prazo_devolutiva_dias || 15;
 
         const atrasadas = atividades.filter(a => {
             if (!a.demanda_requer_devolutiva) return false;

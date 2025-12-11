@@ -9,9 +9,17 @@ import VozComunidade from "@/components/dashboard/VozComunidade";
 import DashboardKPIs from "@/components/dashboard/DashboardKPIs";
 import MonitorDemandasRecorrentes from "@/components/atores/MonitorDemandasRecorrentes";
 import MonitorDevolutivas from "@/components/devolutiva/MonitorDevolutivas";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Dashboard() {
     const navigate = useNavigate();
+    
+    const { data: user } = useQuery({
+        queryKey: ['currentUser-dashboard'],
+        queryFn: () => base44.auth.me()
+    });
+
+    const paineisAtivos = user?.configuracoes?.paineis_dashboard || ['kpis', 'demandas_recorrentes', 'devolutivas', 'voz_comunidade'];
 
     const handlePanico = async () => {
         if (window.confirm("⚠️ Você está prestes a acionar o BOTÃO DE PÂNICO. Deseja continuar?")) {
@@ -50,21 +58,29 @@ export default function Dashboard() {
                         <BuscaInteligenteGlobal />
                     </div>
 
-                    <div className="mt-6">
-                        <DashboardKPIs />
-                    </div>
+                    {paineisAtivos.includes('kpis') && (
+                        <div className="mt-6">
+                            <DashboardKPIs />
+                        </div>
+                    )}
 
-                    <div className="mt-6">
-                        <MonitorDemandasRecorrentes />
-                    </div>
+                    {paineisAtivos.includes('demandas_recorrentes') && (
+                        <div className="mt-6">
+                            <MonitorDemandasRecorrentes />
+                        </div>
+                    )}
 
-                    <div className="mt-6">
-                        <MonitorDevolutivas />
-                    </div>
+                    {paineisAtivos.includes('devolutivas') && (
+                        <div className="mt-6">
+                            <MonitorDevolutivas />
+                        </div>
+                    )}
 
-                    <div className="mt-6">
-                        <VozComunidade />
-                    </div>
+                    {paineisAtivos.includes('voz_comunidade') && (
+                        <div className="mt-6">
+                            <VozComunidade />
+                        </div>
+                    )}
 
                     <div className="flex justify-center">
                         <Button

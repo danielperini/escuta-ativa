@@ -430,8 +430,10 @@ IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não
 
                 // Detectar se demanda requer devolutiva
                 const requerDevolutiva = resultado.demandas && resultado.demandas.length > 0;
+                const usuario = await base44.auth.me();
+                const prazoDias = usuario?.configuracoes?.prazo_devolutiva_dias || 15;
                 const prazoDevolutiva = new Date();
-                prazoDevolutiva.setDate(prazoDevolutiva.getDate() + 15);
+                prazoDevolutiva.setDate(prazoDevolutiva.getDate() + prazoDias);
 
                 // Detectar encaminhamento na fala
                 const deteccaoEncaminhamento = await base44.integrations.Core.InvokeLLM({

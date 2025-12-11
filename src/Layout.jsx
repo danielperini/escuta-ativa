@@ -47,6 +47,7 @@ const navigation = [
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [tema, setTema] = useState('claro');
 
   useEffect(() => {
     loadUser();
@@ -55,14 +56,31 @@ export default function Layout({ children, currentPageName }) {
   const loadUser = async () => {
     const userData = await base44.auth.me();
     setUser(userData);
+    setTema(userData?.configuracoes?.tema || 'claro');
   };
 
   const handleLogout = () => {
     base44.auth.logout();
   };
 
+  const estiloTema = tema === 'escuro' ? {
+    background: '#1e293b',
+    backgroundAlt: '#0f172a',
+    text: '#f1f5f9',
+    textMuted: '#94a3b8',
+    border: '#334155',
+    cardBg: '#1e293b'
+  } : {
+    background: '#f8fafc',
+    backgroundAlt: '#ffffff',
+    text: '#0f172a',
+    textMuted: '#64748b',
+    border: '#e2e8f0',
+    cardBg: '#ffffff'
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ backgroundColor: estiloTema.background }}>
       <NotificationGenerator />
       <MonitorAgendaAtraso />
       <DetectorRiscos />
@@ -78,6 +96,20 @@ export default function Layout({ children, currentPageName }) {
           --amber-600: #D97706;
           --social-blue: #3B82F6;
           --social-purple: #8B5CF6;
+          
+          ${tema === 'escuro' ? `
+            --bg-main: #1e293b;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+          ` : `
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+          `}
         }
         
         @keyframes pulse-soft {
@@ -168,7 +200,10 @@ export default function Layout({ children, currentPageName }) {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 h-16 bg-white border-b border-slate-200 px-4 lg:px-8">
+        <header className="sticky top-0 z-30 h-16 border-b px-4 lg:px-8" style={{
+          backgroundColor: estiloTema.backgroundAlt,
+          borderColor: estiloTema.border
+        }}>
           <div className="flex items-center justify-between h-full">
             <button 
               onClick={() => setSidebarOpen(true)}
@@ -178,7 +213,7 @@ export default function Layout({ children, currentPageName }) {
             </button>
 
             <div className="hidden lg:block">
-              <h1 className="text-lg font-semibold text-slate-900">
+              <h1 className="text-lg font-semibold" style={{ color: estiloTema.text }}>
                 {navigation.find(n => n.href === currentPageName)?.name || currentPageName}
               </h1>
             </div>
