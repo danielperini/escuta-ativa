@@ -20,6 +20,8 @@ import Atividades from './pages/Atividades';
 import CodigoEtica from './pages/CodigoEtica';
 import DicasRelacionamento from './pages/DicasRelacionamento';
 import Relatorios from './pages/Relatorios';
+import RegistreEscuta from './pages/RegistreEscuta';
+import Liderancas from './pages/Liderancas';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +48,8 @@ export const PAGES = {
     "CodigoEtica": CodigoEtica,
     "DicasRelacionamento": DicasRelacionamento,
     "Relatorios": Relatorios,
+    "RegistreEscuta": RegistreEscuta,
+    "Liderancas": Liderancas,
 }
 
 export const pagesConfig = {

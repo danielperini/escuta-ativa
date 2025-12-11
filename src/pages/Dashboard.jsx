@@ -16,6 +16,7 @@ export default function Dashboard() {
 
     const menuItems = [
         { title: "Atividades", icon: Users, path: "Atividades", description: "Gerencie reuniões, diálogos e demandas" },
+        { title: "Lideranças Comunitárias", icon: Users, path: "Liderancas", description: "Cadastro de lideranças e interlocutores" },
         { title: "Relatórios", icon: FileText, path: "Relatorios", description: "Gere relatórios em PDF, DOCX e XLSX" },
         { title: "Código de Ética", icon: Shield, path: "CodigoEtica", description: "Diretrizes éticas e de conduta" },
         { title: "Dicas de Relacionamento", icon: Book, path: "DicasRelacionamento", description: "Boas práticas comunitárias" }
@@ -37,13 +38,13 @@ export default function Dashboard() {
 
                 <div className="flex justify-center">
                     <Button
-                        onClick={() => navigate(createPageUrl("NovaAtividade"))}
+                        onClick={() => navigate(createPageUrl("RegistreEscuta"))}
                         size="lg"
                         className="text-lg font-bold px-12 py-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-white"
                         style={{ backgroundColor: '#F2B632' }}
                     >
                         <Plus className="w-8 h-8 mr-3" />
-                        + Escuta Ativa
+                        Registre e Escuta
                     </Button>
                 </div>
 

@@ -57,12 +57,12 @@ export default function Atividades() {
                         </h1>
                     </div>
                     <Button
-                        onClick={() => navigate(createPageUrl("NovaAtividade"))}
+                        onClick={() => navigate(createPageUrl("RegistreEscuta"))}
                         className="text-white"
                         style={{ backgroundColor: '#F2B632' }}
                     >
                         <Plus className="w-5 h-5 mr-2" />
-                        Nova Atividade
+                        Registre e Escuta
                     </Button>
                 </div>
 
