@@ -35,7 +35,7 @@ export default function Analise() {
                 </div>
 
                 <Tabs defaultValue="rede" className="w-full">
-                    <TabsList className="grid w-full grid-cols-8 text-xs">
+                    <TabsList className="grid w-full grid-cols-9 text-xs">
                         <TabsTrigger value="rede">Grafo</TabsTrigger>
                         <TabsTrigger value="graficos">Gráficos</TabsTrigger>
                         <TabsTrigger value="indicadores">Compromissos</TabsTrigger>
@@ -43,6 +43,7 @@ export default function Analise() {
                         <TabsTrigger value="governanca">Governança</TabsTrigger>
                         <TabsTrigger value="liderancas">Lideranças</TabsTrigger>
                         <TabsTrigger value="comparativo">Comparativo</TabsTrigger>
+                        <TabsTrigger value="storytelling">Storytelling</TabsTrigger>
                         <TabsTrigger value="sugestoes">IA</TabsTrigger>
                     </TabsList>
 
@@ -72,6 +73,10 @@ export default function Analise() {
 
                     <TabsContent value="comparativo" className="mt-6">
                         <ComparativoTerritorial />
+                    </TabsContent>
+
+                    <TabsContent value="storytelling" className="mt-6">
+                        <StorytellingTerritorial />
                     </TabsContent>
 
                     <TabsContent value="sugestoes" className="mt-6">
