@@ -56,6 +56,8 @@ export default function NovoRegistro() {
   const [camposPreenchidosAuto, setCamposPreenchidosAuto] = useState([]);
   const [camposPendentes, setCamposPendentes] = useState([]);
   const [statusSincronizacao, setStatusSincronizacao] = useState('concluido');
+  const [textoDigitado, setTextoDigitado] = useState('');
+  const [modoTexto, setModoTexto] = useState(false);
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
@@ -100,6 +102,18 @@ export default function NovoRegistro() {
     }
     
     setIsUploading(false);
+  };
+
+  const handleAnalisarTexto = () => {
+    if (!textoDigitado.trim()) return;
+    
+    const arquivoTexto = {
+      tipo: 'texto',
+      nome: 'Texto digitado',
+      conteudo: textoDigitado
+    };
+    
+    setArquivoParaAnalisar(arquivoTexto);
   };
 
   const handleAnaliseCompleta = (resultado) => {
@@ -247,7 +261,7 @@ export default function NovoRegistro() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto pt-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 max-w-3xl mx-auto pt-4">
                   <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 transition-colors hover:border-[#40916C]">
                     <Mic className="w-8 h-8 text-[#40916C] mb-2" />
                     <span className="text-sm font-medium text-slate-700">Áudio</span>
@@ -295,6 +309,20 @@ export default function NovoRegistro() {
                       disabled={isUploading}
                     />
                   </label>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setModoTexto(!modoTexto)}
+                    className={cn(
+                      "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl transition-colors",
+                      modoTexto 
+                        ? "bg-[#40916C] border-[#40916C] text-white" 
+                        : "hover:bg-slate-50 hover:border-[#40916C]"
+                    )}
+                  >
+                    <FileText className={cn("w-8 h-8 mb-2", modoTexto ? "text-white" : "text-[#40916C]")} />
+                    <span className="text-sm font-medium">Texto</span>
+                  </button>
                 </div>
 
                 {isUploading && (
@@ -306,6 +334,43 @@ export default function NovoRegistro() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Text input mode */}
+          {modoTexto && (
+            <Card className="border-2 border-[#40916C]">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-slate-900 mb-1">
+                      Digite ou Cole o Texto da Reunião
+                    </h3>
+                    <p className="text-sm text-slate-500">
+                      Escreva ou cole a descrição, ata ou anotações da interação comunitária
+                    </p>
+                  </div>
+                  <textarea
+                    className="w-full min-h-[300px] p-4 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#40916C] focus:border-transparent resize-none"
+                    placeholder="Cole ou digite aqui...&#10;&#10;Exemplo:&#10;Reunião realizada em 10/01/2025 com a Associação de Moradores da Vila Nova.&#10;&#10;Participantes: Maria Silva (presidente), João Santos, Pedro Oliveira.&#10;&#10;Pautas discutidas:&#10;- Solicitação de reforma do posto de saúde&#10;- Demanda por cursos de capacitação para jovens&#10;&#10;Compromissos:&#10;- Empresa irá apresentar proposta até dia 20/01&#10;- Responsável: equipe de projetos sociais..."
+                    value={textoDigitado}
+                    onChange={(e) => setTextoDigitado(e.target.value)}
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-500">
+                      {textoDigitado.length} caracteres
+                    </span>
+                    <Button
+                      onClick={handleAnalisarTexto}
+                      disabled={!textoDigitado.trim()}
+                      className="bg-[#40916C] hover:bg-[#2D6A4F] gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Analisar com IA
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Info card */}
           <Card className="bg-blue-50/50 border-blue-200">

@@ -56,7 +56,14 @@ export default function AnalisadorMidia({ arquivo, onAnaliseCompleta }) {
 
       let conteudoExtraido;
       
-      if (arquivo.tipo === 'audio' || arquivo.tipo === 'video') {
+      // Handle text input directly
+      if (arquivo.tipo === 'texto') {
+        conteudoExtraido = { 
+          texto_extraido: arquivo.conteudo,
+          transcricao: arquivo.conteudo 
+        };
+        setProgresso(60);
+      } else if (arquivo.tipo === 'audio' || arquivo.tipo === 'video') {
         // Para áudio e vídeo, usar transcrição via LLM com contexto
         const promptTranscricao = `Você está processando um ${arquivo.tipo} de uma interação comunitária. 
 Extraia TODO o conteúdo falado e retorne como transcrição completa.`;
