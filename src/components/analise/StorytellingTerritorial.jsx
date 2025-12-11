@@ -14,7 +14,6 @@ import "leaflet/dist/leaflet.css";
 import "../analise/LeafletFix";
 import EnriquecedorDadosExternos from "../integracao/EnriquecedorDadosExternos";
 import AnalisadorCruzamento from "./AnalisadorCruzamento";
-import { Sparkles, GitCompare } from "lucide-react";
 
 export default function StorytellingTerritorial() {
     const [comunidadeSelecionada, setComunidadeSelecionada] = useState("");
