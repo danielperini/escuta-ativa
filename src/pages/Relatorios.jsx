@@ -2,30 +2,67 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileText, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, Download, Loader2, Brain } from "lucide-react";
 
 export default function Relatorios() {
     const navigate = useNavigate();
     const [tipoRelatorio, setTipoRelatorio] = useState("");
     const [formato, setFormato] = useState("");
+    const [filtroPeriodo, setFiltroPeriodo] = useState("30");
+    const [filtroComunidade, setFiltroComunidade] = useState("todas");
+    const [filtroTema, setFiltroTema] = useState("todos");
+    const [filtroAtor, setFiltroAtor] = useState("todos");
     const [loading, setLoading] = useState(false);
 
-    const { data: atividades } = useQuery({
+    const { data: atividades = [] } = useQuery({
         queryKey: ['atividades'],
         queryFn: () => base44.entities.Atividade.list('-created_date'),
-        initialData: []
+    });
+
+    const { data: compromissos = [] } = useQuery({
+        queryKey: ['compromissos-rel'],
+        queryFn: () => base44.entities.Compromisso.list()
+    });
+
+    const { data: liderancas = [] } = useQuery({
+        queryKey: ['liderancas-rel'],
+        queryFn: () => base44.entities.LiderancaComunitaria.list()
+    });
+
+    const { data: organizacoes = [] } = useQuery({
+        queryKey: ['organizacoes-rel'],
+        queryFn: () => base44.entities.ProjetoOrganizacao.list()
+    });
+
+    const { data: oportunidades = [] } = useQuery({
+        queryKey: ['oportunidades-rel'],
+        queryFn: () => base44.entities.Oportunidade.list()
+    });
+
+    const { data: riscos = [] } = useQuery({
+        queryKey: ['riscos-rel'],
+        queryFn: () => base44.entities.RiscoSocial.list()
+    });
+
+    const { data: comunidades = [] } = useQuery({
+        queryKey: ['comunidades-rel'],
+        queryFn: () => base44.entities.Comunidade.list()
     });
 
     const tiposRelatorio = [
         { value: "atividades", label: "Relatório de Atividades" },
-        { value: "categoria", label: "Relatório por Categoria" },
-        { value: "origem", label: "Relatório por Origem" },
-        { value: "alertas", label: "Relatório de Alertas Éticos" },
-        { value: "completo", label: "Relatório Completo" }
+        { value: "demandas", label: "Relatório de Demandas" },
+        { value: "compromissos", label: "Relatório de Compromissos" },
+        { value: "atores", label: "Relatório de Atores (Lideranças e Organizações)" },
+        { value: "oportunidades", label: "Relatório de Oportunidades" },
+        { value: "riscos", label: "Relatório de Riscos Sociais" },
+        { value: "tematico", label: "Relatório Temático" },
+        { value: "executivo", label: "Painel Executivo Completo" }
     ];
 
     const formatos = [
@@ -33,6 +70,21 @@ export default function Relatorios() {
         { value: "docx", label: "DOCX - Ata para Devolutiva" },
         { value: "xlsx", label: "XLSX - Planilha Excel" }
     ];
+
+    const aplicarFiltros = (dados, tipo) => {
+        const diasFiltro = parseInt(filtroPeriodo);
+        const dataLimite = new Date();
+        dataLimite.setDate(dataLimite.getDate() - diasFiltro);
+
+        return dados.filter(item => {
+            const dataItem = new Date(item.created_date || item.data);
+            const matchPeriodo = dataItem >= dataLimite;
+            const matchComunidade = filtroComunidade === "todas" || item.comunidade === filtroComunidade;
+            const matchTema = filtroTema === "todos" || 
+                (item.temas_identificados && item.temas_identificados.includes(filtroTema));
+            return matchPeriodo && matchComunidade && matchTema;
+        });
+    };
 
     const gerarRelatorio = async () => {
         if (!tipoRelatorio || !formato) {
@@ -42,61 +94,205 @@ export default function Relatorios() {
 
         setLoading(true);
 
-        // Preparar dados para o relatório
-        let dadosRelatorio = "";
-        
-        if (tipoRelatorio === "atividades") {
-            dadosRelatorio = `RELATÓRIO DE ATIVIDADES\n\n`;
-            atividades.forEach((ativ, index) => {
-                dadosRelatorio += `${index + 1}. ${ativ.categoria}\n`;
-                dadosRelatorio += `   Descrição: ${ativ.descricao}\n`;
-                dadosRelatorio += `   Origem: ${ativ.origem || "Não especificada"}\n`;
-                dadosRelatorio += `   Data: ${new Date(ativ.created_date).toLocaleDateString()}\n\n`;
+        try {
+            let dadosParaIA = {};
+            let promptEspecifico = "";
+
+            const atividadesFiltradas = aplicarFiltros(atividades, 'atividade');
+
+            if (tipoRelatorio === "atividades") {
+                dadosParaIA = {
+                    total: atividadesFiltradas.length,
+                    por_tipo: atividadesFiltradas.reduce((acc, a) => {
+                        acc[a.tipo] = (acc[a.tipo] || 0) + 1;
+                        return acc;
+                    }, {}),
+                    atividades_resumo: atividadesFiltradas.slice(0, 50).map(a => ({
+                        tipo: a.tipo,
+                        titulo: a.titulo,
+                        descricao: a.descricao?.substring(0, 200),
+                        comunidade: a.local,
+                        data: a.data,
+                        temas: a.temas_identificados,
+                        demandas: a.demandas?.slice(0, 3)
+                    }))
+                };
+                promptEspecifico = "Gere um relatório detalhado de atividades com estatísticas, tendências temporais e principais insights.";
+            } else if (tipoRelatorio === "demandas") {
+                const todasDemandas = atividadesFiltradas.flatMap(a => 
+                    (a.demandas || []).map(d => ({ demanda: d, comunidade: a.local, data: a.data }))
+                );
+                dadosParaIA = {
+                    total: todasDemandas.length,
+                    por_comunidade: todasDemandas.reduce((acc, d) => {
+                        acc[d.comunidade] = (acc[d.comunidade] || 0) + 1;
+                        return acc;
+                    }, {}),
+                    demandas_lista: todasDemandas.slice(0, 100)
+                };
+                promptEspecifico = "Analise as demandas, identifique padrões recorrentes, prioridades e sugira ações.";
+            } else if (tipoRelatorio === "compromissos") {
+                const compromissosFiltrados = aplicarFiltros(compromissos, 'compromisso');
+                dadosParaIA = {
+                    total: compromissosFiltrados.length,
+                    cumpridos: compromissosFiltrados.filter(c => c.status === "concluido").length,
+                    pendentes: compromissosFiltrados.filter(c => c.status === "pendente").length,
+                    atrasados: compromissosFiltrados.filter(c => c.status === "atrasado").length,
+                    por_comunidade: compromissosFiltrados.reduce((acc, c) => {
+                        acc[c.comunidade] = (acc[c.comunidade] || 0) + 1;
+                        return acc;
+                    }, {}),
+                    lista: compromissosFiltrados.slice(0, 50).map(c => ({
+                        titulo: c.titulo,
+                        comunidade: c.comunidade,
+                        status: c.status,
+                        prioridade: c.prioridade,
+                        prazo: c.prazo,
+                        responsavel: c.responsavel
+                    }))
+                };
+                promptEspecifico = "Analise o cumprimento de compromissos, identifique gargalos e sugira melhorias.";
+            } else if (tipoRelatorio === "atores") {
+                dadosParaIA = {
+                    liderancas: {
+                        total: liderancas.length,
+                        lista: liderancas.slice(0, 30).map(l => ({
+                            nome: l.nome,
+                            comunidade: l.comunidade,
+                            papel: l.papel_na_comunidade,
+                            avaliacao: l.avaliacao_interlocucao
+                        }))
+                    },
+                    organizacoes: {
+                        total: organizacoes.length,
+                        lista: organizacoes.slice(0, 30).map(o => ({
+                            nome: o.nome_oficial,
+                            natureza: o.natureza,
+                            area: o.area_de_atuacao
+                        }))
+                    }
+                };
+                promptEspecifico = "Mapeie os principais atores territoriais, suas relações e influência.";
+            } else if (tipoRelatorio === "oportunidades") {
+                const oportunidadesFiltradas = aplicarFiltros(oportunidades, 'oportunidade');
+                dadosParaIA = {
+                    total: oportunidadesFiltradas.length,
+                    por_tipo: oportunidadesFiltradas.reduce((acc, o) => {
+                        acc[o.tipo] = (acc[o.tipo] || 0) + 1;
+                        return acc;
+                    }, {}),
+                    lista: oportunidadesFiltradas.map(o => ({
+                        titulo: o.titulo,
+                        tipo: o.tipo,
+                        comunidade: o.comunidade,
+                        relevancia: o.relevancia,
+                        maturidade: o.maturidade
+                    }))
+                };
+                promptEspecifico = "Identifique oportunidades estratégicas, potencial de desenvolvimento local e parcerias.";
+            } else if (tipoRelatorio === "riscos") {
+                const riscosFiltrados = aplicarFiltros(riscos, 'risco');
+                dadosParaIA = {
+                    total: riscosFiltrados.length,
+                    criticos: riscosFiltrados.filter(r => r.nivel === "critico").length,
+                    altos: riscosFiltrados.filter(r => r.nivel === "alto").length,
+                    lista: riscosFiltrados.map(r => ({
+                        titulo: r.titulo,
+                        nivel: r.nivel,
+                        tipo: r.tipo,
+                        comunidade: r.comunidade,
+                        causas: r.causas,
+                        previsao_agravamento: r.previsao_agravamento
+                    }))
+                };
+                promptEspecifico = "Avalie riscos sociais, urgência de ação e estratégias preventivas.";
+            } else if (tipoRelatorio === "tematico") {
+                const temasPorComunidade = {};
+                atividadesFiltradas.forEach(a => {
+                    if (a.temas_identificados) {
+                        a.temas_identificados.forEach(tema => {
+                            if (!temasPorComunidade[tema]) temasPorComunidade[tema] = {};
+                            temasPorComunidade[tema][a.local] = (temasPorComunidade[tema][a.local] || 0) + 1;
+                        });
+                    }
+                });
+                dadosParaIA = { temas: temasPorComunidade };
+                promptEspecifico = "Analise temas por território, correlações e tendências emergentes.";
+            } else if (tipoRelatorio === "executivo") {
+                dadosParaIA = {
+                    atividades: atividadesFiltradas.length,
+                    compromissos: compromissos.length,
+                    liderancas: liderancas.length,
+                    organizacoes: organizacoes.length,
+                    oportunidades: oportunidades.length,
+                    riscos_ativos: riscos.filter(r => r.status === "ativo").length
+                };
+                promptEspecifico = "Crie um painel executivo com KPIs, tendências, alertas e recomendações estratégicas.";
+            }
+
+            const prompt = `
+Você é um analista especializado em relacionamento comunitário territorial.
+
+TIPO DE RELATÓRIO: ${tiposRelatorio.find(t => t.value === tipoRelatorio)?.label}
+FORMATO DE SAÍDA: ${formato.toUpperCase()}
+PERÍODO: Últimos ${filtroPeriodo} dias
+${filtroComunidade !== "todas" ? `COMUNIDADE: ${filtroComunidade}` : ""}
+
+${promptEspecifico}
+
+DADOS PARA ANÁLISE:
+${JSON.stringify(dadosParaIA, null, 2)}
+
+ESTRUTURA DO RELATÓRIO:
+
+1. CABEÇALHO
+   - Título: Escuta Ativa - Inteligência Aplicada ao Território
+   - Tipo: ${tiposRelatorio.find(t => t.value === tipoRelatorio)?.label}
+   - Data de Geração: ${new Date().toLocaleDateString('pt-BR')}
+   - Período Analisado: ${filtroPeriodo} dias
+
+2. RESUMO EXECUTIVO
+   - 3-5 insights principais
+   - Números-chave (KPIs)
+
+3. ANÁLISE DETALHADA
+   - Visualizações sugeridas (gráficos, tabelas)
+   - Tendências identificadas
+   - Padrões e correlações
+
+4. INSIGHTS E RECOMENDAÇÕES
+   - Ações prioritárias
+   - Alertas importantes
+   - Oportunidades estratégicas
+
+${formato === 'xlsx' ? 
+'5. TABELAS ESTRUTURADAS\n   - Organize dados em planilhas separadas' : 
+formato === 'docx' ? 
+'5. FORMATAÇÃO DOCX\n   - Use títulos, listas e tabelas formatadas' :
+'5. FORMATAÇÃO PDF\n   - Layout profissional com seções bem definidas'}
+
+Gere o conteúdo completo do relatório de forma profissional e acionável.
+`;
+
+            const resultado = await base44.integrations.Core.InvokeLLM({
+                prompt: prompt
             });
-        } else if (tipoRelatorio === "categoria") {
-            const porCategoria = {};
-            atividades.forEach(a => {
-                if (!porCategoria[a.categoria]) porCategoria[a.categoria] = [];
-                porCategoria[a.categoria].push(a);
+
+            // Salvar relatório gerado
+            await base44.entities.RelatorioGerado.create({
+                tipo_relatorio: tipoRelatorio,
+                formato: formato.toUpperCase(),
+                periodo: `${filtroPeriodo} dias`,
+                filtros: { comunidade: filtroComunidade, tema: filtroTema },
+                descricao: `${tiposRelatorio.find(t => t.value === tipoRelatorio)?.label} - ${new Date().toLocaleDateString('pt-BR')}`
             });
-            
-            dadosRelatorio = `RELATÓRIO POR CATEGORIA\n\n`;
-            Object.keys(porCategoria).forEach(cat => {
-                dadosRelatorio += `${cat}: ${porCategoria[cat].length} atividade(s)\n`;
-            });
-        } else if (tipoRelatorio === "alertas") {
-            dadosRelatorio = `RELATÓRIO DE ALERTAS ÉTICOS\n\n`;
-            const comAlertas = atividades.filter(a => a.alertas_eticos && a.alertas_eticos.length > 0);
-            dadosRelatorio += `Total de registros com alertas: ${comAlertas.length}\n\n`;
-            comAlertas.forEach((ativ, index) => {
-                dadosRelatorio += `${index + 1}. ${ativ.descricao.substring(0, 100)}\n`;
-                dadosRelatorio += `   Alertas: ${ativ.alertas_eticos.join(", ")}\n\n`;
-            });
+
+            setLoading(false);
+            alert(`✅ Relatório gerado com sucesso pela IA!\n\nTipo: ${tiposRelatorio.find(t => t.value === tipoRelatorio)?.label}\nFormato: ${formato.toUpperCase()}\nPeíodo: ${filtroPeriodo} dias\n\n📊 O relatório foi processado com insights automáticos da IA.\n\n(Em produção, o arquivo seria baixado automaticamente)`);
+        } catch (error) {
+            setLoading(false);
+            alert("Erro ao gerar relatório: " + error.message);
         }
-
-        // Gerar documento com IA
-        const prompt = `Crie um relatório profissional formatado em ${formato.toUpperCase()} com os seguintes dados:
-
-${dadosRelatorio}
-
-O relatório deve incluir:
-- Cabeçalho com título "Escuta Ativa - Inteligência Aplicada ao Território"
-- Data do relatório
-- Resumo executivo
-- Dados organizados de forma clara
-- Gráficos e estatísticas relevantes (se aplicável)
-- Conclusões e recomendações
-
-Formato: ${formato === 'pdf' ? 'Documento PDF' : formato === 'docx' ? 'Ata formal para devolutiva à comunidade' : 'Planilha Excel com tabelas'}`;
-
-        const resultado = await base44.integrations.Core.InvokeLLM({
-            prompt: prompt
-        });
-
-        setLoading(false);
-        
-        // Simulação de download (em produção seria gerado o arquivo real)
-        alert(`Relatório gerado com sucesso!\n\nTipo: ${tiposRelatorio.find(t => t.value === tipoRelatorio)?.label}\nFormato: ${formato.toUpperCase()}\n\nEm produção, o arquivo seria baixado automaticamente.`);
     };
 
     return (
@@ -124,9 +320,9 @@ Formato: ${formato === 'pdf' ? 'Documento PDF' : formato === 'docx' ? 'Ata forma
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium mb-2" style={{ color: '#0B1E33' }}>
+                            <Label className="block text-sm font-medium mb-2" style={{ color: '#0B1E33' }}>
                                 Tipo de Relatório
-                            </label>
+                            </Label>
                             <Select value={tipoRelatorio} onValueChange={setTipoRelatorio}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione o tipo de relatório" />
@@ -141,10 +337,42 @@ Formato: ${formato === 'pdf' ? 'Documento PDF' : formato === 'docx' ? 'Ata forma
                             </Select>
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label className="block text-sm font-medium mb-2">Período</Label>
+                                <Select value={filtroPeriodo} onValueChange={setFiltroPeriodo}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="7">Últimos 7 dias</SelectItem>
+                                        <SelectItem value="30">Últimos 30 dias</SelectItem>
+                                        <SelectItem value="90">Últimos 90 dias</SelectItem>
+                                        <SelectItem value="180">Últimos 6 meses</SelectItem>
+                                        <SelectItem value="365">Último ano</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label className="block text-sm font-medium mb-2">Comunidade</Label>
+                                <Select value={filtroComunidade} onValueChange={setFiltroComunidade}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="todas">Todas</SelectItem>
+                                        {comunidades.map(c => (
+                                            <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
                         <div>
-                            <label className="block text-sm font-medium mb-2" style={{ color: '#0B1E33' }}>
+                            <Label className="block text-sm font-medium mb-2" style={{ color: '#0B1E33' }}>
                                 Formato
-                            </label>
+                            </Label>
                             <Select value={formato} onValueChange={setFormato}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione o formato" />
@@ -169,12 +397,12 @@ Formato: ${formato === 'pdf' ? 'Documento PDF' : formato === 'docx' ? 'Ata forma
                             {loading ? (
                                 <>
                                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    Gerando Relatório...
+                                    IA Gerando Relatório...
                                 </>
                             ) : (
                                 <>
-                                    <Download className="w-5 h-5 mr-2" />
-                                    Gerar e Baixar
+                                    <Brain className="w-5 h-5 mr-2" />
+                                    Gerar com IA
                                 </>
                             )}
                         </Button>
@@ -188,26 +416,30 @@ Formato: ${formato === 'pdf' ? 'Documento PDF' : formato === 'docx' ? 'Ata forma
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid gap-4">
-                            <div className="p-4 border rounded-lg">
-                                <h3 className="font-bold mb-1" style={{ color: '#0B1E33' }}>📊 Relatório de Atividades</h3>
-                                <p className="text-sm text-gray-600">Lista completa de todas as atividades registradas com detalhes</p>
+                        <div className="grid gap-3">
+                            <div className="p-3 border rounded-lg">
+                                <h3 className="font-bold mb-1 text-sm" style={{ color: '#0B1E33' }}>📊 Atividades</h3>
+                                <p className="text-xs text-gray-600">Análise completa de atividades com tendências</p>
                             </div>
-                            <div className="p-4 border rounded-lg">
-                                <h3 className="font-bold mb-1" style={{ color: '#0B1E33' }}>📁 Relatório por Categoria</h3>
-                                <p className="text-sm text-gray-600">Atividades agrupadas por categoria (reuniões, diálogos, etc.)</p>
+                            <div className="p-3 border rounded-lg">
+                                <h3 className="font-bold mb-1 text-sm" style={{ color: '#0B1E33' }}>📋 Demandas</h3>
+                                <p className="text-xs text-gray-600">Demandas identificadas, padrões e prioridades</p>
                             </div>
-                            <div className="p-4 border rounded-lg">
-                                <h3 className="font-bold mb-1" style={{ color: '#0B1E33' }}>🏢 Relatório por Origem</h3>
-                                <p className="text-sm text-gray-600">Análise por origem: comunidade, poder público, OSC, empresa</p>
+                            <div className="p-3 border rounded-lg">
+                                <h3 className="font-bold mb-1 text-sm" style={{ color: '#0B1E33' }}>✅ Compromissos</h3>
+                                <p className="text-xs text-gray-600">Análise de cumprimento e gargalos</p>
                             </div>
-                            <div className="p-4 border rounded-lg">
-                                <h3 className="font-bold mb-1" style={{ color: '#0B1E33' }}>⚠️ Relatório de Alertas Éticos</h3>
-                                <p className="text-sm text-gray-600">Registros que receberam alertas éticos da IA</p>
+                            <div className="p-3 border rounded-lg">
+                                <h3 className="font-bold mb-1 text-sm" style={{ color: '#0B1E33' }}>👥 Atores</h3>
+                                <p className="text-xs text-gray-600">Lideranças e organizações territoriais</p>
                             </div>
-                            <div className="p-4 border rounded-lg">
-                                <h3 className="font-bold mb-1" style={{ color: '#0B1E33' }}>📑 Relatório Completo</h3>
-                                <p className="text-sm text-gray-600">Compilação completa com todas as informações</p>
+                            <div className="p-3 border rounded-lg">
+                                <h3 className="font-bold mb-1 text-sm" style={{ color: '#0B1E33' }}>💡 Oportunidades</h3>
+                                <p className="text-xs text-gray-600">Potenciais de desenvolvimento local</p>
+                            </div>
+                            <div className="p-3 border rounded-lg">
+                                <h3 className="font-bold mb-1 text-sm" style={{ color: '#0B1E33' }}>⚠️ Riscos Sociais</h3>
+                                <p className="text-xs text-gray-600">Análise de riscos e ações preventivas</p>
                             </div>
                         </div>
                     </CardContent>

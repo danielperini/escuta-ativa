@@ -10,8 +10,10 @@ import {
   Users,
   FileText,
   Layers,
-  X
+  X,
+  Lightbulb
 } from 'lucide-react';
+import DetectorRiscos from '../components/mapa/DetectorRiscos';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -56,6 +58,12 @@ function MapController({ center, zoom }) {
 export default function Mapa() {
   const [search, setSearch] = useState('');
   const [filterTema, setFilterTema] = useState('todos');
+  const [camadasVisiveis, setCamadasVisiveis] = useState({
+    comunidades: true,
+    riscos: true,
+    oportunidades: true,
+    atividades: false
+  });
   const [selectedComunidade, setSelectedComunidade] = useState(null);
   const [mapCenter, setMapCenter] = useState([-14.235, -51.9253]); // Brazil center
   const [mapZoom, setMapZoom] = useState(4);
@@ -73,6 +81,21 @@ export default function Mapa() {
   const { data: temas = [] } = useQuery({
     queryKey: ['temas'],
     queryFn: () => base44.entities.Tema.list()
+  });
+
+  const { data: riscos = [] } = useQuery({
+    queryKey: ['riscos-mapa'],
+    queryFn: () => base44.entities.RiscoSocial.list()
+  });
+
+  const { data: oportunidades = [] } = useQuery({
+    queryKey: ['oportunidades-mapa'],
+    queryFn: () => base44.entities.Oportunidade.list()
+  });
+
+  const { data: atividades = [] } = useQuery({
+    queryKey: ['atividades-mapa'],
+    queryFn: () => base44.entities.Atividade.list()
   });
 
   const filteredComunidades = comunidades.filter(c => {
@@ -98,12 +121,21 @@ export default function Mapa() {
     }
   };
 
+  const getRiscoPorComunidade = (comunidadeNome) => {
+    return riscos.filter(r => r.comunidade === comunidadeNome && r.status === "ativo");
+  };
+
+  const getOportunidadesPorComunidade = (comunidadeNome) => {
+    return oportunidades.filter(o => o.comunidade === comunidadeNome);
+  };
+
   return (
     <div className="space-y-6">
+      <DetectorRiscos />
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-slate-900">Mapa Territorial</h2>
-        <p className="text-slate-500 mt-1">Visualize registros e comunidades no território</p>
+        <h2 className="text-2xl font-bold text-slate-900">Mapa Territorial Inteligente</h2>
+        <p className="text-slate-500 mt-1">Visualize comunidades, riscos e oportunidades com análise IA</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -134,9 +166,43 @@ export default function Mapa() {
             </Select>
           </Card>
 
+          {/* Camadas */}
+          <Card className="p-4">
+            <h3 className="font-semibold text-sm text-slate-900 mb-3">Camadas do Mapa</h3>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={camadasVisiveis.comunidades}
+                  onChange={() => setCamadasVisiveis({...camadasVisiveis, comunidades: !camadasVisiveis.comunidades})}
+                  className="rounded"
+                />
+                <span className="text-sm">Comunidades</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={camadasVisiveis.riscos}
+                  onChange={() => setCamadasVisiveis({...camadasVisiveis, riscos: !camadasVisiveis.riscos})}
+                  className="rounded"
+                />
+                <span className="text-sm">Riscos Sociais</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={camadasVisiveis.oportunidades}
+                  onChange={() => setCamadasVisiveis({...camadasVisiveis, oportunidades: !camadasVisiveis.oportunidades})}
+                  className="rounded"
+                />
+                <span className="text-sm">Oportunidades</span>
+              </label>
+            </div>
+          </Card>
+
           {/* Legend */}
           <Card className="p-4">
-            <h3 className="font-semibold text-sm text-slate-900 mb-3">Legenda</h3>
+            <h3 className="font-semibold text-sm text-slate-900 mb-3">Legenda - Termômetro Social</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-emerald-500" />
@@ -153,6 +219,16 @@ export default function Mapa() {
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500" />
                 <span className="text-slate-600">Crítico</span>
+              </div>
+            </div>
+            <div className="mt-4 pt-3 border-t">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <span className="text-xs font-medium">Risco Social</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Lightbulb className="w-4 h-4 text-blue-600" />
+                <span className="text-xs font-medium">Oportunidade</span>
               </div>
             </div>
           </Card>
@@ -211,8 +287,10 @@ export default function Mapa() {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
               
-              {comunidadesWithLocation.map(comunidade => {
+              {camadasVisiveis.comunidades && comunidadesWithLocation.map(comunidade => {
                 const regs = getRegistrosByComunidade(comunidade.nome);
+                const riscosLocal = getRiscoPorComunidade(comunidade.nome);
+                const oportunidadesLocal = getOportunidadesPorComunidade(comunidade.nome);
                 const color = termometroColors[comunidade.termometro_social] || termometroColors.baixo;
                 
                 return (
@@ -249,13 +327,25 @@ export default function Mapa() {
                             </Badge>
                           </div>
                           
-                          <div className="mt-3 pt-3 border-t border-slate-100">
+                          <div className="mt-3 pt-3 border-t border-slate-100 space-y-1">
                             <div className="flex items-center gap-2 text-sm text-slate-600">
                               <FileText className="w-4 h-4" />
                               <span>{regs.length} registros</span>
                             </div>
+                            {riscosLocal.length > 0 && (
+                              <div className="flex items-center gap-2 text-sm text-red-600">
+                                <AlertTriangle className="w-4 h-4" />
+                                <span>{riscosLocal.length} risco(s) ativo(s)</span>
+                              </div>
+                            )}
+                            {oportunidadesLocal.length > 0 && (
+                              <div className="flex items-center gap-2 text-sm text-blue-600">
+                                <Lightbulb className="w-4 h-4" />
+                                <span>{oportunidadesLocal.length} oportunidade(s)</span>
+                              </div>
+                            )}
                             {comunidade.populacao_estimada && (
-                              <div className="flex items-center gap-2 text-sm text-slate-600 mt-1">
+                              <div className="flex items-center gap-2 text-sm text-slate-600">
                                 <Users className="w-4 h-4" />
                                 <span>{comunidade.populacao_estimada.toLocaleString()} habitantes</span>
                               </div>

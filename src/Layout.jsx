@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
 import NotificationGenerator from "@/components/NotificationGenerator";
 import MonitorAgendaAtraso from "@/components/agenda/MonitorAgendaAtraso";
+import DetectorRiscos from "@/components/mapa/DetectorRiscos";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,6 +65,7 @@ export default function Layout({ children, currentPageName }) {
     <div className="min-h-screen bg-slate-50">
       <NotificationGenerator />
       <MonitorAgendaAtraso />
+      <DetectorRiscos />
       <style>{`
         :root {
           --forest-900: #1B4332;
