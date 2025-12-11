@@ -20,6 +20,7 @@ export default function Dashboard() {
         { title: "Atividades", icon: MessageSquare, path: "Atividades", description: "Gerencie reuniões, diálogos e demandas", color: "#3b82f6" },
         { title: "Lideranças Comunitárias", icon: Star, path: "GerenciarLiderancas", description: "Cadastro de lideranças e interlocutores", color: "#22c55e" },
         { title: "Organizações", icon: Building, path: "GerenciarOrganizacoes", description: "Gerenciar projetos e organizações", color: "#a855f7" },
+        { title: "Documentos", icon: FileText, path: "Documentos", description: "Processamento inteligente de documentos", color: "#06b6d4" },
         { title: "Relatórios", icon: BarChart3, path: "Relatorios", description: "Gere relatórios em PDF, DOCX e XLSX", color: "#f97316" },
         { title: "Código de Ética", icon: ShieldCheck, path: "CodigoEtica", description: "Diretrizes éticas e de conduta", color: "#64748b" },
         { title: "Dicas de Relacionamento", icon: Lightbulb, path: "DicasRelacionamento", description: "Boas práticas comunitárias", color: "#eab308" }
