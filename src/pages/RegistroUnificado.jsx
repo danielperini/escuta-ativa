@@ -37,6 +37,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import DetectorContinuidade from '@/components/continuidade/DetectorContinuidade';
+import DetectorAtores from '@/components/atores/DetectorAtores';
 
 const tipoOptions = [
   { value: 'reuniao', label: 'Reunião' },
@@ -78,6 +80,8 @@ export default function RegistroUnificado() {
   const [textoDigitado, setTextoDigitado] = useState('');
   const [modoTexto, setModoTexto] = useState(false);
   const [novoParticipante, setNovoParticipante] = useState('');
+  const [mostrarDetectores, setMostrarDetectores] = useState(false);
+  const [registroTemporario, setRegistroTemporario] = useState(null);
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
@@ -311,9 +315,16 @@ Retorne null se não encontrar.`;
       return;
     }
 
+    setRegistroTemporario(formData);
+    setMostrarDetectores(true);
+  };
+
+  const finalizarComVinculacoes = async (atoresVinculados = [], continuidades = []) => {
     createMutation.mutate({
       ...formData,
-      status: 'finalizado'
+      status: 'finalizado',
+      liderancas_vinculadas: atoresVinculados,
+      registros_continuidade: continuidades
     });
   };
 
@@ -426,6 +437,46 @@ Retorne null se não encontrar.`;
             </CardContent>
           </Card>
         )}
+      </div>
+    );
+  }
+
+  if (mostrarDetectores) {
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => setMostrarDetectores(false)}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h2 className="text-2xl font-bold">Detectando Vínculos</h2>
+            <p className="text-sm text-slate-500">A IA está identificando continuidades e atores</p>
+          </div>
+        </div>
+
+        <DetectorContinuidade
+          atividadeNova={registroTemporario}
+          onVincular={(continuidades) => {
+            setFormData(prev => ({ ...prev, registros_continuidade: continuidades }));
+          }}
+          onIgnorar={() => {}}
+        />
+
+        <DetectorAtores
+          registro={registroTemporario}
+          onAtoresVinculados={(atores) => {
+            finalizarComVinculacoes(atores, formData.registros_continuidade || []);
+          }}
+        />
+
+        <div className="flex justify-end">
+          <Button 
+            variant="outline" 
+            onClick={() => finalizarComVinculacoes([], formData.registros_continuidade || [])}
+          >
+            Pular e Finalizar
+          </Button>
+        </div>
       </div>
     );
   }

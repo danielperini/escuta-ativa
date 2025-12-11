@@ -16,8 +16,12 @@ import {
   Trash2,
   X,
   Loader2,
-  Star
+  Star,
+  Eye,
+  ArrowLeft
 } from 'lucide-react';
+import FormularioAtor from '@/components/atores/FormularioAtor';
+import PerfilAtor from '@/components/atores/PerfilAtor';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,18 +92,7 @@ export default function Atores() {
   const [showDialog, setShowDialog] = useState(false);
   const [editingAtor, setEditingAtor] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [formData, setFormData] = useState({
-    nome: '',
-    tipo: 'morador',
-    comunidade: '',
-    organizacao: '',
-    cargo: '',
-    contato: { telefone: '', email: '', whatsapp: '' },
-    nivel_influencia: 'medio',
-    nivel_atividade: 'baixo',
-    temas_interesse: [],
-    notas: ''
-  });
+  const [viewingAtor, setViewingAtor] = useState(null);
 
   const { data: atores = [], isLoading } = useQuery({
     queryKey: ['atores'],
@@ -112,11 +105,14 @@ export default function Atores() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Ator.create(data),
+    mutationFn: (data) => base44.entities.Ator.create({
+      ...data,
+      historico_interacoes: 0,
+      ultima_interacao: new Date().toISOString().split('T')[0]
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['atores'] });
       setShowDialog(false);
-      resetForm();
     }
   });
 
@@ -125,7 +121,7 @@ export default function Atores() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['atores'] });
       setShowDialog(false);
-      resetForm();
+      setViewingAtor(null);
     }
   });
 
@@ -134,49 +130,9 @@ export default function Atores() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['atores'] });
       setDeleteId(null);
+      setViewingAtor(null);
     }
   });
-
-  const resetForm = () => {
-    setEditingAtor(null);
-    setFormData({
-      nome: '',
-      tipo: 'morador',
-      comunidade: '',
-      organizacao: '',
-      cargo: '',
-      contato: { telefone: '', email: '', whatsapp: '' },
-      nivel_influencia: 'medio',
-      nivel_atividade: 'baixo',
-      temas_interesse: [],
-      notas: ''
-    });
-  };
-
-  const handleEdit = (ator) => {
-    setEditingAtor(ator);
-    setFormData({
-      nome: ator.nome || '',
-      tipo: ator.tipo || 'morador',
-      comunidade: ator.comunidade || '',
-      organizacao: ator.organizacao || '',
-      cargo: ator.cargo || '',
-      contato: ator.contato || { telefone: '', email: '', whatsapp: '' },
-      nivel_influencia: ator.nivel_influencia || 'medio',
-      nivel_atividade: ator.nivel_atividade || 'baixo',
-      temas_interesse: ator.temas_interesse || [],
-      notas: ator.notas || ''
-    });
-    setShowDialog(true);
-  };
-
-  const handleSubmit = () => {
-    if (editingAtor) {
-      updateMutation.mutate({ id: editingAtor.id, data: formData });
-    } else {
-      createMutation.mutate(formData);
-    }
-  };
 
   const filteredAtores = atores.filter(a => {
     const matchSearch = !search || 
@@ -186,6 +142,24 @@ export default function Atores() {
     const matchComunidade = filterComunidade === 'todos' || a.comunidade === filterComunidade;
     return matchSearch && matchTipo && matchComunidade;
   });
+
+  if (viewingAtor) {
+    return (
+      <div className="space-y-6">
+        <Button variant="ghost" onClick={() => setViewingAtor(null)} className="gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Voltar
+        </Button>
+        <PerfilAtor 
+          atorId={viewingAtor} 
+          onEditar={(ator) => {
+            setEditingAtor(ator);
+            setShowDialog(true);
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -301,7 +275,14 @@ export default function Atores() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(ator)}>
+                        <DropdownMenuItem onClick={() => setViewingAtor(ator.id)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Perfil
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setEditingAtor(ator);
+                          setShowDialog(true);
+                        }}>
                           <Edit className="w-4 h-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
@@ -362,169 +343,25 @@ export default function Atores() {
       </div>
 
       {/* Dialog */}
-      <Dialog open={showDialog} onOpenChange={(open) => { setShowDialog(open); if (!open) resetForm(); }}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingAtor ? 'Editar Ator' : 'Novo Ator'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-2">
-                <Label>Nome *</Label>
-                <Input
-                  value={formData.nome}
-                  onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-                  placeholder="Nome completo"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Tipo *</Label>
-                <Select
-                  value={formData.tipo}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(tipoConfig).map(([key, config]) => (
-                      <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Comunidade</Label>
-                <Select
-                  value={formData.comunidade}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, comunidade: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {comunidades.map(c => (
-                      <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Organização</Label>
-                <Input
-                  value={formData.organizacao}
-                  onChange={(e) => setFormData(prev => ({ ...prev, organizacao: e.target.value }))}
-                  placeholder="Ex: Associação de Moradores"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Cargo</Label>
-                <Input
-                  value={formData.cargo}
-                  onChange={(e) => setFormData(prev => ({ ...prev, cargo: e.target.value }))}
-                  placeholder="Ex: Presidente"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Telefone</Label>
-                <Input
-                  value={formData.contato.telefone}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    contato: { ...prev.contato, telefone: e.target.value } 
-                  }))}
-                  placeholder="(00) 00000-0000"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>WhatsApp</Label>
-                <Input
-                  value={formData.contato.whatsapp}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    contato: { ...prev.contato, whatsapp: e.target.value } 
-                  }))}
-                  placeholder="(00) 00000-0000"
-                />
-              </div>
-
-              <div className="col-span-2 space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={formData.contato.email}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    contato: { ...prev.contato, email: e.target.value } 
-                  }))}
-                  placeholder="email@exemplo.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Nível de Influência</Label>
-                <Select
-                  value={formData.nivel_influencia}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, nivel_influencia: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(influenciaConfig).map(([key, config]) => (
-                      <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Nível de Atividade</Label>
-                <Select
-                  value={formData.nivel_atividade}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, nivel_atividade: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(atividadeConfig).map(([key, config]) => (
-                      <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="col-span-2 space-y-2">
-                <Label>Notas</Label>
-                <Textarea
-                  value={formData.notas}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notas: e.target.value }))}
-                  placeholder="Observações adicionais..."
-                  rows={3}
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialog(false)}>Cancelar</Button>
-            <Button 
-              className="bg-[#2D6A4F] hover:bg-[#1B4332]"
-              onClick={handleSubmit}
-              disabled={!formData.nome || createMutation.isPending || updateMutation.isPending}
-            >
-              {(createMutation.isPending || updateMutation.isPending) && (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              )}
-              {editingAtor ? 'Salvar' : 'Criar'}
-            </Button>
-          </DialogFooter>
+      <Dialog open={showDialog} onOpenChange={(open) => { 
+        setShowDialog(open); 
+        if (!open) setEditingAtor(null);
+      }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <FormularioAtor
+            ator={editingAtor}
+            onSalvar={(data) => {
+              if (editingAtor) {
+                updateMutation.mutate({ id: editingAtor.id, data });
+              } else {
+                createMutation.mutate(data);
+              }
+            }}
+            onCancelar={() => {
+              setShowDialog(false);
+              setEditingAtor(null);
+            }}
+          />
         </DialogContent>
       </Dialog>
 
