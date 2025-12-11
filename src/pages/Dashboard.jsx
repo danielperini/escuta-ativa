@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Plus, FileText, Book, Shield, Users, AlertTriangle, MessageSquare, Star, Building, BarChart3, Lightbulb, ShieldCheck } from "lucide-react";
+import BuscaInteligenteGlobal from "@/components/BuscaInteligenteGlobal";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -32,10 +33,17 @@ export default function Dashboard() {
                         alt="Escuta Ativa"
                         className="h-20 mx-auto object-contain"
                     />
-                    <h1 className="text-3xl font-bold" style={{ color: '#0B1E33' }}>
-                        Escuta Ativa
-                    </h1>
-                </div>
+                    <div>
+                        <h1 className="text-3xl font-bold" style={{ color: '#0B1E33' }}>
+                            Escuta Ativa
+                        </h1>
+                        <p className="text-gray-600 mt-1">Inteligência Aplicada ao Território</p>
+                    </div>
+                    </div>
+
+                    <div className="mt-6">
+                    <BuscaInteligenteGlobal />
+                    </div>
 
                 <div className="flex justify-center">
                     <Button
