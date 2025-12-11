@@ -62,11 +62,33 @@ export default function IndicadoresCompromissos() {
     comunidades.forEach(com => {
         const compromissosCom = compromissosFiltrados.filter(c => c.comunidade === com.nome);
         const cumpridosCom = compromissosCom.filter(c => c.status === "concluido").length;
+        const atrasadosCom = compromissosCom.filter(c => c.status === "atrasado").length;
         compromissosPorComunidade[com.nome] = {
             total: compromissosCom.length,
             cumpridos: cumpridosCom,
+            atrasados: atrasadosCom,
             taxa: compromissosCom.length > 0 ? Math.round((cumpridosCom / compromissosCom.length) * 100) : 0
         };
+    });
+
+    // Compromissos por região (agregando comunidades)
+    const compromissosPorRegiao = {};
+    comunidades.forEach(com => {
+        const regiao = com.estado || "Região não especificada";
+        if (!compromissosPorRegiao[regiao]) {
+            compromissosPorRegiao[regiao] = { total: 0, cumpridos: 0, atrasados: 0 };
+        }
+        const dados = compromissosPorComunidade[com.nome];
+        if (dados) {
+            compromissosPorRegiao[regiao].total += dados.total;
+            compromissosPorRegiao[regiao].cumpridos += dados.cumpridos;
+            compromissosPorRegiao[regiao].atrasados += dados.atrasados;
+        }
+    });
+
+    Object.keys(compromissosPorRegiao).forEach(regiao => {
+        const dados = compromissosPorRegiao[regiao];
+        dados.taxa = dados.total > 0 ? Math.round((dados.cumpridos / dados.total) * 100) : 0;
     });
 
     const exportarRelatorio = () => {
@@ -223,6 +245,41 @@ export default function IndicadoresCompromissos() {
 
             <Card>
                 <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5" />
+                        Taxa de Cumprimento por Região
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {Object.entries(compromissosPorRegiao)
+                            .filter(([_, dados]) => dados.total > 0)
+                            .sort((a, b) => b[1].taxa - a[1].taxa)
+                            .map(([regiao, dados]) => (
+                                <div key={regiao} className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium">{regiao}</span>
+                                            <Badge variant="outline">{dados.cumpridos}/{dados.total}</Badge>
+                                            {dados.atrasados > 0 && (
+                                                <Badge className="bg-red-100 text-red-800">
+                                                    {dados.atrasados} atrasados
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        <span className="text-sm font-bold" style={{ color: '#F2B632' }}>
+                                            {dados.taxa}%
+                                        </span>
+                                    </div>
+                                    <Progress value={dados.taxa} className="h-2" />
+                                </div>
+                            ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle>Compromissos Recentes</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -232,18 +289,28 @@ export default function IndicadoresCompromissos() {
                                 <div className="flex-1">
                                     <p className="font-medium">{c.titulo}</p>
                                     <p className="text-sm text-gray-600">{c.comunidade}</p>
+                                    {c.responsavel && (
+                                        <p className="text-xs text-gray-500 mt-1">Responsável: {c.responsavel}</p>
+                                    )}
                                 </div>
-                                <Badge className={
-                                    c.status === "concluido" ? "bg-green-100 text-green-800" :
-                                    c.status === "em_andamento" ? "bg-blue-100 text-blue-800" :
-                                    c.status === "atrasado" ? "bg-red-100 text-red-800" :
-                                    "bg-yellow-100 text-yellow-800"
-                                }>
-                                    {c.status === "concluido" ? "Cumprido" :
-                                     c.status === "em_andamento" ? "Em Andamento" :
-                                     c.status === "atrasado" ? "Atrasado" :
-                                     c.status === "cancelado" ? "Cancelado" : "Pendente"}
-                                </Badge>
+                                <div className="flex flex-col items-end gap-1">
+                                    <Badge className={
+                                        c.status === "concluido" ? "bg-green-100 text-green-800" :
+                                        c.status === "em_andamento" ? "bg-blue-100 text-blue-800" :
+                                        c.status === "atrasado" ? "bg-red-100 text-red-800" :
+                                        "bg-yellow-100 text-yellow-800"
+                                    }>
+                                        {c.status === "concluido" ? "Cumprido" :
+                                         c.status === "em_andamento" ? "Em Andamento" :
+                                         c.status === "atrasado" ? "Atrasado" :
+                                         c.status === "cancelado" ? "Cancelado" : "Pendente"}
+                                    </Badge>
+                                    {c.prioridade && (
+                                        <Badge variant="outline" className="text-xs">
+                                            {c.prioridade}
+                                        </Badge>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>

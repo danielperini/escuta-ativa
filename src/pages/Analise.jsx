@@ -7,6 +7,7 @@ import { createPageUrl } from "@/utils";
 import GrafoRede from "../components/analise/GrafoRede";
 import GraficosAnalise from "../components/analise/GraficosAnalise";
 import IndicadoresCompromissos from "../components/analise/IndicadoresCompromissos";
+import SugestoesIA from "../components/analise/SugestoesIA";
 
 export default function Analise() {
     const navigate = useNavigate();
@@ -29,10 +30,11 @@ export default function Analise() {
                 </div>
 
                 <Tabs defaultValue="rede" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="rede">Grafo (Rede)</TabsTrigger>
                         <TabsTrigger value="graficos">Gráficos</TabsTrigger>
                         <TabsTrigger value="indicadores">Indicadores</TabsTrigger>
+                        <TabsTrigger value="sugestoes">Sugestões IA</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="rede" className="mt-6">
@@ -46,7 +48,11 @@ export default function Analise() {
                     <TabsContent value="indicadores" className="mt-6">
                         <IndicadoresCompromissos />
                     </TabsContent>
-                </Tabs>
+
+                    <TabsContent value="sugestoes" className="mt-6">
+                        <SugestoesIA />
+                    </TabsContent>
+                    </Tabs>
             </div>
         </div>
     );

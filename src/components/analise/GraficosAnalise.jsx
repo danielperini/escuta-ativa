@@ -13,6 +13,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
+import { Badge } from "@/components/ui/badge";
 
 const COLORS = ['#F2B632', '#0B1E33', '#8B5CF6', '#10B981', '#EF4444', '#3B82F6', '#F59E0B'];
 
@@ -32,6 +33,11 @@ export default function GraficosAnalise() {
     const { data: comunidades = [] } = useQuery({
         queryKey: ['comunidades-graficos'],
         queryFn: () => base44.entities.Comunidade.list()
+    });
+
+    const { data: liderancas = [] } = useQuery({
+        queryKey: ['liderancas-graficos'],
+        queryFn: () => base44.entities.LiderancaComunitaria.list()
     });
 
     // Filtrar atividades por período
@@ -99,6 +105,47 @@ export default function GraficosAnalise() {
 
     const dadosTiposAtividade = Object.entries(tiposAtividade)
         .map(([name, value]) => ({ name, value }));
+
+    // Temas por comunidade
+    const temasPorComunidade = {};
+    atividadesFiltradas.forEach(a => {
+        const comunidade = a.local || "Não especificado";
+        if (a.temas_identificados) {
+            a.temas_identificados.forEach(tema => {
+                if (!temasPorComunidade[comunidade]) {
+                    temasPorComunidade[comunidade] = {};
+                }
+                temasPorComunidade[comunidade][tema] = (temasPorComunidade[comunidade][tema] || 0) + 1;
+            });
+        }
+    });
+
+    // Temas por liderança (top 5 lideranças)
+    const temasPorLideranca = {};
+    atividadesFiltradas.forEach(a => {
+        if (a.liderancas_relacionadas && a.temas_identificados) {
+            a.liderancas_relacionadas.forEach(lidId => {
+                const lideranca = liderancas.find(l => l.id === lidId);
+                if (lideranca) {
+                    if (!temasPorLideranca[lideranca.nome]) {
+                        temasPorLideranca[lideranca.nome] = {};
+                    }
+                    a.temas_identificados.forEach(tema => {
+                        temasPorLideranca[lideranca.nome][tema] = (temasPorLideranca[lideranca.nome][tema] || 0) + 1;
+                    });
+                }
+            });
+        }
+    });
+
+    const topLiderancas = Object.entries(temasPorLideranca)
+        .map(([nome, temas]) => ({ 
+            nome, 
+            total: Object.values(temas).reduce((sum, count) => sum + count, 0),
+            temas 
+        }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5);
 
     const exportarGraficos = () => {
         alert("Funcionalidade de exportação será implementada em breve.");
@@ -229,6 +276,90 @@ export default function GraficosAnalise() {
                     </CardContent>
                 </Card>
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Temas por Comunidade (Heatmap)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th className="text-left p-2 border-b">Comunidade</th>
+                                    <th className="text-left p-2 border-b">Temas Principais</th>
+                                    <th className="text-right p-2 border-b">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Object.entries(temasPorComunidade)
+                                    .sort((a, b) => {
+                                        const totalA = Object.values(a[1]).reduce((sum, val) => sum + val, 0);
+                                        const totalB = Object.values(b[1]).reduce((sum, val) => sum + val, 0);
+                                        return totalB - totalA;
+                                    })
+                                    .slice(0, 10)
+                                    .map(([comunidade, temas]) => {
+                                        const totalTemas = Object.values(temas).reduce((sum, val) => sum + val, 0);
+                                        const topTemas = Object.entries(temas)
+                                            .sort((a, b) => b[1] - a[1])
+                                            .slice(0, 3)
+                                            .map(([tema]) => tema);
+                                        return (
+                                            <tr key={comunidade} className="hover:bg-gray-50">
+                                                <td className="p-2 border-b font-medium">{comunidade}</td>
+                                                <td className="p-2 border-b">
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {topTemas.map(tema => (
+                                                            <Badge key={tema} variant="outline" className="text-xs">
+                                                                {tema}
+                                                            </Badge>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                                <td className="p-2 border-b text-right font-semibold">{totalTemas}</td>
+                                            </tr>
+                                        );
+                                    })}
+                            </tbody>
+                        </table>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Top 5 Lideranças por Temas Mencionados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {topLiderancas.map((lideranca) => {
+                            const topTemasLid = Object.entries(lideranca.temas)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 5);
+                            return (
+                                <div key={lideranca.nome} className="border rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="font-semibold text-lg">{lideranca.nome}</h4>
+                                        <Badge style={{ backgroundColor: '#F2B632' }}>
+                                            {lideranca.total} menções
+                                        </Badge>
+                                    </div>
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <BarChart data={topTemasLid.map(([tema, count]) => ({ tema, count }))}>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="tema" angle={-20} textAnchor="end" height={80} />
+                                            <YAxis />
+                                            <Tooltip />
+                                            <Bar dataKey="count" fill="#0B1E33" />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }
