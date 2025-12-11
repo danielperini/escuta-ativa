@@ -684,7 +684,6 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
             alert("Erro ao exportar relatório: " + error.message);
         }
     };
-    };
 
     // Determinar campos disponíveis baseado no tipo de relatório
     React.useEffect(() => {
@@ -786,10 +785,10 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
-                            </Select>
+                                </Select>
+                                </div>
 
-
-                        <div>
+                                <div>
                             <Label className="block text-sm font-medium mb-2" style={{ color: '#0B1E33' }}>
                                 Formato
                             </Label>
