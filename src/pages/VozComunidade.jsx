@@ -145,6 +145,14 @@ Seja conciso e objetivo.`;
     return acc;
   }, {});
 
+  // Get relevant speeches from last 30 days
+  const falas30Dias = registros
+    .filter(r => {
+      const daysDiff = Math.floor((new Date() - new Date(r.created_date)) / (1000 * 60 * 60 * 24));
+      return daysDiff <= 30 && r.transcricao;
+    })
+    .slice(0, 10);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -166,6 +174,47 @@ Seja conciso e objetivo.`;
           Gerar Insights
         </Button>
       </div>
+
+      {/* Falas Relevantes */}
+      {falas30Dias.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-[#40916C]" />
+              Falas Relevantes (últimos 30 dias)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {falas30Dias.map(registro => (
+              <div 
+                key={registro.id}
+                className="p-4 bg-slate-50 rounded-lg border-l-4 border-l-[#40916C] hover:bg-slate-100 transition-colors"
+              >
+                <p className="text-sm text-slate-700 italic mb-2">
+                  "{registro.transcricao?.substring(0, 200)}..."
+                </p>
+                <div className="flex items-center gap-3 text-xs text-slate-500">
+                  {registro.comunidade && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {registro.comunidade}
+                    </span>
+                  )}
+                  {registro.participantes?.[0] && (
+                    <span className="flex items-center gap-1">
+                      <Users className="w-3 h-3" />
+                      {registro.participantes[0]}
+                    </span>
+                  )}
+                  <span>
+                    {format(new Date(registro.created_date), "dd/MM/yyyy", { locale: ptBR })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

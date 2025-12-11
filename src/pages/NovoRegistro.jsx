@@ -174,13 +174,113 @@ export default function NovoRegistro() {
     setEtapaAtual('etapa1');
   };
 
-  const handleFinalizar = () => {
-    const dadosFinais = {
-      ...formData,
-      status: 'finalizado',
-      localizacao: formData.local ? { endereco: formData.local } : undefined
-    };
-    createMutation.mutate(dadosFinais);
+  const handleFinalizar = async () => {
+    try {
+      // Geocode location if needed
+      let localizacao = formData.localizacao;
+      
+      if (formData.comunidade && !localizacao) {
+        const geocodePrompt = `Geocodifique a seguinte localização e retorne coordenadas aproximadas:
+        Comunidade: ${formData.comunidade}
+        ${formData.local ? `Local específico: ${formData.local}` : ''}
+        
+        Retorne latitude e longitude aproximadas dessa localização.`;
+        
+        try {
+          const geoResult = await base44.integrations.Core.InvokeLLM({
+            prompt: geocodePrompt,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                lat: { type: "number" },
+                lng: { type: "number" },
+                endereco: { type: "string" }
+              }
+            }
+          });
+          localizacao = geoResult;
+        } catch (e) {
+          console.log('Geocoding não disponível');
+        }
+      }
+
+      // Extract agendas from transcription/content
+      if (formData.transcricao || formData.descricao) {
+        const agendaPrompt = `Analise o seguinte texto e identifique TODAS as datas futuras, compromissos agendados, reuniões marcadas ou retornos acordados:
+
+TEXTO:
+${formData.transcricao || formData.descricao}
+
+Identifique e extraia:
+- Datas futuras mencionadas
+- Reuniões acordadas
+- Devolutivas prometidas
+- Retornos marcados
+- Encontros solicitados
+
+Para cada item encontrado, retorne:
+- titulo: descrição do compromisso
+- data: data no formato YYYY-MM-DD
+- tipo: reuniao, visita, devolutiva, encontro ou outro
+- status: prevista, solicitada ou acordada (baseado no contexto)
+- descricao: detalhes adicionais
+
+Se não houver nenhuma agenda/compromisso futuro, retorne um array vazio.`;
+
+        try {
+          const agendasResult = await base44.integrations.Core.InvokeLLM({
+            prompt: agendaPrompt,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                agendas: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      titulo: { type: "string" },
+                      data: { type: "string" },
+                      tipo: { type: "string" },
+                      status: { type: "string" },
+                      descricao: { type: "string" }
+                    }
+                  }
+                }
+              }
+            }
+          });
+
+          // Create agendas if found
+          if (agendasResult.agendas?.length > 0) {
+            const registroId = Date.now().toString(); // Temporary ID
+            await base44.entities.Agenda.bulkCreate(
+              agendasResult.agendas.map(a => ({
+                ...a,
+                comunidade: formData.comunidade,
+                registro_origem_id: registroId,
+                responsaveis: formData.participantes || []
+              }))
+            );
+          }
+        } catch (e) {
+          console.log('Extração de agendas não disponível');
+        }
+      }
+
+      const dadosFinais = {
+        ...formData,
+        status: 'finalizado',
+        localizacao: localizacao || (formData.local ? { endereco: formData.local } : undefined)
+      };
+      
+      createMutation.mutate(dadosFinais);
+    } catch (error) {
+      console.error('Erro ao finalizar:', error);
+      createMutation.mutate({
+        ...formData,
+        status: 'finalizado'
+      });
+    }
   };
 
   return (

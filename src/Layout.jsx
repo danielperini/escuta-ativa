@@ -15,7 +15,8 @@ import {
   X,
   LogOut,
   Bell,
-  ChevronDown
+  ChevronDown,
+  CalendarDays
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
   { name: 'Registros', href: 'Registros', icon: FileText },
+  { name: 'Agenda', href: 'Agenda', icon: CalendarDays },
   { name: 'Mapa', href: 'Mapa', icon: MapPin },
   { name: 'Materialidade', href: 'Materialidade', icon: Target },
   { name: 'Voz da Comunidade', href: 'VozComunidade', icon: MessageCircle },

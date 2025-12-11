@@ -9,6 +9,9 @@ import Atores from './pages/Atores';
 import Compromissos from './pages/Compromissos';
 import Configuracoes from './pages/Configuracoes';
 import AuditoriaRegistro from './pages/AuditoriaRegistro';
+import Agenda from './pages/Agenda';
+import Landing from './pages/Landing';
+import MaterialidadeViva from './pages/MaterialidadeViva';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +27,9 @@ export const PAGES = {
     "Compromissos": Compromissos,
     "Configuracoes": Configuracoes,
     "AuditoriaRegistro": AuditoriaRegistro,
+    "Agenda": Agenda,
+    "Landing": Landing,
+    "MaterialidadeViva": MaterialidadeViva,
 }
 
 export const pagesConfig = {
