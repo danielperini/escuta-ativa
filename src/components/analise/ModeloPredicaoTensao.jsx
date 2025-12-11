@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, TrendingUp, Loader2, Brain } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import FeedbackIA from "../FeedbackIA";
 
 export default function ModeloPredicaoTensao() {
     const [analisando, setAnalisando] = useState(false);
@@ -31,11 +32,24 @@ export default function ModeloPredicaoTensao() {
         queryFn: () => base44.entities.RiscoSocial.list()
     });
 
+    const { data: feedbacks = [] } = useQuery({
+        queryKey: ['feedbacks-predicao'],
+        queryFn: () => base44.entities.FeedbackIA.list()
+    });
+
     const calcularTensao = async () => {
         setAnalisando(true);
 
         try {
             const predicoesComunidades = [];
+
+            // Usar feedbacks históricos para melhorar previsões
+            const feedbacksPredicao = feedbacks.filter(f => f.tipo_analise === "predicao_tensao");
+            const aprendizadoHistorico = feedbacksPredicao.length > 0 
+                ? `\n\nAPRENDIZADO DE FEEDBACKS ANTERIORES:\n${feedbacksPredicao.slice(0, 10).map(f => 
+                    `- ${f.validado ? "✓ Correto" : "✗ Incorreto"}: ${f.comentario || "Sem comentário"} (Precisão: ${f.precisao_avaliada}/5)`
+                ).join('\n')}\n\nUse esse aprendizado para ajustar suas previsões.`
+                : "";
 
             for (const comunidade of comunidades.slice(0, 10)) {
                 const atividadesCom = atividades.filter(a => a.local === comunidade.nome);
@@ -77,6 +91,8 @@ Considere:
 6. Tendências temporais
 
 Forneça uma análise preditiva estruturada.
+
+${aprendizadoHistorico}
 `;
 
                 const resultado = await base44.integrations.Core.InvokeLLM({
@@ -237,6 +253,16 @@ Forneça uma análise preditiva estruturada.
                                         </ul>
                                     </div>
                                 )}
+
+                                <div className="pt-3 border-t">
+                                    <FeedbackIA
+                                        tipo_analise="predicao_tensao"
+                                        analise_original={pred}
+                                        entidade_relacionada_tipo="Comunidade"
+                                        entidade_relacionada_id={pred.comunidade}
+                                        contexto={{ comunidade: pred.comunidade, periodo: "14 dias" }}
+                                    />
+                                </div>
                             </CardContent>
                         </Card>
                     ))}

@@ -111,6 +111,10 @@ Identifique novos riscos sociais que ainda não foram catalogados.
                         );
 
                         if (!jaExiste && risco.nivel && risco.tipo && risco.comunidade) {
+                            // Verificar feedbacks anteriores para melhorar detecção
+                            const feedbacks = await base44.entities.FeedbackIA.list();
+                            const feedbacksRisco = feedbacks.filter(f => f.tipo_analise === "risco_social");
+                            
                             // Criar novo risco
                             const novoRisco = await base44.entities.RiscoSocial.create({
                                 titulo: risco.titulo,

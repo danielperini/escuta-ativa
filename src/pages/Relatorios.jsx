@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, FileText, Download, Loader2, Brain } from "lucide-react";
+import RelatorioNarrativoEstrategico from "../components/relatorios/RelatorioNarrativoEstrategico";
 
 export default function Relatorios() {
     const navigate = useNavigate();
@@ -297,7 +299,7 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
 
     return (
         <div className="min-h-screen p-6" style={{ backgroundColor: '#f8f9fa' }}>
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-5xl mx-auto space-y-6">
                 <div className="flex items-center gap-4">
                     <Button
                         variant="outline"
@@ -311,6 +313,15 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
                         Relatórios
                     </h1>
                 </div>
+
+                <Tabs defaultValue="padrao" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="padrao">Relatórios Padrão</TabsTrigger>
+                        <TabsTrigger value="narrativo">Relatório Narrativo Estratégico</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="padrao" className="mt-6">
+                        <div className="space-y-6">{/* Conteúdo dos relatórios padrão */}
 
                 <Card>
                     <CardHeader>
@@ -460,6 +471,13 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
                         </div>
                     </CardContent>
                 </Card>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="narrativo" className="mt-6">
+                        <RelatorioNarrativoEstrategico />
+                    </TabsContent>
+                </Tabs>
             </div>
         </div>
     );
