@@ -13,6 +13,7 @@ import RadarGovernanca from "../components/analise/RadarGovernanca";
 import LiderancasEmergentes from "../components/analise/LiderancasEmergentes";
 import ComparativoTerritorial from "../components/analise/ComparativoTerritorial";
 import StorytellingTerritorial from "../components/analise/StorytellingTerritorial";
+import ComparadorPeriodos from "../components/analise/ComparadorPeriodos";
 
 export default function Analise() {
     const navigate = useNavigate();

@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import ComparadorPeriodos from "../components/analise/ComparadorPeriodos";
 
 const categoriaColors = {
   ambiental: 'bg-emerald-100 text-emerald-700',
@@ -77,6 +78,7 @@ export default function Materialidade() {
   const [filterCategoria, setFilterCategoria] = useState('todos');
   const [showDialog, setShowDialog] = useState(false);
   const [editingTema, setEditingTema] = useState(null);
+  const [modoAdicaoInterativa, setModoAdicaoInterativa] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
     categoria: 'social',
@@ -165,6 +167,25 @@ export default function Materialidade() {
     return { x, y };
   };
 
+  const handleMatrixClick = (e) => {
+    if (!modoAdicaoInterativa) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    const relevancia_empresa = Math.round((x / 100) * 9) + 1;
+    const relevancia_comunidade = Math.round(((100 - y) / 100) * 9) + 1;
+
+    setFormData({
+      ...formData,
+      relevancia_empresa: Math.max(1, Math.min(10, relevancia_empresa)),
+      relevancia_comunidade: Math.max(1, Math.min(10, relevancia_comunidade))
+    });
+    setShowDialog(true);
+    setModoAdicaoInterativa(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -173,13 +194,23 @@ export default function Materialidade() {
           <h2 className="text-2xl font-bold text-slate-900">Matriz de Materialidade</h2>
           <p className="text-slate-500 mt-1">Análise de relevância dos temas para comunidade e empresa</p>
         </div>
-        <Button 
-          className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
-          onClick={() => setShowDialog(true)}
-        >
-          <Plus className="w-4 h-4" />
-          Novo Tema
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
+            onClick={() => setShowDialog(true)}
+          >
+            <Plus className="w-4 h-4" />
+            Novo Tema
+          </Button>
+          <Button 
+            variant={modoAdicaoInterativa ? "default" : "outline"}
+            className={modoAdicaoInterativa ? "bg-blue-600 hover:bg-blue-700" : ""}
+            onClick={() => setModoAdicaoInterativa(!modoAdicaoInterativa)}
+          >
+            <Target className="w-4 h-4 mr-2" />
+            {modoAdicaoInterativa ? 'Cancelar Adição' : 'Adicionar no Gráfico'}
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -209,6 +240,8 @@ export default function Materialidade() {
         </div>
       </Card>
 
+      <ComparadorPeriodos />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Matrix Chart */}
         <Card className="p-6">
@@ -216,7 +249,23 @@ export default function Materialidade() {
             <CardTitle className="text-lg">Matriz de Materialidade</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="relative aspect-square bg-gradient-to-br from-emerald-50 via-amber-50 to-red-50 rounded-lg border">
+            {modoAdicaoInterativa && (
+              <div className="bg-blue-100 border border-blue-400 rounded-lg p-3 mb-3">
+                <p className="text-sm font-semibold text-blue-900 mb-1">
+                  🎯 Modo Adição Interativa Ativado
+                </p>
+                <p className="text-xs text-blue-700">
+                  Clique em qualquer ponto da matriz para adicionar um novo tema naquela posição
+                </p>
+              </div>
+            )}
+            <div 
+              className={cn(
+                "relative aspect-square bg-gradient-to-br from-emerald-50 via-amber-50 to-red-50 rounded-lg border",
+                modoAdicaoInterativa && "cursor-crosshair ring-2 ring-blue-400"
+              )}
+              onClick={handleMatrixClick}
+            >
               {/* Quadrant labels */}
               <div className="absolute top-2 left-2 text-xs text-slate-400">
                 Alta relevância comunidade<br/>Baixa relevância empresa

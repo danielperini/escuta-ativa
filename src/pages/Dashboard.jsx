@@ -6,6 +6,7 @@ import { createPageUrl } from "@/utils";
 import { Plus, FileText, Book, Shield, Users, AlertTriangle, MessageSquare, Star, Building, BarChart3, Lightbulb, ShieldCheck } from "lucide-react";
 import BuscaInteligenteGlobal from "@/components/BuscaInteligenteGlobal";
 import VozComunidade from "@/components/dashboard/VozComunidade";
+import DashboardKPIs from "@/components/dashboard/DashboardKPIs";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -45,6 +46,10 @@ export default function Dashboard() {
 
                     <div className="mt-6">
                         <BuscaInteligenteGlobal />
+                    </div>
+
+                    <div className="mt-6">
+                        <DashboardKPIs />
                     </div>
 
                     <div className="mt-6">
