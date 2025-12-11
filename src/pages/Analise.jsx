@@ -15,6 +15,7 @@ import ComparativoTerritorial from "../components/analise/ComparativoTerritorial
 import StorytellingTerritorial from "../components/analise/StorytellingTerritorial";
 import ComparadorPeriodos from "../components/analise/ComparadorPeriodos";
 import PainelPendencias from "../components/devolutiva/PainelPendencias";
+import AnalisadorCruzamento from "../components/analise/AnalisadorCruzamento";
 
 export default function Analise() {
     const navigate = useNavigate();
@@ -37,11 +38,12 @@ export default function Analise() {
                 </div>
 
                 <Tabs defaultValue="rede" className="w-full">
-                    <TabsList className="grid w-full grid-cols-10 text-xs">
+                    <TabsList className="grid w-full grid-cols-11 text-xs">
                         <TabsTrigger value="rede">Grafo</TabsTrigger>
                         <TabsTrigger value="graficos">Gráficos</TabsTrigger>
                         <TabsTrigger value="indicadores">Compromissos</TabsTrigger>
                         <TabsTrigger value="pendencias">Pendências</TabsTrigger>
+                        <TabsTrigger value="cruzamento">Cruzamento IA</TabsTrigger>
                         <TabsTrigger value="predicao">Previsão</TabsTrigger>
                         <TabsTrigger value="governanca">Governança</TabsTrigger>
                         <TabsTrigger value="liderancas">Lideranças</TabsTrigger>
@@ -64,6 +66,10 @@ export default function Analise() {
 
                     <TabsContent value="pendencias" className="mt-6">
                         <PainelPendencias />
+                    </TabsContent>
+
+                    <TabsContent value="cruzamento" className="mt-6">
+                        <AnalisadorCruzamento />
                     </TabsContent>
 
                     <TabsContent value="predicao" className="mt-6">
