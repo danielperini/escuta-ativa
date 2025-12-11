@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Search, Edit, Trash2, User, Phone, Mail, AlertCircle } from "lucide-react";
+import { ArrowLeft, Plus, Search, Edit, Trash2, User, Phone, Mail, AlertCircle, Upload, History } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
@@ -25,6 +25,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
+import DetectorDuplicatas from "../components/atores/DetectorDuplicatas";
+import ResolvedorConflitos from "../components/atores/ResolvedorConflitos";
+import HistoricoAuditoria from "../components/atores/HistoricoAuditoria";
+import ImportadorCSV from "../components/atores/ImportadorCSV";
 
 export default function GerenciarLiderancas() {
     const navigate = useNavigate();
@@ -34,6 +38,10 @@ export default function GerenciarLiderancas() {
     const [dialogAberto, setDialogAberto] = useState(false);
     const [liderancaEditando, setLiderancaEditando] = useState(null);
     const [formData, setFormData] = useState({});
+    const [verificandoDuplicatas, setVerificandoDuplicatas] = useState(false);
+    const [conflitosDetectados, setConflitosDetectados] = useState(null);
+    const [liderancaSelecionada, setLiderancaSelecionada] = useState(null);
+    const [showImportador, setShowImportador] = useState(false);
 
     const { data: liderancas = [], isLoading } = useQuery({
         queryKey: ['liderancas'],
@@ -98,12 +106,116 @@ export default function GerenciarLiderancas() {
         setDialogAberto(true);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (liderancaEditando) {
-            atualizarMutation.mutate({ id: liderancaEditando.id, data: formData });
+            // Detectar conflitos antes de atualizar
+            const conflitos = [];
+            Object.keys(formData).forEach(campo => {
+                if (liderancaEditando[campo] && formData[campo] !== liderancaEditando[campo]) {
+                    conflitos.push({
+                        campo: campo,
+                        valor_antigo: liderancaEditando[campo],
+                        valor_novo: formData[campo],
+                        fonte: 'Edição manual'
+                    });
+                }
+            });
+
+            if (conflitos.length > 0) {
+                setConflitosDetectados(conflitos);
+                return;
+            }
+
+            const usuario = await base44.auth.me();
+            const dadosComAuditoria = {
+                ...formData,
+                historico_auditoria: [
+                    ...(liderancaEditando.historico_auditoria || []),
+                    {
+                        campo_alterado: 'Atualização manual',
+                        valor_anterior: JSON.stringify(liderancaEditando),
+                        valor_novo: JSON.stringify(formData),
+                        data_alteracao: new Date().toISOString(),
+                        usuario_responsavel: usuario.email,
+                        tipo_operacao: 'atualizacao'
+                    }
+                ]
+            };
+
+            atualizarMutation.mutate({ id: liderancaEditando.id, data: dadosComAuditoria });
         } else {
-            criarMutation.mutate(formData);
+            // Verificar duplicatas antes de criar
+            setVerificandoDuplicatas(true);
         }
+    };
+
+    const confirmarCriacao = async (resultado) => {
+        const usuario = await base44.auth.me();
+
+        if (resultado.tipo === 'vincular') {
+            alert('Vinculado ao cadastro existente. Não foi criado novo registro.');
+            setVerificandoDuplicatas(false);
+            setDialogAberto(false);
+        } else if (resultado.tipo === 'criar_novo') {
+            const dadosComAuditoria = {
+                ...formData,
+                historico_auditoria: [{
+                    campo_alterado: 'Criação',
+                    valor_anterior: null,
+                    valor_novo: 'Cadastro criado',
+                    data_alteracao: new Date().toISOString(),
+                    usuario_responsavel: usuario.email,
+                    tipo_operacao: 'criacao',
+                    aprovacao_necessaria: true
+                }]
+            };
+
+            criarMutation.mutate(dadosComAuditoria);
+            setVerificandoDuplicatas(false);
+        }
+    };
+
+    const resolverConflitos = async (decisoes) => {
+        if (!decisoes) {
+            setConflitosDetectados(null);
+            return;
+        }
+
+        const usuario = await base44.auth.me();
+        const dadosAtualizados = { ...formData };
+        const auditorias = [];
+
+        Object.keys(decisoes).forEach(campo => {
+            const conflito = conflitosDetectados.find(c => c.campo === campo);
+            if (decisoes[campo] === 'antigo') {
+                dadosAtualizados[campo] = conflito.valor_antigo;
+            } else if (decisoes[campo] === 'novo') {
+                auditorias.push({
+                    campo_alterado: campo,
+                    valor_anterior: conflito.valor_antigo,
+                    valor_novo: conflito.valor_novo,
+                    data_alteracao: new Date().toISOString(),
+                    usuario_responsavel: usuario.email,
+                    tipo_operacao: 'atualizacao',
+                    aprovacao_necessaria: true
+                });
+            } else if (decisoes[campo] === 'observacao') {
+                dadosAtualizados[campo] = conflito.valor_antigo;
+                dadosAtualizados.notas = (dadosAtualizados.notas || '') + 
+                    `\n[${new Date().toLocaleDateString()}] Dado divergente detectado: ${conflito.valor_novo}`;
+            }
+        });
+
+        const dadosFinais = {
+            ...dadosAtualizados,
+            historico_auditoria: [
+                ...(liderancaEditando.historico_auditoria || []),
+                ...auditorias
+            ]
+        };
+
+        atualizarMutation.mutate({ id: liderancaEditando.id, data: dadosFinais });
+        setConflitosDetectados(null);
     };
 
     const handleDeletar = (id) => {
@@ -129,14 +241,23 @@ export default function GerenciarLiderancas() {
                             Gerenciar Lideranças Comunitárias
                         </h1>
                     </div>
-                    <Button
-                        onClick={abrirDialogNovo}
-                        className="text-white"
-                        style={{ backgroundColor: '#F2B632' }}
-                    >
-                        <Plus className="w-5 h-5 mr-2" />
-                        Nova Liderança
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={abrirDialogNovo}
+                            className="text-white"
+                            style={{ backgroundColor: '#F2B632' }}
+                        >
+                            <Plus className="w-5 h-5 mr-2" />
+                            Nova Liderança
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowImportador(true)}
+                        >
+                            <Upload className="w-5 h-5 mr-2" />
+                            Importar CSV
+                        </Button>
+                    </div>
                 </div>
 
                 <Card>
@@ -199,6 +320,9 @@ export default function GerenciarLiderancas() {
                                             </div>
                                         </div>
                                         <div className="flex gap-1">
+                                            <Button size="icon" variant="ghost" onClick={() => setLiderancaSelecionada(lid)}>
+                                                <History className="w-4 h-4" />
+                                            </Button>
                                             <Button size="icon" variant="ghost" onClick={() => abrirDialogEditar(lid)}>
                                                 <Edit className="w-4 h-4" />
                                             </Button>
@@ -378,6 +502,55 @@ export default function GerenciarLiderancas() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {verificandoDuplicatas && (
+                <Dialog open={verificandoDuplicatas} onOpenChange={() => setVerificandoDuplicatas(false)}>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <DetectorDuplicatas
+                            tipo="lideranca"
+                            dadosNovo={formData}
+                            onCancelar={() => setVerificandoDuplicatas(false)}
+                            onConfirmar={confirmarCriacao}
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
+
+            {conflitosDetectados && (
+                <Dialog open={!!conflitosDetectados} onOpenChange={() => setConflitosDetectados(null)}>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <ResolvedorConflitos
+                            conflitos={conflitosDetectados}
+                            onResolver={resolverConflitos}
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
+
+            {liderancaSelecionada && (
+                <Dialog open={!!liderancaSelecionada} onOpenChange={() => setLiderancaSelecionada(null)}>
+                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                        <HistoricoAuditoria
+                            atorId={liderancaSelecionada.id}
+                            tipoAtor="lideranca"
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
+
+            {showImportador && (
+                <Dialog open={showImportador} onOpenChange={setShowImportador}>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <ImportadorCSV
+                            tipo="lideranca"
+                            onConcluir={() => {
+                                setShowImportador(false);
+                                queryClient.invalidateQueries({ queryKey: ['liderancas'] });
+                            }}
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 }

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Search, Edit, Trash2, Building2, Phone, Mail, Globe } from "lucide-react";
+import { ArrowLeft, Plus, Search, Edit, Trash2, Building2, Phone, Mail, Globe, Upload, History } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
@@ -25,6 +25,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
+import DetectorDuplicatas from "../components/atores/DetectorDuplicatas";
+import ResolvedorConflitos from "../components/atores/ResolvedorConflitos";
+import HistoricoAuditoria from "../components/atores/HistoricoAuditoria";
+import ImportadorCSV from "../components/atores/ImportadorCSV";
 
 export default function GerenciarOrganizacoes() {
     const navigate = useNavigate();
@@ -34,6 +38,10 @@ export default function GerenciarOrganizacoes() {
     const [dialogAberto, setDialogAberto] = useState(false);
     const [organizacaoEditando, setOrganizacaoEditando] = useState(null);
     const [formData, setFormData] = useState({});
+    const [verificandoDuplicatas, setVerificandoDuplicatas] = useState(false);
+    const [conflitosDetectados, setConflitosDetectados] = useState(null);
+    const [organizacaoSelecionada, setOrganizacaoSelecionada] = useState(null);
+    const [showImportador, setShowImportador] = useState(false);
 
     const { data: organizacoes = [], isLoading } = useQuery({
         queryKey: ['organizacoes'],
@@ -89,12 +97,110 @@ export default function GerenciarOrganizacoes() {
         setDialogAberto(true);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (organizacaoEditando) {
-            atualizarMutation.mutate({ id: organizacaoEditando.id, data: formData });
+            const conflitos = [];
+            Object.keys(formData).forEach(campo => {
+                if (organizacaoEditando[campo] && formData[campo] !== organizacaoEditando[campo]) {
+                    conflitos.push({
+                        campo: campo,
+                        valor_antigo: organizacaoEditando[campo],
+                        valor_novo: formData[campo],
+                        fonte: 'Edição manual'
+                    });
+                }
+            });
+
+            if (conflitos.length > 0) {
+                setConflitosDetectados(conflitos);
+                return;
+            }
+
+            const usuario = await base44.auth.me();
+            const dadosComAuditoria = {
+                ...formData,
+                historico_auditoria: [
+                    ...(organizacaoEditando.historico_auditoria || []),
+                    {
+                        campo_alterado: 'Atualização manual',
+                        valor_anterior: JSON.stringify(organizacaoEditando),
+                        valor_novo: JSON.stringify(formData),
+                        data_alteracao: new Date().toISOString(),
+                        usuario_responsavel: usuario.email,
+                        tipo_operacao: 'atualizacao'
+                    }
+                ]
+            };
+
+            atualizarMutation.mutate({ id: organizacaoEditando.id, data: dadosComAuditoria });
         } else {
-            criarMutation.mutate(formData);
+            setVerificandoDuplicatas(true);
         }
+    };
+
+    const confirmarCriacao = async (resultado) => {
+        const usuario = await base44.auth.me();
+
+        if (resultado.tipo === 'vincular') {
+            alert('Vinculado ao cadastro existente.');
+            setVerificandoDuplicatas(false);
+            setDialogAberto(false);
+        } else if (resultado.tipo === 'criar_novo') {
+            const dadosComAuditoria = {
+                ...formData,
+                historico_auditoria: [{
+                    campo_alterado: 'Criação',
+                    valor_anterior: null,
+                    valor_novo: 'Cadastro criado',
+                    data_alteracao: new Date().toISOString(),
+                    usuario_responsavel: usuario.email,
+                    tipo_operacao: 'criacao',
+                    aprovacao_necessaria: true
+                }]
+            };
+
+            criarMutation.mutate(dadosComAuditoria);
+            setVerificandoDuplicatas(false);
+        }
+    };
+
+    const resolverConflitos = async (decisoes) => {
+        if (!decisoes) {
+            setConflitosDetectados(null);
+            return;
+        }
+
+        const usuario = await base44.auth.me();
+        const dadosAtualizados = { ...formData };
+        const auditorias = [];
+
+        Object.keys(decisoes).forEach(campo => {
+            const conflito = conflitosDetectados.find(c => c.campo === campo);
+            if (decisoes[campo] === 'antigo') {
+                dadosAtualizados[campo] = conflito.valor_antigo;
+            } else if (decisoes[campo] === 'novo') {
+                auditorias.push({
+                    campo_alterado: campo,
+                    valor_anterior: conflito.valor_antigo,
+                    valor_novo: conflito.valor_novo,
+                    data_alteracao: new Date().toISOString(),
+                    usuario_responsavel: usuario.email,
+                    tipo_operacao: 'atualizacao',
+                    aprovacao_necessaria: true
+                });
+            }
+        });
+
+        const dadosFinais = {
+            ...dadosAtualizados,
+            historico_auditoria: [
+                ...(organizacaoEditando.historico_auditoria || []),
+                ...auditorias
+            ]
+        };
+
+        atualizarMutation.mutate({ id: organizacaoEditando.id, data: dadosFinais });
+        setConflitosDetectados(null);
     };
 
     const handleDeletar = (id) => {
@@ -120,14 +226,23 @@ export default function GerenciarOrganizacoes() {
                             Gerenciar Organizações
                         </h1>
                     </div>
-                    <Button
-                        onClick={abrirDialogNovo}
-                        className="text-white"
-                        style={{ backgroundColor: '#F2B632' }}
-                    >
-                        <Plus className="w-5 h-5 mr-2" />
-                        Nova Organização
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={abrirDialogNovo}
+                            className="text-white"
+                            style={{ backgroundColor: '#F2B632' }}
+                        >
+                            <Plus className="w-5 h-5 mr-2" />
+                            Nova Organização
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowImportador(true)}
+                        >
+                            <Upload className="w-5 h-5 mr-2" />
+                            Importar CSV
+                        </Button>
+                    </div>
                 </div>
 
                 <Card>
@@ -192,6 +307,9 @@ export default function GerenciarOrganizacoes() {
                                             </div>
                                         </div>
                                         <div className="flex gap-1">
+                                            <Button size="icon" variant="ghost" onClick={() => setOrganizacaoSelecionada(org)}>
+                                                <History className="w-4 h-4" />
+                                            </Button>
                                             <Button size="icon" variant="ghost" onClick={() => abrirDialogEditar(org)}>
                                                 <Edit className="w-4 h-4" />
                                             </Button>
@@ -372,6 +490,55 @@ export default function GerenciarOrganizacoes() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {verificandoDuplicatas && (
+                <Dialog open={verificandoDuplicatas} onOpenChange={() => setVerificandoDuplicatas(false)}>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <DetectorDuplicatas
+                            tipo="organizacao"
+                            dadosNovo={formData}
+                            onCancelar={() => setVerificandoDuplicatas(false)}
+                            onConfirmar={confirmarCriacao}
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
+
+            {conflitosDetectados && (
+                <Dialog open={!!conflitosDetectados} onOpenChange={() => setConflitosDetectados(null)}>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <ResolvedorConflitos
+                            conflitos={conflitosDetectados}
+                            onResolver={resolverConflitos}
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
+
+            {organizacaoSelecionada && (
+                <Dialog open={!!organizacaoSelecionada} onOpenChange={() => setOrganizacaoSelecionada(null)}>
+                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                        <HistoricoAuditoria
+                            atorId={organizacaoSelecionada.id}
+                            tipoAtor="organizacao"
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
+
+            {showImportador && (
+                <Dialog open={showImportador} onOpenChange={setShowImportador}>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <ImportadorCSV
+                            tipo="organizacao"
+                            onConcluir={() => {
+                                setShowImportador(false);
+                                queryClient.invalidateQueries({ queryKey: ['organizacoes'] });
+                            }}
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 }

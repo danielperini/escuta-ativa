@@ -7,6 +7,7 @@ import { Plus, FileText, Book, Shield, Users, AlertTriangle, MessageSquare, Star
 import BuscaInteligenteGlobal from "@/components/BuscaInteligenteGlobal";
 import VozComunidade from "@/components/dashboard/VozComunidade";
 import DashboardKPIs from "@/components/dashboard/DashboardKPIs";
+import MonitorDemandasRecorrentes from "@/components/atores/MonitorDemandasRecorrentes";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -50,6 +51,10 @@ export default function Dashboard() {
 
                     <div className="mt-6">
                         <DashboardKPIs />
+                    </div>
+
+                    <div className="mt-6">
+                        <MonitorDemandasRecorrentes />
                     </div>
 
                     <div className="mt-6">
