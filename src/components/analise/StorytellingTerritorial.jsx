@@ -11,6 +11,7 @@ import { exportarParaCSV } from "../relatorios/ExportadorCSV";
 import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 import "leaflet/dist/leaflet.css";
+import "../analise/LeafletFix";
 
 export default function StorytellingTerritorial() {
     const [comunidadeSelecionada, setComunidadeSelecionada] = useState("");
