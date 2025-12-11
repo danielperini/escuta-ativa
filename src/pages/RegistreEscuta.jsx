@@ -287,7 +287,7 @@ Retorne lista de alertas ou lista vazia.`,
                         Voltar
                     </Button>
                     <h1 className="text-3xl font-bold" style={{ color: '#0B1E33' }}>
-                        Registre e Escuta
+                        Registre Escuta
                     </h1>
                 </div>
 
