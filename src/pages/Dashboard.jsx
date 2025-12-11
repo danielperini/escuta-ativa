@@ -79,13 +79,13 @@ export default function Dashboard() {
 
                     <div className="flex justify-center">
                         <Button
-                            onClick={() => navigate(createPageUrl("RegistreEscuta"))}
+                            onClick={() => navigate(createPageUrl("RegistroUnificado"))}
                             size="lg"
                             className="text-lg font-bold px-12 py-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-white"
                             style={{ backgroundColor: '#F2B632' }}
                         >
                             <Plus className="w-8 h-8 mr-3" />
-                            Registre Escuta
+                            Novo Registro
                         </Button>
                     </div>
 

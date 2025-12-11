@@ -24,6 +24,7 @@ import NotificationCenter from "@/components/NotificationCenter";
 import NotificationGenerator from "@/components/NotificationGenerator";
 import MonitorAgendaAtraso from "@/components/agenda/MonitorAgendaAtraso";
 import DetectorRiscos from "@/components/mapa/DetectorRiscos";
+import MonitorDevolutivas from "@/components/notificacoes/MonitorDevolutivas";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -85,6 +86,7 @@ export default function Layout({ children, currentPageName }) {
       <NotificationGenerator />
       <MonitorAgendaAtraso />
       <DetectorRiscos />
+      <MonitorDevolutivas />
       <style>{`
         :root {
           --forest-900: #1B4332;

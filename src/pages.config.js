@@ -1,6 +1,5 @@
 import Dashboard from './pages/Dashboard';
 import Registros from './pages/Registros';
-import NovoRegistro from './pages/NovoRegistro';
 import VerRegistro from './pages/VerRegistro';
 import Mapa from './pages/Mapa';
 import Materialidade from './pages/Materialidade';
@@ -20,7 +19,6 @@ import Atividades from './pages/Atividades';
 import CodigoEtica from './pages/CodigoEtica';
 import DicasRelacionamento from './pages/DicasRelacionamento';
 import Relatorios from './pages/Relatorios';
-import RegistreEscuta from './pages/RegistreEscuta';
 import Liderancas from './pages/Liderancas';
 import GerenciarLiderancas from './pages/GerenciarLiderancas';
 import GerenciarOrganizacoes from './pages/GerenciarOrganizacoes';
@@ -30,13 +28,13 @@ import Comunicacao from './pages/Comunicacao';
 import Documentos from './pages/Documentos';
 import GerenciarPermissoes from './pages/GerenciarPermissoes';
 import PreferenciasUsuario from './pages/PreferenciasUsuario';
+import RegistroUnificado from './pages/RegistroUnificado';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Dashboard": Dashboard,
     "Registros": Registros,
-    "NovoRegistro": NovoRegistro,
     "VerRegistro": VerRegistro,
     "Mapa": Mapa,
     "Materialidade": Materialidade,
@@ -56,7 +54,6 @@ export const PAGES = {
     "CodigoEtica": CodigoEtica,
     "DicasRelacionamento": DicasRelacionamento,
     "Relatorios": Relatorios,
-    "RegistreEscuta": RegistreEscuta,
     "Liderancas": Liderancas,
     "GerenciarLiderancas": GerenciarLiderancas,
     "GerenciarOrganizacoes": GerenciarOrganizacoes,
@@ -66,6 +63,7 @@ export const PAGES = {
     "Documentos": Documentos,
     "GerenciarPermissoes": GerenciarPermissoes,
     "PreferenciasUsuario": PreferenciasUsuario,
+    "RegistroUnificado": RegistroUnificado,
 }
 
 export const pagesConfig = {
