@@ -90,7 +90,8 @@ export default function Materialidade() {
 
   const { data: temas = [], isLoading } = useQuery({
     queryKey: ['temas'],
-    queryFn: () => base44.entities.Tema.list('-mencoes_total')
+    queryFn: () => base44.entities.Tema.list('-mencoes_total', 100),
+    staleTime: 3 * 60 * 1000
   });
 
   const createMutation = useMutation({

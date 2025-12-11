@@ -10,6 +10,7 @@ import DashboardKPIs from "@/components/dashboard/DashboardKPIs";
 import MonitorDemandasRecorrentes from "@/components/atores/MonitorDemandasRecorrentes";
 import MonitorDevolutivas from "@/components/devolutiva/MonitorDevolutivas";
 import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 export default function Dashboard() {
     const navigate = useNavigate();

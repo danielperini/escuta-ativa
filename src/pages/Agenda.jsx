@@ -78,7 +78,8 @@ export default function Agenda() {
 
   const { data: agendas = [], isLoading } = useQuery({
     queryKey: ['agendas'],
-    queryFn: () => base44.entities.Agenda.list('data', 100)
+    queryFn: () => base44.entities.Agenda.list('data', 200),
+    staleTime: 60 * 1000
   });
 
   const { data: comunidades = [] } = useQuery({

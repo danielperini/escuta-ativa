@@ -69,33 +69,33 @@ export default function Mapa() {
   const [mapZoom, setMapZoom] = useState(4);
 
   const { data: comunidades = [], isLoading: loadingComunidades } = useQuery({
-    queryKey: ['comunidades'],
-    queryFn: () => base44.entities.Comunidade.list()
+    queryKey: ['comunidades-mapa'],
+    queryFn: () => base44.entities.Comunidade.list('-created_date', 100),
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: registros = [] } = useQuery({
-    queryKey: ['registros'],
-    queryFn: () => base44.entities.Registro.list('-created_date', 100)
+    queryKey: ['registros-mapa'],
+    queryFn: () => base44.entities.Registro.list('-created_date', 100),
+    staleTime: 60 * 1000
   });
 
   const { data: temas = [] } = useQuery({
-    queryKey: ['temas'],
-    queryFn: () => base44.entities.Tema.list()
+    queryKey: ['temas-mapa'],
+    queryFn: () => base44.entities.Tema.list('-mencoes_total', 50),
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: riscos = [] } = useQuery({
     queryKey: ['riscos-mapa'],
-    queryFn: () => base44.entities.RiscoSocial.list()
+    queryFn: () => base44.entities.RiscoSocial.list('-created_date', 50),
+    staleTime: 2 * 60 * 1000
   });
 
   const { data: oportunidades = [] } = useQuery({
     queryKey: ['oportunidades-mapa'],
-    queryFn: () => base44.entities.Oportunidade.list()
-  });
-
-  const { data: atividades = [] } = useQuery({
-    queryKey: ['atividades-mapa'],
-    queryFn: () => base44.entities.Atividade.list()
+    queryFn: () => base44.entities.Oportunidade.list('-created_date', 50),
+    staleTime: 2 * 60 * 1000
   });
 
   const filteredComunidades = comunidades.filter(c => {

@@ -53,12 +53,14 @@ export default function DashboardKPIs() {
 
     const { data: compromissos = [] } = useQuery({
         queryKey: ['compromissos-kpi'],
-        queryFn: () => base44.entities.Compromisso.list()
+        queryFn: () => base44.entities.Compromisso.list('-created_date', 100),
+        staleTime: 2 * 60 * 1000
     });
 
     const { data: liderancas = [] } = useQuery({
         queryKey: ['liderancas-kpi'],
-        queryFn: () => base44.entities.LiderancaComunitaria.list()
+        queryFn: () => base44.entities.LiderancaComunitaria.list('-created_date', 100),
+        staleTime: 5 * 60 * 1000
     });
 
     const { data: comunidades = [] } = useQuery({
@@ -68,12 +70,14 @@ export default function DashboardKPIs() {
 
     const { data: riscos = [] } = useQuery({
         queryKey: ['riscos-kpi'],
-        queryFn: () => base44.entities.RiscoSocial.list()
+        queryFn: () => base44.entities.RiscoSocial.list('-created_date', 50),
+        staleTime: 2 * 60 * 1000
     });
 
     const { data: oportunidades = [] } = useQuery({
         queryKey: ['oportunidades-kpi'],
-        queryFn: () => base44.entities.Oportunidade.list()
+        queryFn: () => base44.entities.Oportunidade.list('-created_date', 50),
+        staleTime: 2 * 60 * 1000
     });
 
     const { data: temas = [] } = useQuery({

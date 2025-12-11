@@ -41,6 +41,7 @@ import DetectorContinuidade from '@/components/continuidade/DetectorContinuidade
 import DetectorAtores from '@/components/atores/DetectorAtores';
 import ProcessadorMidia from '@/components/registro/ProcessadorMidia';
 import { criarAgendasAutomaticas, atualizarHistoricoAtor, registrarAuditoria } from '@/components/registro/AutomacaoAgenda';
+import { sincronizarAposRegistro } from '@/components/registro/SincronizadorDados';
 
 const tipoOptions = [
   { value: 'reuniao', label: 'Reunião' },
@@ -299,16 +300,20 @@ Extraia:
     try {
       const registroCriado = await base44.entities.Registro.create(dadosFinais);
       
-      // Automações pós-criação
+      // Automações pós-criação (paralelo para performance)
       await Promise.all([
         criarAgendasAutomaticas(registroCriado),
+        sincronizarAposRegistro(registroCriado),
         ...atoresVinculados.map(atorId => atualizarHistoricoAtor(atorId, registroCriado.id)),
         registrarAuditoria('Registro', registroCriado.id, 'criacao_completa', null, dadosFinais, 'criacao')
       ]);
 
+      // Invalidar queries relevantes
       queryClient.invalidateQueries({ queryKey: ['registros'] });
-      queryClient.invalidateQueries({ queryKey: ['agenda'] });
+      queryClient.invalidateQueries({ queryKey: ['agendas'] });
       queryClient.invalidateQueries({ queryKey: ['atores'] });
+      queryClient.invalidateQueries({ queryKey: ['comunidades'] });
+      queryClient.invalidateQueries({ queryKey: ['temas'] });
       
       navigate(createPageUrl('Registros'));
     } catch (error) {
