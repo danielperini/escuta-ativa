@@ -23,24 +23,60 @@ export default function RegistreEscuta() {
                 const { file_url } = await base44.integrations.Core.UploadFile({ file });
                 anexos.push(file_url);
 
-                // Processar com IA
-                const prompt = tipo === 'audio' 
-                    ? `Transcreva o áudio fornecido e extraia: temas principais, demandas mencionadas, compromissos assumidos, participantes citados, próximos passos, datas futuras mencionadas e localidades.`
-                    : tipo === 'video'
-                    ? `Transcreva o vídeo fornecido e extraia: temas principais, demandas, compromissos, participantes, próximos passos, datas futuras e localidades.`
-                    : tipo === 'foto'
-                    ? `Analise a imagem usando OCR e extraia: texto visível, informações relevantes, contexto, localidades mencionadas.`
-                    : `Leia o documento fornecido e extraia: temas principais, demandas, compromissos, participantes, próximos passos, datas futuras e localidades.`;
+                // Processar com IA - PROCESSAMENTO UNIVERSAL ROBUSTO
+                let prompt = "";
 
-                const resultado = await base44.integrations.Core.InvokeLLM({
-                    prompt: prompt + `
+                if (tipo === 'audio') {
+                    prompt = `ÁUDIO - Transcrição completa e extração estruturada:
+                1. Transcreva TODA a fala do áudio (reconhecimento automático de fala)
+                2. Identifique locutor(es) quando possível
+                3. Extraia: temas principais, demandas explícitas, compromissos assumidos, participantes citados, próximos passos, datas futuras mencionadas, localidades/endereços.
+                4. Identifique sinais de risco, tensão ou oportunidade.
+                5. Classifique emoção/tom (neutro, preocupado, satisfeito, tenso, etc)`;
+                } else if (tipo === 'video') {
+                    prompt = `VÍDEO - Transcrição completa de áudio + análise visual:
+                1. Transcreva TODA a fala presente no vídeo
+                2. Aplique OCR em textos visíveis (placas, cartazes, documentos)
+                3. Identifique local aproximado por contexto visual
+                4. Extraia: temas, demandas, compromissos, participantes, próximos passos, datas futuras, localidades
+                5. Identifique evidências visuais de impactos (poeira, barulho, obras, riscos ambientais, etc)`;
+                } else if (tipo === 'foto') {
+                    prompt = `FOTO/IMAGEM - OCR completo + análise contextual:
+                1. Aplique OCR rigoroso em todo texto visível (placas, ruas, cartazes, documentos, manuscritos)
+                2. Identifique nomes de ruas, bairros, comunidades, marcos visuais
+                3. Classifique evidências presentes (poeira, barulho visual, obras, riscos, oportunidades)
+                4. Extraia informações relevantes, contexto territorial, localidades
+                5. Identifique pessoas, eventos, situações de risco ou oportunidade`;
+                } else {
+                    prompt = `DOCUMENTO (.pdf, .docx, .txt, imagem convertida) - Leitura total e extração:
+                1. Leia e extraia TODO o conteúdo textual do documento
+                2. Identifique estrutura (carta, ata, ofício, lista, etc)
+                3. Extraia: temas principais, demandas explícitas, compromissos, participantes/signatários, prazos, datas futuras, localidades/endereços
+                4. Identifique lideranças comunitárias, organizações, representantes de poder público
+                5. Classifique relevância e urgência`;
+                }
 
-Adicionalmente, identifique e extraia:
-- Lideranças comunitárias mencionadas (nome, papel, comunidade, avaliação de interlocução se mencionado)
-- Organizações mencionadas (nome, natureza, área de atuação)
-- Geolocalização aproximada (coordenadas se possível identificar a localidade)`,
-                    file_urls: [file_url],
-                    response_json_schema: {
+                // Tentar reprocessar até 3 vezes em caso de falha
+                let resultado = null;
+                let tentativas = 0;
+
+                while (!resultado && tentativas < 3) {
+                    try {
+                        tentativas++;
+                        resultado = await base44.integrations.Core.InvokeLLM({
+                            prompt: prompt + `
+
+                EXTRAÇÃO OBRIGATÓRIA ADICIONAL:
+- Lideranças comunitárias mencionadas (nome, papel, comunidade, avaliação de interlocução)
+- Organizações mencionadas (nome oficial, natureza, área de atuação)
+- Geolocalização aproximada (coordenadas ou endereço completo se identificável)
+- Riscos sociais implícitos ou explícitos
+- Oportunidades estratégicas (artistas, fornecedores, projetos, iniciativas)
+- Sentimento/emoção predominante
+
+IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não invente dados. Baseie-se apenas no conteúdo fornecido.`,
+                                  file_urls: [file_url],
+                                  response_json_schema: {
                         type: "object",
                         properties: {
                             transcricao: { type: "string" },
@@ -75,10 +111,44 @@ Adicionalmente, identifique e extraia:
                                         area_de_atuacao: { type: "string" }
                                     }
                                 }
+                            },
+                            riscos_identificados: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        titulo: { type: "string" },
+                                        nivel: { type: "string" },
+                                        tipo: { type: "string" }
+                                    }
+                                }
+                            },
+                            oportunidades_identificadas: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        titulo: { type: "string" },
+                                        tipo: { type: "string" },
+                                        relevancia: { type: "string" }
+                                    }
+                                }
+                            },
+                            sentimento: { 
+                                type: "string",
+                                enum: ["neutro", "positivo", "preocupado", "tenso", "satisfeito", "insatisfeito"]
                             }
                         }
-                    }
-                });
+                        }
+                        });
+                        } catch (error) {
+                        console.error(`Tentativa ${tentativas} falhou:`, error);
+                        if (tentativas === 3) {
+                        throw new Error("Falha ao processar mídia após 3 tentativas");
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        }
+                        }
 
                 // Processar lideranças identificadas
                 const liderancasIds = [];
@@ -109,6 +179,40 @@ Adicionalmente, identifique e extraia:
                                 });
                                 liderancasIds.push(novaLideranca.id);
                             }
+                        }
+                    }
+                }
+
+                // Processar riscos identificados
+                if (resultado.riscos_identificados && resultado.riscos_identificados.length > 0) {
+                    for (const risco of resultado.riscos_identificados) {
+                        if (risco.titulo && risco.nivel && risco.tipo) {
+                            await base44.entities.RiscoSocial.create({
+                                titulo: risco.titulo,
+                                nivel: risco.nivel,
+                                tipo: risco.tipo,
+                                comunidade: resultado.local || "A definir",
+                                descricao: "Identificado automaticamente via IA",
+                                geolocalizacao: resultado.geolocalizacao || "",
+                                status: "ativo"
+                            });
+                        }
+                    }
+                }
+
+                // Processar oportunidades identificadas
+                if (resultado.oportunidades_identificadas && resultado.oportunidades_identificadas.length > 0) {
+                    for (const opo of resultado.oportunidades_identificadas) {
+                        if (opo.titulo && opo.tipo) {
+                            await base44.entities.Oportunidade.create({
+                                titulo: opo.titulo,
+                                tipo: opo.tipo,
+                                relevancia: opo.relevancia || "media",
+                                comunidade: resultado.local || "A definir",
+                                descricao: "Identificada automaticamente via IA",
+                                origem: "Registro automático",
+                                maturidade: "ideia"
+                            });
                         }
                     }
                 }

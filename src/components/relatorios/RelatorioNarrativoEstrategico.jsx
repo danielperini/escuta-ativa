@@ -128,93 +128,257 @@ export default function RelatorioNarrativoEstrategico() {
                 }
             };
 
-            const prompt = `
-Você é um analista sênior de relacionamento comunitário e governança territorial.
+            // Dados adicionais para análise profunda
+            const temasRecorrentes = atividadesRecentes.flatMap(a => a.temas_identificados || []);
+            const temaFrequencia = temasRecorrentes.reduce((acc, t) => {
+                acc[t] = (acc[t] || 0) + 1;
+                return acc;
+            }, {});
 
-MISSÃO: Gere um RELATÓRIO NARRATIVO ESTRATÉGICO abrangente e coeso que compile insights de múltiplos módulos do sistema Escuta Ativa.
+            const liderancasAtivas = liderancas.filter(l => {
+                const ultimaInteracao = l.ultima_interacao ? new Date(l.ultima_interacao) : null;
+                return ultimaInteracao && ultimaInteracao >= dataLimite;
+            });
+
+            const agendas = await base44.entities.Agenda.list();
+            const agendasPeriodo = agendas.filter(ag => {
+                const dataAgenda = ag.data ? new Date(ag.data) : null;
+                return dataAgenda && dataAgenda >= dataLimite;
+            });
+
+            const prompt = `
+Você é um analista sênior de relacionamento comunitário, governança territorial e comunicação estratégica.
+
+MISSÃO: Gere um RELATÓRIO NARRATIVO ESTRATÉGICO PROFUNDO E ANALÍTICO que compile insights de múltiplos módulos do sistema Escuta Ativa, com foco em tendências-chave, riscos prioritários, oportunidades estratégicas e recomendações de comunicação comunitária.
 
 PERÍODO ANALISADO: ${periodo} dias
 DATA DE GERAÇÃO: ${new Date().toLocaleDateString('pt-BR')}
 
+═══════════════════════════════════════════════════════════════
+
 DADOS CONSOLIDADOS DE MÚLTIPLOS MÓDULOS:
-${JSON.stringify(dadosConsolidados, null, 2)}
 
-ESTRUTURA DO RELATÓRIO NARRATIVO:
+📊 ANÁLISE TEMPORAL E TENDÊNCIAS:
+${JSON.stringify({
+    total_atividades: atividadesRecentes.length,
+    distribuicao_temporal: "últimos " + periodo + " dias",
+    temas_frequencia: Object.entries(temaFrequencia).sort((a, b) => b[1] - a[1]).slice(0, 10),
+    padroes_emergentes: "identificar no texto"
+}, null, 2)}
 
-1. SÍNTESE EXECUTIVA (1 parágrafo)
+🗺️ MAPA E TERRITORIALIDADE:
+${JSON.stringify({
+    comunidades_mapeadas: comunidades.length,
+    comunidades_criticas: comunidades.filter(c => c.termometro_social === "critico").map(c => ({
+        nome: c.nome,
+        termometro: c.termometro_social,
+        populacao: c.populacao_estimada,
+        temas_principais: c.principais_temas
+    })),
+    distribuicao_geografica: "analisar concentração territorial"
+}, null, 2)}
+
+⚠️ RISCOS SOCIAIS E TENSÃO:
+${JSON.stringify({
+    total_riscos_ativos: riscosAtivos.length,
+    riscos_criticos: riscosAtivos.filter(r => r.nivel === "critico").map(r => ({
+        titulo: r.titulo,
+        nivel: r.nivel,
+        tipo: r.tipo,
+        comunidade: r.comunidade,
+        causas: r.causas,
+        previsao_agravamento: r.previsao_agravamento
+    })),
+    riscos_altos: riscosAtivos.filter(r => r.nivel === "alto").length,
+    padroes_conflito: "identificar padrões recorrentes"
+}, null, 2)}
+
+💡 OPORTUNIDADES ESTRATÉGICAS:
+${JSON.stringify({
+    total_oportunidades: oportunidades.length,
+    oportunidades_alta_relevancia: oportunidades.filter(o => o.relevancia === "alta").map(o => ({
+        titulo: o.titulo,
+        tipo: o.tipo,
+        comunidade: o.comunidade,
+        maturidade: o.maturidade
+    })),
+    distribuicao_tipo: oportunidades.reduce((acc, o) => {
+        acc[o.tipo] = (acc[o.tipo] || 0) + 1;
+        return acc;
+    }, {})
+}, null, 2)}
+
+🎯 GOVERNANÇA E COMPROMISSOS:
+${JSON.stringify({
+    total_compromissos: compromissos.length,
+    cumpridos: compromissos.filter(c => c.status === "concluido").length,
+    atrasados: compromissos.filter(c => c.status === "atrasado").length,
+    taxa_cumprimento: compromissos.length > 0 
+        ? Math.round((compromissos.filter(c => c.status === "concluido").length / compromissos.length) * 100)
+        : 0,
+    compromissos_prioritarios: compromissos.filter(c => 
+        c.prioridade === "alta" || c.prioridade === "urgente"
+    ).slice(0, 5)
+}, null, 2)}
+
+👥 ATORES E LIDERANÇAS:
+${JSON.stringify({
+    total_liderancas: liderancas.length,
+    liderancas_ativas: liderancasAtivas.length,
+    perfil_interlocucao: liderancas.reduce((acc, l) => {
+        acc[l.avaliacao_interlocucao || "neutro"] = (acc[l.avaliacao_interlocucao || "neutro"] || 0) + 1;
+        return acc;
+    }, {}),
+    liderancas_influentes: liderancasAtivas.slice(0, 10).map(l => ({
+        nome: l.nome,
+        comunidade: l.comunidade,
+        papel: l.papel_na_comunidade,
+        interlocucao: l.avaliacao_interlocucao
+    }))
+}, null, 2)}
+
+📅 AGENDA E ENGAJAMENTO:
+${JSON.stringify({
+    reunioes_realizadas: agendasPeriodo.filter(a => a.status === "realizada").length,
+    reunioes_em_atraso: agendasPeriodo.filter(a => a.status === "em_atraso").length,
+    taxa_realizacao: agendasPeriodo.length > 0
+        ? Math.round((agendasPeriodo.filter(a => a.status === "realizada").length / agendasPeriodo.length) * 100)
+        : 0
+}, null, 2)}
+
+═══════════════════════════════════════════════════════════════
+
+ESTRUTURA DO RELATÓRIO NARRATIVO ESTRATÉGICO:
+
+1. SÍNTESE EXECUTIVA (2-3 parágrafos)
    - Panorama geral do território no período
-   - Principal descoberta ou tendência
+   - Principal descoberta ou tendência-chave
+   - Alertas críticos imediatos
 
 2. CONTEXTO E CENÁRIO ATUAL
    - Estado geral das relações comunitárias
    - Nível de engajamento e presença territorial
-   - Dinâmica das interações
+   - Dinâmica das interações e evolução temporal
+   - Comparação com período anterior (se possível)
 
-3. ANÁLISE INTEGRADA POR DIMENSÃO
+3. ANÁLISE INTEGRADA PROFUNDA POR DIMENSÃO
 
-   3.1 DIÁLOGO E ENGAJAMENTO
-   - Volume e qualidade das atividades
-   - Diversidade de interlocutores
-   - Temas mais relevantes
-   - Tendências de participação
+   3.1 DIÁLOGO E ENGAJAMENTO TERRITORIAL
+   - Volume, frequência e qualidade das atividades
+   - Diversidade de interlocutores e representatividade
+   - Temas mais relevantes e recorrentes
+   - Tendências de participação e mobilização
+   - Gaps de escuta identificados
 
-   3.2 RISCOS E TENSÕES
-   - Principais riscos sociais identificados
-   - Áreas críticas ou sob tensão
-   - Padrões de conflito ou divergência
-   - Indicadores de alerta precoce
+   3.2 RISCOS SOCIAIS E TENSÃO TERRITORIAL
+   - Principais riscos sociais ativos (detalhamento crítico)
+   - Comunidades críticas ou sob alta tensão
+   - Padrões de conflito, divergência ou mal-estar
+   - Indicadores de alerta precoce e sinais emergentes
+   - Causas estruturais vs. causas pontuais
+   - Previsão de agravamento
 
    3.3 OPORTUNIDADES E POTENCIALIDADES
-   - Oportunidades estratégicas detectadas
-   - Potencial de desenvolvimento local
+   - Oportunidades estratégicas detectadas por tipo
+   - Potencial de desenvolvimento local e territorial
    - Parcerias e colaborações emergentes
-   - Iniciativas promissoras
+   - Iniciativas comunitárias promissoras
+   - Recursos não explorados
 
-   3.4 GOVERNANÇA E CUMPRIMENTO
-   - Desempenho em compromissos
-   - Consistência das entregas
-   - Confiabilidade institucional
-   - Áreas de melhoria
+   3.4 GOVERNANÇA, CONFIANÇA E CUMPRIMENTO
+   - Desempenho em compromissos e entregas
+   - Consistência e confiabilidade institucional
+   - Trust Index territorial (se disponível)
+   - Áreas críticas de melhoria
+   - Risco de descredibilização
 
-   3.5 ATORES E LIDERANÇAS
-   - Mapeamento de influência
-   - Lideranças emergentes ou centrais
-   - Qualidade da interlocução
-   - Dinâmica de poder territorial
+   3.5 ATORES, LIDERANÇAS E DINÂMICA DE PODER
+   - Mapeamento de influência territorial
+   - Lideranças emergentes, centrais e enfraquecidas
+   - Qualidade da interlocução por ator
+   - Dinâmica de poder e relações de força
+   - Atores-chave para engajamento prioritário
 
-4. TENDÊNCIAS E MOVIMENTOS
-   - Padrões temporais identificados
-   - Mudanças em curso
-   - Sinais emergentes
-   - Projeções de curto prazo
+4. TENDÊNCIAS-CHAVE E MOVIMENTOS EMERGENTES
+   - Padrões temporais identificados (crescimento, declínio, estabilidade)
+   - Mudanças estruturais em curso
+   - Sinais fracos emergentes (atenção especial)
+   - Projeções de curto e médio prazo
+   - Janelas de oportunidade
 
-5. PRIORIDADES ESTRATÉGICAS
-   (Identificar 3-5 prioridades com base na análise)
-   - Ações urgentes
-   - Iniciativas preventivas
-   - Oportunidades a capitalizar
-   - Investimentos necessários
+5. RISCOS PRIORITÁRIOS (RANKING)
+   - Top 3-5 riscos sociais mais críticos
+   - Probabilidade e impacto
+   - Comunidades afetadas
+   - Ações mitigadoras urgentes
 
-6. RECOMENDAÇÕES PARA TOMADA DE DECISÃO
-   - Ações imediatas (próximos 7 dias)
-   - Ações de curto prazo (próximo mês)
-   - Estratégias de médio prazo
-   - Indicadores para monitoramento
+6. OPORTUNIDADES PRIORITÁRIAS (RANKING)
+   - Top 3-5 oportunidades estratégicas
+   - Potencial de impacto positivo
+   - Viabilidade e maturidade
+   - Ações de capitalização
 
-7. CONCLUSÃO
+7. COMUNICAÇÃO COMUNITÁRIA ESTRATÉGICA
+   (Baseado no Código de Ética e CNV)
+   
+   7.1 Abordagens Recomendadas por Comunidade
+   - Tom de comunicação sugerido
+   - Estratégias de escuta ativa
+   - Construção de confiança
+   
+   7.2 Manejo de Conflitos e Tensões
+   - Comunicação Não Violenta aplicada
+   - Frases a evitar / frases sugeridas
+   - Mediação e diálogo construtivo
+   
+   7.3 Engajamento de Lideranças
+   - Abordagem personalizada por perfil
+   - Pontos de atenção cultural
+   - Estratégias de fortalecimento de vínculos
+
+8. RECOMENDAÇÕES PARA TOMADA DE DECISÃO
+   - Ações URGENTES (próximos 7 dias)
+   - Ações de CURTO prazo (próximo mês)
+   - Estratégias de MÉDIO prazo (3-6 meses)
+   - Investimentos e recursos necessários
+   - Indicadores-chave para monitoramento contínuo
+
+9. CONCLUSÃO E CHAMADO À AÇÃO
    - Síntese integradora
-   - Chamado à ação
+   - Mensagem estratégica central
+   - Próximos passos críticos
 
-ESTILO:
-- Narrativo, fluido e coeso (não usar bullet points excessivos)
-- Linguagem estratégica e executiva
-- Insights acionáveis e práticos
-- Baseado em dados mas interpretativo
+CÓDIGO DE ÉTICA - PRINCÍPIOS PARA COMUNICAÇÃO:
+1. Respeito à dignidade e diversidade
+2. Transparência e honestidade nas relações
+3. Escuta ativa, empática e não julgadora
+4. Não discriminação e equidade
+5. Confidencialidade quando necessário
+6. Compromisso com a verdade
+7. Responsabilidade social e territorial
+8. Comunicação Não Violenta (CNV)
+
+COMUNICAÇÃO NÃO VIOLENTA - PILARES:
+- Observação (fatos sem julgamento)
+- Sentimento (emoções genuínas)
+- Necessidade (valores e motivações)
+- Pedido (ações concretas e viáveis)
+
+═══════════════════════════════════════════════════════════════
+
+ESTILO DO RELATÓRIO:
+- Narrativo, fluido e profundamente analítico
+- Linguagem estratégica, executiva e acessível
+- Insights acionáveis e práticos com base em dados
 - Contextualizado ao território específico
+- Integração clara entre módulos
+- Destaque para TENDÊNCIAS, RISCOS e OPORTUNIDADES
+- Recomendações de COMUNICAÇÃO contextualizadas
 
-FORMATO DE SAÍDA: ${formato === 'pdf' ? 'Relatório PDF estruturado' : formato === 'docx' ? 'Documento DOCX editável' : 'Planilha XLSX com abas'}
+FORMATO DE SAÍDA: ${formato === 'pdf' ? 'Relatório PDF estruturado e profissional' : formato === 'docx' ? 'Documento DOCX editável' : 'Planilha XLSX com múltiplas abas'}
 
-Gere um relatório profissional, denso e estratégico que seja realmente útil para tomada de decisão.
+TAREFA FINAL:
+Gere um relatório DENSO, ESTRATÉGICO, ANALÍTICO e PROFUNDO que seja realmente útil para tomada de decisão em governança territorial e relacionamento comunitário.
 `;
 
             const resultado = await base44.integrations.Core.InvokeLLM({
