@@ -31,31 +31,61 @@ export default function ProcessadorDocumentos() {
                     status_processamento: "processando"
                 });
 
-                // Processar com IA
+                // Processar com IA - PROCESSAMENTO AVANÇADO COM PRESERVAÇÃO DE ESTRUTURA
                 const analise = await base44.integrations.Core.InvokeLLM({
                     prompt: `
-Você é um especialista em análise documental e extração de informações estruturadas.
+Você é um especialista em análise documental avançada, extração de informações estruturadas e tratamento de documentos.
 
 DOCUMENTO: ${file.name}
 
-TAREFA COMPLETA:
-1. Extraia TODO o texto do documento
+TAREFA COMPLETA - PROCESSAMENTO AVANÇADO:
+
+1. EXTRAÇÃO DE TEXTO INTELIGENTE:
+   - Extraia TODO o texto do documento (corpo, rodapé, cabeçalho, tabelas, caixas de texto, notas, metadados)
+   - Para PDFs escaneados: aplique OCR de alta qualidade
+   - PRESERVE A ESTRUTURA LÓGICA:
+     * Identifique títulos, subtítulos, seções
+     * Mantenha hierarquia de parágrafos
+     * Preserve listas numeradas e com marcadores
+     * Identifique tabelas e reconstrua estrutura
+   - CORRIJA ERROS COMUNS:
+     * Erros de OCR (caracteres mal interpretados)
+     * Quebras de linha indevidas
+     * Espaçamentos duplicados
+     * Palavras fragmentadas
+     * Reconstituição de texto corrompido
+
 2. Identifique o tipo correto (relatório, ata, política, ofício, carta, apresentação)
+
 3. Crie um RESUMO EXECUTIVO (máximo 300 palavras)
+
 4. Extraia INFORMAÇÕES-CHAVE (decisões, acordos, fatos relevantes)
+
 5. Identifique PALAVRAS-CHAVE (5-10 termos importantes)
+
 6. Identifique ENTIDADES MENCIONADAS:
    - Lideranças comunitárias (nomes de pessoas)
    - Organizações (empresas, ONGs, governo)
    - Comunidades e localidades
    - Temas principais
+
 7. Extraia COMPROMISSOS ASSUMIDOS
+
 8. Identifique DATAS IMPORTANTES mencionadas
+
 9. Identifique DEMANDAS apresentadas
+
 10. Identifique possíveis RISCOS SOCIAIS mencionados
+
 11. Crie um ÍNDICE PESQUISÁVEL estruturado por seções
 
-Seja exaustivo e preciso na extração.
+ATENÇÃO ESPECIAL:
+- Trate documentos grandes (>100 páginas) com sumarização automática
+- Identifique números de telefone, e-mails, endereços
+- Reconstrua tabelas formatadas
+- Para arquivos corrompidos: recupere o máximo possível
+
+Seja exaustivo, preciso e preserve a estrutura original.
 `,
                     file_urls: [file_url],
                     response_json_schema: {
@@ -198,7 +228,7 @@ Seja exaustivo e preciso na extração.
         const input = document.createElement('input');
         input.type = 'file';
         input.multiple = true;
-        input.accept = '.pdf,.doc,.docx,.txt';
+        input.accept = '.pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain';
         input.onchange = (e) => {
             const files = Array.from(e.target.files);
             if (files.length > 0) {

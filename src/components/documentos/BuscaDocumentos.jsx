@@ -5,13 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Search, FileText, Download, ExternalLink, Tag, Users, MapPin, Calendar } from "lucide-react";
+import { Search, FileText, Download, ExternalLink, Tag, Users, MapPin, Calendar, Eye } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import PreviewDocumento from "./PreviewDocumento";
 
 export default function BuscaDocumentos() {
     const [termoBusca, setTermoBusca] = useState("");
     const [filtroTipo, setFiltroTipo] = useState("todos");
     const [documentoSelecionado, setDocumentoSelecionado] = useState(null);
+    const [documentoPreview, setDocumentoPreview] = useState(null);
 
     const { data: documentos = [] } = useQuery({
         queryKey: ['documentos'],
@@ -104,16 +106,29 @@ export default function BuscaDocumentos() {
                                     </div>
                                     <CardTitle className="text-lg">{doc.titulo}</CardTitle>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.open(doc.arquivo_url, '_blank');
-                                    }}
-                                >
-                                    <ExternalLink className="w-4 h-4" />
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setDocumentoPreview(doc);
+                                        }}
+                                    >
+                                        <Eye className="w-4 h-4 mr-1" />
+                                        Preview
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(doc.arquivo_url, '_blank');
+                                        }}
+                                    >
+                                        <ExternalLink className="w-4 h-4" />
+                                    </Button>
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -219,6 +234,16 @@ export default function BuscaDocumentos() {
                     </Card>
                 )}
             </div>
+
+            {documentoPreview && (
+                <PreviewDocumento
+                    arquivo={{
+                        ...documentoPreview,
+                        nome: documentoPreview.titulo
+                    }}
+                    onFechar={() => setDocumentoPreview(null)}
+                />
+            )}
         </div>
     );
 }

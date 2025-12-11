@@ -138,10 +138,85 @@ export default function RevisaoTranscricao({
                                 </div>
                             )}
 
+                            {interpretacao.tipo_registro && (
+                                <div className="bg-indigo-50 p-3 rounded">
+                                    <h4 className="font-semibold text-sm mb-2">Tipo de Registro Sugerido:</h4>
+                                    <Badge className="bg-indigo-600 text-white text-sm">
+                                        {interpretacao.tipo_registro === "reuniao" && "Reunião"}
+                                        {interpretacao.tipo_registro === "conversa_de_campo" && "Conversa de Campo"}
+                                        {interpretacao.tipo_registro === "visita" && "Visita"}
+                                        {interpretacao.tipo_registro === "visita_institucional" && "Visita Institucional"}
+                                        {interpretacao.tipo_registro === "dialogo_individualizado" && "Diálogo Individualizado"}
+                                    </Badge>
+                                    {interpretacao.justificativa_tipo && (
+                                        <p className="text-xs text-gray-600 mt-2">
+                                            {interpretacao.justificativa_tipo}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
                             {interpretacao.sentimento && (
-                                <div>
-                                    <h4 className="font-semibold text-sm mb-2">Sentimento/Emoção:</h4>
-                                    <Badge variant="secondary">{interpretacao.sentimento}</Badge>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <h4 className="font-semibold text-sm mb-2">Sentimento Predominante:</h4>
+                                        <Badge className={
+                                            interpretacao.sentimento === "irritado" ? "bg-red-100 text-red-800" :
+                                            interpretacao.sentimento === "urgente" ? "bg-orange-100 text-orange-800" :
+                                            interpretacao.sentimento === "preocupado" ? "bg-yellow-100 text-yellow-800" :
+                                            interpretacao.sentimento === "satisfeito" ? "bg-green-100 text-green-800" :
+                                            interpretacao.sentimento === "tenso" ? "bg-purple-100 text-purple-800" :
+                                            "bg-gray-100 text-gray-800"
+                                        }>
+                                            {interpretacao.sentimento}
+                                        </Badge>
+                                    </div>
+                                    {interpretacao.nivel_urgencia && (
+                                        <div>
+                                            <h4 className="font-semibold text-sm mb-2">Nível de Urgência:</h4>
+                                            <Badge className={
+                                                interpretacao.nivel_urgencia === "critico" ? "bg-red-600 text-white" :
+                                                interpretacao.nivel_urgencia === "alto" ? "bg-red-100 text-red-800" :
+                                                interpretacao.nivel_urgencia === "moderado" ? "bg-yellow-100 text-yellow-800" :
+                                                "bg-green-100 text-green-800"
+                                            }>
+                                                {interpretacao.nivel_urgencia}
+                                            </Badge>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {interpretacao.acionamentos && interpretacao.acionamentos.length > 0 && (
+                                <div className="bg-purple-50 p-4 rounded border-l-4 border-purple-500">
+                                    <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                                        🎯 Acionamentos Sugeridos pela IA:
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {interpretacao.acionamentos.map((acao, idx) => (
+                                            <div key={idx} className="bg-white p-3 rounded shadow-sm">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <Badge className={
+                                                        acao.tipo === "reuniao_emergencial" ? "bg-red-600 text-white" :
+                                                        acao.tipo === "visita_tecnica" ? "bg-blue-600 text-white" :
+                                                        acao.tipo === "comunicacao_institucional" ? "bg-indigo-600 text-white" :
+                                                        acao.tipo === "monitoramento_continuo" ? "bg-amber-600 text-white" :
+                                                        "bg-gray-600 text-white"
+                                                    }>
+                                                        {acao.tipo === "visita_tecnica" && "Visita Técnica"}
+                                                        {acao.tipo === "comunicacao_institucional" && "Comunicação Institucional"}
+                                                        {acao.tipo === "reuniao_emergencial" && "Reunião Emergencial"}
+                                                        {acao.tipo === "monitoramento_continuo" && "Monitoramento Contínuo"}
+                                                        {acao.tipo === "nenhum" && "Nenhum acionamento necessário"}
+                                                    </Badge>
+                                                    {acao.prazo_sugerido && (
+                                                        <span className="text-xs text-gray-500">{acao.prazo_sugerido}</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-gray-700">{acao.justificativa}</p>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </>

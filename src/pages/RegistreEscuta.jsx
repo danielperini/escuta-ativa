@@ -35,7 +35,22 @@ export default function RegistreEscuta() {
                 2. Identifique locutor(es) quando possível
                 3. Extraia: temas principais, demandas explícitas, compromissos assumidos, participantes citados, próximos passos, datas futuras mencionadas, localidades/endereços.
                 4. Identifique sinais de risco, tensão ou oportunidade.
-                5. Classifique emoção/tom (neutro, preocupado, satisfeito, tenso, etc)`;
+                5. Classifique emoção/tom e sentimento predominante (neutro, irritado, urgente, preocupado, satisfeito, tenso, calmo)
+
+                ANÁLISE COMPLEMENTAR OBRIGATÓRIA:
+                6. TIPO DE REGISTRO - Identifique automaticamente qual tipo se aplica:
+                   - "reuniao" (múltiplos participantes, discussão coletiva, pauta estruturada)
+                   - "conversa_de_campo" (diálogo informal no território)
+                   - "visita" (inspeção, observação, levantamento)
+                   - "visita_institucional" (reunião formal com autoridades/organizações)
+                   - "dialogo_individualizado" (conversa 1-1 ou relato individual)
+
+                7. ACIONAMENTOS SUGERIDOS - Com base no conteúdo, urgência e risco, sugira:
+                   - "visita_tecnica" (se houver problema estrutural, técnico ou que exija verificação in loco)
+                   - "comunicacao_institucional" (se exigir resposta oficial, posicionamento ou esclarecimento)
+                   - "reuniao_emergencial" (se for crítico e urgente)
+                   - "monitoramento_continuo" (se for risco latente)
+                   - "nenhum" (se for informativo apenas)`;
                 } else if (tipo === 'video') {
                     prompt = `VÍDEO - Transcrição completa de áudio + análise visual:
                 1. Transcreva TODA a fala presente no vídeo
@@ -84,6 +99,33 @@ IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não
                         properties: {
                             transcricao: { type: "string" },
                             titulo: { type: "string" },
+                            tipo_registro_sugerido: {
+                                type: "string",
+                                enum: ["reuniao", "conversa_de_campo", "visita", "visita_institucional", "dialogo_individualizado"]
+                            },
+                            justificativa_tipo: { type: "string" },
+                            sentimento_predominante: {
+                                type: "string",
+                                enum: ["neutro", "irritado", "urgente", "preocupado", "satisfeito", "tenso", "calmo"]
+                            },
+                            nivel_urgencia: {
+                                type: "string",
+                                enum: ["baixo", "moderado", "alto", "critico"]
+                            },
+                            acionamentos_sugeridos: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        tipo: {
+                                            type: "string",
+                                            enum: ["visita_tecnica", "comunicacao_institucional", "reuniao_emergencial", "monitoramento_continuo", "nenhum"]
+                                        },
+                                        justificativa: { type: "string" },
+                                        prazo_sugerido: { type: "string" }
+                                    }
+                                }
+                            },
                             temas: { type: "array", items: { type: "string" } },
                             demandas: { type: "array", items: { type: "string" } },
                             compromissos: { type: "array", items: { type: "string" } },
@@ -255,6 +297,7 @@ IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não
                 // Criar atividade com dados extraídos e conexões
                 const novaAtividade = await base44.entities.Atividade.create({
                     titulo: resultado.titulo || "Atividade registrada via " + tipo,
+                    tipo: resultado.tipo_registro_sugerido || "conversa_de_campo",
                     descricao: resultado.transcricao || "",
                     anexos: anexos,
                     transcricao_ia: resultado.transcricao,
@@ -307,12 +350,16 @@ Retorne lista de alertas ou lista vazia.`,
                         transcricao: resultado.transcricao,
                         interpretacao: {
                             titulo: resultado.titulo,
+                            tipo_registro: resultado.tipo_registro_sugerido,
+                            justificativa_tipo: resultado.justificativa_tipo,
+                            sentimento: resultado.sentimento_predominante,
+                            nivel_urgencia: resultado.nivel_urgencia,
+                            acionamentos: resultado.acionamentos_sugeridos || [],
                             local: resultado.local,
                             temas: resultado.temas,
                             demandas: resultado.demandas,
                             compromissos: resultado.compromissos,
                             participantes: resultado.participantes,
-                            sentimento: resultado.sentimento,
                             risco_identificado: resultado.riscos_identificados && resultado.riscos_identificados.length > 0 
                                 ? { nivel: "moderado", descricao: resultado.riscos_identificados[0].titulo }
                                 : null
