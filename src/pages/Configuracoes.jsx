@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { 
   Settings,
   Users,
@@ -12,7 +14,8 @@ import {
   Loader2,
   Save,
   Building,
-  AlertCircle
+  AlertCircle,
+  Shield
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +68,7 @@ const termometroOptions = [
 ];
 
 export default function Configuracoes() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('comunidades');
   const [showComunidadeDialog, setShowComunidadeDialog] = useState(false);
@@ -173,7 +177,7 @@ export default function Configuracoes() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-2 w-full max-w-md">
+        <TabsList className="grid grid-cols-3 w-full max-w-2xl">
           <TabsTrigger value="comunidades" className="gap-2">
             <MapPin className="w-4 h-4" />
             Comunidades
@@ -181,6 +185,10 @@ export default function Configuracoes() {
           <TabsTrigger value="usuarios" className="gap-2">
             <Users className="w-4 h-4" />
             Usuários
+          </TabsTrigger>
+          <TabsTrigger value="permissoes" className="gap-2">
+            <Shield className="w-4 h-4" />
+            Permissões
           </TabsTrigger>
         </TabsList>
 
@@ -316,6 +324,50 @@ export default function Configuracoes() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Permissões Tab */}
+        <TabsContent value="permissoes" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gestão de Permissões</CardTitle>
+              <CardDescription>Configure roles, grupos e atribuições para controle de acesso</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-slate-600">
+                Configure permissões granulares para controlar quem pode visualizar, criar, editar ou excluir 
+                cada tipo de dado no sistema. Crie roles personalizados, organize usuários em grupos e 
+                defina restrições geográficas quando necessário.
+              </p>
+              <div className="grid md:grid-cols-3 gap-4 mt-4">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-2">Roles</h4>
+                  <p className="text-sm text-blue-700">
+                    Defina papéis com permissões específicas para cada módulo do sistema
+                  </p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h4 className="font-semibold text-green-900 mb-2">Grupos</h4>
+                  <p className="text-sm text-green-700">
+                    Organize usuários em grupos por região ou projeto
+                  </p>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold text-purple-900 mb-2">Atribuições</h4>
+                  <p className="text-sm text-purple-700">
+                    Associe roles e permissões customizadas a usuários específicos
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => navigate(createPageUrl("GerenciarPermissoes"))}
+                className="bg-[#2D6A4F] hover:bg-[#1B4332] w-full"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Acessar Gerenciamento de Permissões
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
