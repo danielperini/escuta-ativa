@@ -120,12 +120,25 @@ Realize uma análise comparativa profunda entre essas ${comunidadesSelecionadas.
    - Confiabilidade institucional comparada
    - Áreas que precisam de mais atenção
 
-5. RECOMENDAÇÕES DIFERENCIADAS
+5. ANÁLISE DE ELEMENTOS COMUNS
+   - RISCOS COMPARTILHADOS entre territórios
+   - OPORTUNIDADES COMUNS que podem ser aproveitadas regionalmente
+   - Problemas estruturais vs pontuais
+   - Demandas recorrentes em múltiplas comunidades
+
+6. SOLUÇÕES REGIONAIS E AÇÕES CONJUNTAS
+   - Identificar riscos/oportunidades que exigem abordagem regional
+   - Propor ações conjuntas entre comunidades
+   - Sugerir sinergia de recursos e esforços
+   - Estratégias integradas de mitigação/aproveitamento
+
+7. RECOMENDAÇÕES DIFERENCIADAS E INTEGRADAS
    - Estratégias específicas para cada território
+   - Ações conjuntas recomendadas
    - Onde investir recursos prioritariamente
    - Abordagens de comunicação adaptadas
 
-Seja analítico, objetivo e baseado em dados.
+Seja analítico, objetivo e baseado em dados. Destaque elementos comuns e oportunidades de sinergia.
 `;
 
             const analiseIA = await base44.integrations.Core.InvokeLLM({
