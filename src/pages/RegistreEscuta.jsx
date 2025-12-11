@@ -14,17 +14,27 @@ export default function RegistreEscuta() {
     const [tipoInput, setTipoInput] = useState(null);
     const [dadosRevisao, setDadosRevisao] = useState(null);
 
-    const processarInput = async (tipo, file = null, texto = null) => {
+    const processarInput = async (tipo, file = null, texto = null, metadados = null) => {
         setLoading(true);
 
         try {
             let transcricao = "";
             let anexos = [];
+            let metadadosCompletos = metadados || {};
 
             if (file) {
                 // Upload do arquivo
                 const { file_url } = await base44.integrations.Core.UploadFile({ file });
                 anexos.push(file_url);
+
+                // Adicionar metadados do arquivo
+                metadadosCompletos = {
+                    ...metadadosCompletos,
+                    arquivo_url: file_url,
+                    nome_arquivo: file.name,
+                    tamanho: file.size,
+                    tipo: file.type
+                };
 
                 // Processar com IA - PROCESSAMENTO UNIVERSAL ROBUSTO
                 let prompt = "";
@@ -98,6 +108,18 @@ IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não
                         type: "object",
                         properties: {
                             transcricao: { type: "string" },
+                            transcricao_estruturada: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        locutor: { type: "string" },
+                                        texto: { type: "string" },
+                                        timestamp: { type: "string" },
+                                        emocao: { type: "string" }
+                                    }
+                                }
+                            },
                             titulo: { type: "string" },
                             tipo_registro_sugerido: {
                                 type: "string",
@@ -182,11 +204,33 @@ IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não
                             sentimento: { 
                                 type: "string",
                                 enum: ["neutro", "positivo", "preocupado", "tenso", "satisfeito", "insatisfeito"]
+                            },
+                            materialidade_identificada: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        tema: { type: "string" },
+                                        relevancia_comunidade: { type: "number" },
+                                        relevancia_empresa: { type: "number" }
+                                    }
+                                }
+                            },
+                            agenda_futura: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        titulo: { type: "string" },
+                                        data: { type: "string" },
+                                        tipo: { type: "string" }
+                                    }
+                                }
                             }
-                        }
-                        }
-                        });
-                        } catch (error) {
+                            }
+                            }
+                            });
+                            } catch (error) {
                         console.error(`Tentativa ${tentativas} falhou:`, error);
                         if (tentativas === 3) {
                         throw new Error("Falha ao processar mídia após 3 tentativas");
@@ -290,6 +334,46 @@ IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não
                                 });
                                 organizacoesIds.push(novaOrg.id);
                             }
+                        }
+                    }
+                }
+
+                // Processar materialidade identificada
+                if (resultado.materialidade_identificada && resultado.materialidade_identificada.length > 0) {
+                    for (const mat of resultado.materialidade_identificada) {
+                        if (mat.tema) {
+                            const temaExistente = await base44.entities.Tema.list();
+                            const existe = temaExistente.find(t => 
+                                t.nome.toLowerCase() === mat.tema.toLowerCase()
+                            );
+
+                            if (!existe) {
+                                await base44.entities.Tema.create({
+                                    nome: mat.tema,
+                                    categoria: "social",
+                                    relevancia_comunidade: mat.relevancia_comunidade || 5,
+                                    relevancia_empresa: mat.relevancia_empresa || 5,
+                                    mencoes_total: 1,
+                                    ultima_mencao: new Date().toISOString().split('T')[0]
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Processar agenda futura
+                const agendasCriadas = [];
+                if (resultado.agenda_futura && resultado.agenda_futura.length > 0) {
+                    for (const ag of resultado.agenda_futura) {
+                        if (ag.titulo && ag.data) {
+                            const novaAgenda = await base44.entities.Agenda.create({
+                                titulo: ag.titulo,
+                                data: ag.data,
+                                tipo: ag.tipo || "reuniao",
+                                status: "prevista",
+                                comunidade: resultado.local || "A definir"
+                            });
+                            agendasCriadas.push(novaAgenda.id);
                         }
                     }
                 }
@@ -424,8 +508,8 @@ Retorne lista de alertas ou lista vazia.`,
         input.click();
     };
 
-    const handleAudioFinalizado = (audioFile) => {
-        processarInput('audio', audioFile);
+    const handleAudioFinalizado = (audioFile, metadados) => {
+        processarInput('audio', audioFile, null, metadados);
         setTipoInput(null);
     };
 
@@ -635,44 +719,56 @@ Retorne lista de alertas ou lista vazia.`,
                 <Card style={{ backgroundColor: '#DBEAFE' }}>
                     <CardContent className="pt-6">
                         <h3 className="font-bold mb-2" style={{ color: '#0B1E33' }}>
-                            O que a IA faz automaticamente:
+                            🎙️ Processamento Avançado de Áudio:
                         </h3>
                         <ul className="space-y-2 text-sm text-gray-700">
                             <li className="flex gap-2">
                                 <span style={{ color: '#F2B632' }}>✓</span>
-                                Transcrição de áudio e vídeo
+                                <strong>Gravação nativa</strong> com pausar/retomar/finalizar
                             </li>
                             <li className="flex gap-2">
                                 <span style={{ color: '#F2B632' }}>✓</span>
-                                OCR (leitura de texto) em imagens
+                                <strong>Metadados automáticos</strong>: data, hora, localização GPS, duração
                             </li>
                             <li className="flex gap-2">
                                 <span style={{ color: '#F2B632' }}>✓</span>
-                                Extração de temas, demandas e compromissos
+                                <strong>Transcrição avançada</strong>: identificação de locutores, pausas, pontuação
                             </li>
                             <li className="flex gap-2">
                                 <span style={{ color: '#F2B632' }}>✓</span>
-                                Identificação de participantes e localidades
+                                <strong>Correção ortográfica</strong> e detecção de nomes próprios
                             </li>
                             <li className="flex gap-2">
                                 <span style={{ color: '#F2B632' }}>✓</span>
-                                Detecção de datas futuras (Agenda)
+                                <strong>Análise de sentimento</strong>: irritação, urgência, calma
                             </li>
                             <li className="flex gap-2">
                                 <span style={{ color: '#F2B632' }}>✓</span>
-                                Verificação ética automática
+                                <strong>Classificação automática</strong> do tipo de registro
                             </li>
                             <li className="flex gap-2">
                                 <span style={{ color: '#F2B632' }}>✓</span>
-                                Gravação de áudio nativa com controles
+                                <strong>Extração estruturada</strong>: temas, demandas, compromissos, riscos
                             </li>
                             <li className="flex gap-2">
                                 <span style={{ color: '#F2B632' }}>✓</span>
-                                Suporte a MP3, WAV, OGG, M4A
+                                <strong>Conexões automáticas</strong>: Lideranças, Organizações, Comunidades
                             </li>
                             <li className="flex gap-2">
                                 <span style={{ color: '#F2B632' }}>✓</span>
-                                Revisão antes de salvar
+                                <strong>Agenda futura</strong>: datas mencionadas → compromissos
+                            </li>
+                            <li className="flex gap-2">
+                                <span style={{ color: '#F2B632' }}>✓</span>
+                                <strong>Materialidade</strong>: identifica temas de alta relevância
+                            </li>
+                            <li className="flex gap-2">
+                                <span style={{ color: '#F2B632' }}>✓</span>
+                                <strong>Tela de revisão</strong> antes de salvar com edição completa
+                            </li>
+                            <li className="flex gap-2">
+                                <span style={{ color: '#F2B632' }}>✓</span>
+                                <strong>Formatos suportados</strong>: MP3, WAV, OGG, M4A, WebM
                             </li>
                             </ul>
                             </CardContent>
