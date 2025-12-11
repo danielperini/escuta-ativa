@@ -12,6 +12,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 import "leaflet/dist/leaflet.css";
 import "../analise/LeafletFix";
+import EnriquecedorDadosExternos from "../integracao/EnriquecedorDadosExternos";
 
 export default function StorytellingTerritorial() {
     const [comunidadeSelecionada, setComunidadeSelecionada] = useState("");
@@ -25,6 +26,7 @@ export default function StorytellingTerritorial() {
     const [dadosIBGE, setDadosIBGE] = useState(null);
     const [carregandoIBGE, setCarregandoIBGE] = useState(false);
     const [periodoComparacao, setPeriodoComparacao] = useState([]);
+    const [dadosExternos, setDadosExternos] = useState(null);
 
     const { data: comunidades = [] } = useQuery({
         queryKey: ['comunidades-storytelling'],
@@ -710,7 +712,7 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                     </Card>
 
                 <Tabs defaultValue="narrativa" className="w-full">
-                    <TabsList className="grid w-full grid-cols-6">
+                    <TabsList className="grid w-full grid-cols-7">
                         <TabsTrigger value="narrativa">
                             <BookOpen className="w-4 h-4 mr-2" />
                             História
@@ -726,6 +728,10 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                         <TabsTrigger value="series-temporais">
                             <BarChart3 className="w-4 h-4 mr-2" />
                             Séries Temporais
+                        </TabsTrigger>
+                        <TabsTrigger value="externos">
+                            <Building2 className="w-4 h-4 mr-2" />
+                            Dados Externos
                         </TabsTrigger>
                         <TabsTrigger value="comparacao" disabled={comunidadesComparacao.length < 2}>
                             <GitCompare className="w-4 h-4 mr-2" />
@@ -1244,6 +1250,15 @@ NÃO INVENTE DADOS. Se não encontrar, declare "Informação não disponível em
                                     </Button>
                                 </CardContent>
                             </Card>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="externos" className="space-y-6">
+                        {storytelling && comunidades.find(c => c.nome === comunidadeSelecionada)?.municipio && (
+                            <EnriquecedorDadosExternos
+                                municipio={comunidades.find(c => c.nome === comunidadeSelecionada).municipio}
+                                onDadosObtidos={(dados) => setDadosExternos(dados)}
+                            />
                         )}
                     </TabsContent>
 

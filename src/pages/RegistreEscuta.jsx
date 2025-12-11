@@ -239,32 +239,57 @@ IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não
                         }
                         }
 
-                // Processar lideranças identificadas
+                // Processar lideranças identificadas - COM VERIFICAÇÃO DE DUPLICATAS
                 const liderancasIds = [];
                 if (resultado.liderancas_identificadas && resultado.liderancas_identificadas.length > 0) {
+                    const usuario = await base44.auth.me();
+
                     for (const lid of resultado.liderancas_identificadas) {
                         if (lid.nome && lid.comunidade) {
-                            // Verificar se liderança já existe
+                            // Verificação RIGOROSA de duplicatas com IA
                             const existentes = await base44.entities.LiderancaComunitaria.list();
-                            const existe = existentes.find(l => 
-                                l.nome.toLowerCase().includes(lid.nome.toLowerCase()) || 
-                                lid.nome.toLowerCase().includes(l.nome.toLowerCase())
-                            );
-                            
-                            if (existe) {
-                                liderancasIds.push(existe.id);
-                                // Atualizar última interação
-                                await base44.entities.LiderancaComunitaria.update(existe.id, {
+
+                            const verificacao = await base44.integrations.Core.InvokeLLM({
+                                prompt: `
+                Verifique se esta liderança já existe no sistema:
+
+                NOVO: ${JSON.stringify(lid)}
+                EXISTENTES: ${JSON.stringify(existentes)}
+
+                Aplique fuzzy matching rigoroso em nome, telefone, comunidade.
+                Retorne o ID se encontrar duplicata, ou null se for novo.`,
+                                response_json_schema: {
+                                    type: "object",
+                                    properties: {
+                                        duplicata_encontrada: { type: "boolean" },
+                                        id_existente: { type: "string" }
+                                    }
+                                }
+                            });
+
+                            if (verificacao.duplicata_encontrada && verificacao.id_existente) {
+                                liderancasIds.push(verificacao.id_existente);
+                                await base44.entities.LiderancaComunitaria.update(verificacao.id_existente, {
                                     ultima_interacao: new Date().toISOString()
                                 });
                             } else {
-                                // Criar nova liderança
+                                // CRIAR APENAS SE APROVADO - registrar para auditoria
                                 const novaLideranca = await base44.entities.LiderancaComunitaria.create({
                                     nome: lid.nome,
                                     comunidade: lid.comunidade,
                                     papel_na_comunidade: lid.papel_na_comunidade || "",
                                     avaliacao_interlocucao: lid.avaliacao_interlocucao || "neutro",
-                                    ultima_interacao: new Date().toISOString()
+                                    ultima_interacao: new Date().toISOString(),
+                                    historico_auditoria: [{
+                                        campo_alterado: 'Criação automática via IA',
+                                        valor_anterior: null,
+                                        valor_novo: 'Identificado em registro',
+                                        data_alteracao: new Date().toISOString(),
+                                        usuario_responsavel: usuario.email,
+                                        tipo_operacao: 'criacao',
+                                        aprovacao_necessaria: false,
+                                        fonte_origem: 'Processamento de áudio/documento'
+                                    }]
                                 });
                                 liderancasIds.push(novaLideranca.id);
                             }
@@ -306,31 +331,53 @@ IMPORTANTE: Se algum campo não puder ser extraído, retorne vazio ou null. Não
                     }
                 }
 
-                // Processar organizações identificadas
+                // Processar organizações identificadas - COM VERIFICAÇÃO DE DUPLICATAS
                 const organizacoesIds = [];
                 if (resultado.organizacoes_identificadas && resultado.organizacoes_identificadas.length > 0) {
+                    const usuario = await base44.auth.me();
+
                     for (const org of resultado.organizacoes_identificadas) {
                         if (org.nome) {
-                            // Verificar se organização já existe
                             const existentes = await base44.entities.ProjetoOrganizacao.list();
-                            const existe = existentes.find(o => 
-                                o.nome_oficial.toLowerCase().includes(org.nome.toLowerCase()) ||
-                                org.nome.toLowerCase().includes(o.nome_oficial.toLowerCase())
-                            );
-                            
-                            if (existe) {
-                                organizacoesIds.push(existe.id);
-                                // Atualizar última interação
-                                await base44.entities.ProjetoOrganizacao.update(existe.id, {
+
+                            const verificacao = await base44.integrations.Core.InvokeLLM({
+                                prompt: `
+                Verifique se esta organização já existe:
+
+                NOVO: ${JSON.stringify(org)}
+                EXISTENTES: ${JSON.stringify(existentes)}
+
+                Fuzzy matching em nome_oficial, CNPJ, telefone.
+                Retorne ID se duplicata ou null.`,
+                                response_json_schema: {
+                                    type: "object",
+                                    properties: {
+                                        duplicata_encontrada: { type: "boolean" },
+                                        id_existente: { type: "string" }
+                                    }
+                                }
+                            });
+
+                            if (verificacao.duplicata_encontrada && verificacao.id_existente) {
+                                organizacoesIds.push(verificacao.id_existente);
+                                await base44.entities.ProjetoOrganizacao.update(verificacao.id_existente, {
                                     ultima_interacao: new Date().toISOString()
                                 });
                             } else {
-                                // Criar nova organização
                                 const novaOrg = await base44.entities.ProjetoOrganizacao.create({
                                     nome_oficial: org.nome,
                                     natureza: org.natureza || "outro",
                                     area_de_atuacao: org.area_de_atuacao || "",
-                                    ultima_interacao: new Date().toISOString()
+                                    ultima_interacao: new Date().toISOString(),
+                                    historico_auditoria: [{
+                                        campo_alterado: 'Criação automática via IA',
+                                        valor_anterior: null,
+                                        valor_novo: 'Identificado em registro',
+                                        data_alteracao: new Date().toISOString(),
+                                        usuario_responsavel: usuario.email,
+                                        tipo_operacao: 'criacao',
+                                        fonte_origem: 'Processamento automático'
+                                    }]
                                 });
                                 organizacoesIds.push(novaOrg.id);
                             }
