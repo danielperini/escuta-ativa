@@ -90,51 +90,56 @@ export default function GravadorAudioCompleto({ onTranscricao, onArquivoProcessa
 
       // 2. Transcrição via IA com suporte a múltiplos formatos
       const resultado = await base44.integrations.Core.InvokeLLM({
-        prompt: `Transcreva COMPLETAMENTE este áudio. 
-        
-Aceite qualquer formato de áudio incluindo .ogg, .opus, .mp3, .wav, .m4a, .aac, .webm.
-Se o formato não for suportado nativamente, tente processar da melhor forma possível.
+        prompt: `Você é um sistema de transcrição de áudio profissional.
 
-Retorne APENAS o texto transcrito, preservando pontuação e estrutura natural da fala.`,
-        file_urls: [file_url],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            transcricao: { type: "string" },
-            formato_detectado: { type: "string" },
-            qualidade: { type: "string" }
-          }
-        }
+TAREFA: Transcreva COMPLETAMENTE o áudio fornecido.
+
+FORMATOS ACEITOS: .ogg, .opus, .mp3, .wav, .m4a, .aac, .webm (incluindo áudios do WhatsApp)
+
+INSTRUÇÕES:
+1. Transcreva TODO o conteúdo falado
+2. Preserve pontuação natural
+3. Identifique mudanças de falante se houver
+4. Mantenha estrutura de parágrafos quando apropriado
+5. Corrija erros gramaticais óbvios mantendo o sentido original
+
+RETORNE: Apenas o texto transcrito, sem comentários adicionais.`,
+        file_urls: [file_url]
       });
 
-      if (resultado.transcricao && resultado.transcricao.trim()) {
-        setTranscricao(resultado.transcricao);
+      const textoTranscrito = typeof resultado === 'string' ? resultado : resultado.transcricao;
+
+      if (textoTranscrito && textoTranscrito.trim()) {
+        setTranscricao(textoTranscrito);
         
         if (onTranscricao) {
-          onTranscricao(resultado.transcricao, file_url);
+          onTranscricao(textoTranscrito, file_url);
         }
 
         alert('✅ Áudio transcrito com sucesso!');
       } else {
-        throw new Error('Transcrição vazia');
+        throw new Error('Transcrição vazia ou áudio sem conteúdo de fala');
       }
     } catch (error) {
       console.error(`Erro na tentativa ${tentativa}:`, error);
       
-      // Retry automático
-      if (tentativa < 2) {
-        alert(`⚠️ Tentando novamente... (${tentativa}/2)`);
+      // Retry automático com espera progressiva
+      if (tentativa < 3) {
+        const espera = tentativa * 2000; // 2s, 4s
+        alert(`⚠️ Tentando novamente em ${espera/1000}s... (tentativa ${tentativa}/3)`);
+        await new Promise(resolve => setTimeout(resolve, espera));
         return transcreverAudio(tentativa + 1);
       }
       
       alert(
-        `❌ Não foi possível transcrever o áudio.\n\n` +
+        `❌ Não foi possível transcrever após 3 tentativas.\n\n` +
         `Motivo: ${error.message}\n\n` +
-        `Dicas:\n` +
-        `• Grave novamente com melhor qualidade\n` +
-        `• Fale mais próximo do microfone\n` +
-        `• Evite ruídos de fundo\n` +
-        `• Tente enviar em formato .mp3 ou .wav`
+        `Soluções:\n` +
+        `✓ Grave novamente com melhor qualidade de áudio\n` +
+        `✓ Fale mais próximo do microfone\n` +
+        `✓ Reduza ruídos de fundo\n` +
+        `✓ Tente converter para .mp3 usando conversor online\n` +
+        `✓ Use o recurso de Transcrição em Tempo Real (Chrome/Edge)`
       );
     } finally {
       setTranscrevendo(false);
@@ -163,27 +168,35 @@ Retorne APENAS o texto transcrito, preservando pontuação e estrutura natural d
 
       // Transcrição com suporte multi-formato
       const resultado = await base44.integrations.Core.InvokeLLM({
-        prompt: `Transcreva COMPLETAMENTE este áudio em formato ${extensao}.
+        prompt: `Você é um sistema de transcrição de áudio profissional.
 
-IMPORTANTE: Este arquivo pode estar em formato .ogg ou .opus (comum em WhatsApp).
-Processe o áudio independente do formato original.
-Retorne APENAS o texto transcrito, preservando estrutura natural da fala.`,
-        file_urls: [file_url],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            transcricao: { type: "string" },
-            formato_original: { type: "string" },
-            duracao_estimada: { type: "string" }
-          }
-        }
+ARQUIVO: ${file.name} (formato ${extensao})
+
+TAREFA: Transcreva COMPLETAMENTE o áudio fornecido.
+
+IMPORTANTE: 
+- Este arquivo pode estar em formato .ogg ou .opus (comum em mensagens de WhatsApp)
+- Processe o áudio independente do formato original
+- Áudios do WhatsApp frequentemente têm compressão alta
+
+INSTRUÇÕES:
+1. Transcreva TODO o conteúdo falado, mesmo com ruídos
+2. Preserve pontuação e estrutura natural
+3. Se houver múltiplos falantes, indique as mudanças
+4. Ignore sons de fundo, transcreva apenas a fala
+5. Se o áudio estiver de baixa qualidade, faça o melhor possível
+
+RETORNE: Apenas o texto transcrito, sem comentários.`,
+        file_urls: [file_url]
       });
 
-      if (resultado.transcricao && resultado.transcricao.trim()) {
-        setTranscricao(resultado.transcricao);
+      const textoTranscrito = typeof resultado === 'string' ? resultado : resultado.transcricao;
+
+      if (textoTranscrito && textoTranscrito.trim()) {
+        setTranscricao(textoTranscrito);
         
         if (onTranscricao) {
-          onTranscricao(resultado.transcricao, file_url);
+          onTranscricao(textoTranscrito, file_url);
         }
 
         // Criar blob para reprodução
@@ -194,27 +207,35 @@ Retorne APENAS o texto transcrito, preservando estrutura natural da fala.`,
 
         alert('✅ Áudio enviado e transcrito com sucesso!');
       } else {
-        throw new Error('Transcrição vazia - áudio pode estar corrompido');
+        throw new Error('Transcrição vazia - áudio sem conteúdo de fala ou corrompido');
       }
     } catch (error) {
       console.error(`Erro na tentativa ${tentativa}:`, error);
       
-      // Retry
-      if (tentativa < 2) {
-        alert(`⚠️ Convertendo formato... Tentativa ${tentativa}/2`);
+      // Retry com espera progressiva
+      if (tentativa < 3) {
+        const espera = tentativa * 2000;
+        alert(`⚠️ Processando formato ${extensao}... Tentativa ${tentativa}/3 (aguarde ${espera/1000}s)`);
+        await new Promise(resolve => setTimeout(resolve, espera));
         return processarArquivoExterno(file, tentativa + 1);
       }
       
       alert(
-        `❌ Não foi possível processar este áudio.\n\n` +
-        `Arquivo: ${file.name}\n` +
-        `Tamanho: ${(file.size / 1024 / 1024).toFixed(2)} MB\n` +
-        `Motivo: ${error.message}\n\n` +
-        `Soluções:\n` +
-        `• Para áudios do WhatsApp: encaminhe como documento (não como áudio)\n` +
-        `• Converta para .mp3 usando um conversor online\n` +
-        `• Grave um novo áudio diretamente no app\n` +
-        `• Verifique se o arquivo não está corrompido`
+        `❌ Não foi possível processar após 3 tentativas.\n\n` +
+        `📄 Arquivo: ${file.name}\n` +
+        `📊 Tamanho: ${(file.size / 1024 / 1024).toFixed(2)} MB\n` +
+        `⚠️ Motivo: ${error.message}\n\n` +
+        `💡 Soluções:\n\n` +
+        `1️⃣ ÁUDIOS DO WHATSAPP:\n` +
+        `   • Encaminhe como DOCUMENTO (não como áudio)\n` +
+        `   • Ou use "Gravar Áudio" no app\n\n` +
+        `2️⃣ CONVERSÃO DE FORMATO:\n` +
+        `   • Use https://cloudconvert.com/ogg-to-mp3\n` +
+        `   • Converta para .mp3 ou .wav\n\n` +
+        `3️⃣ OUTRAS OPÇÕES:\n` +
+        `   • Grave diretamente no app (botão "Gravar Áudio")\n` +
+        `   • Use "Transcrição em Tempo Real" (Chrome/Edge)\n` +
+        `   • Verifique se o arquivo não está corrompido`
       );
     } finally {
       setEnviandoArquivo(false);
