@@ -614,6 +614,64 @@ Extraia:
           />
         )}
 
+        {/* Lista de Arquivos Anexados */}
+        {arquivosProcessados.length > 0 && (
+          <Card className="border-2 border-amber-500">
+            <CardHeader className="bg-amber-50 pb-3">
+              <CardTitle className="flex items-center justify-between text-amber-900">
+                <div className="flex items-center gap-2">
+                  <Upload className="w-5 h-5" />
+                  Arquivos Anexados ({arquivosProcessados.length})
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setArquivosProcessados([]);
+                    setFormData(prev => ({ ...prev, arquivos: [] }));
+                  }}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Limpar Todos
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="space-y-2">
+                {arquivosProcessados.map((arquivo, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {arquivo.tipo === 'audio' && <Mic className="w-4 h-4 text-blue-600 flex-shrink-0" />}
+                      {arquivo.tipo === 'video' && <Video className="w-4 h-4 text-purple-600 flex-shrink-0" />}
+                      {arquivo.tipo === 'foto' && <Camera className="w-4 h-4 text-emerald-600 flex-shrink-0" />}
+                      {arquivo.tipo === 'documento' && <FileText className="w-4 h-4 text-amber-600 flex-shrink-0" />}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900 truncate">{arquivo.nome}</p>
+                        <p className="text-xs text-slate-500 capitalize">{arquivo.tipo}</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setArquivosProcessados(prev => prev.filter((_, i) => i !== index));
+                        setFormData(prev => ({
+                          ...prev,
+                          arquivos: prev.arquivos.filter((_, i) => i !== index)
+                        }));
+                      }}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* CAIXA DE TEXTO CONSOLIDADA */}
         <Card className="border-2 border-[#40916C]">
           <CardHeader className="bg-emerald-50">
