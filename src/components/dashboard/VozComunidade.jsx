@@ -12,7 +12,9 @@ export default function VozComunidade() {
 
     const { data: registros = [] } = useQuery({
         queryKey: ['registros-voz'],
-        queryFn: () => base44.entities.Registro.list('-created_date', 100)
+        queryFn: () => base44.entities.Registro.list('-created_date', 100),
+        staleTime: 30000,
+        refetchInterval: 120000
     });
 
     useEffect(() => {

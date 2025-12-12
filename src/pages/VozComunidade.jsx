@@ -53,14 +53,17 @@ export default function VozComunidade() {
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
   const [insights, setInsights] = useState(null);
 
-  const { data: atividades = [], isLoading } = useQuery({
+  const { data: atividades = [], isLoading, refetch: refetchAtividades } = useQuery({
     queryKey: ['atividades-voz'],
-    queryFn: () => base44.entities.Atividade.list('-created_date', 100)
+    queryFn: () => base44.entities.Atividade.list('-created_date', 100),
+    staleTime: 30000,
+    refetchInterval: 60000
   });
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
-    queryFn: () => base44.entities.Comunidade.list()
+    queryFn: () => base44.entities.Comunidade.list(),
+    staleTime: 300000
   });
 
   // Extract all demands from activities
@@ -164,18 +167,27 @@ Seja conciso e objetivo.`;
           <h2 className="text-2xl font-bold text-slate-900">Voz da Comunidade</h2>
           <p className="text-slate-500 mt-1">Linha do tempo de demandas e insights comunitários</p>
         </div>
-        <Button 
-          className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
-          onClick={generateInsights}
-          disabled={isGeneratingInsights || todasDemandas.length === 0}
-        >
-          {isGeneratingInsights ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Sparkles className="w-4 h-4" />
-          )}
-          Gerar Insights
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => refetchAtividades()}
+            disabled={isLoading}
+          >
+            <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+          </Button>
+          <Button 
+            className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
+            onClick={generateInsights}
+            disabled={isGeneratingInsights || todasDemandas.length === 0}
+          >
+            {isGeneratingInsights ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            Gerar Insights
+          </Button>
+        </div>
       </div>
 
       {/* Falas Relevantes */}

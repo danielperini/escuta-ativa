@@ -21,7 +21,8 @@ import {
   Loader2,
   Star,
   Eye,
-  ArrowLeft
+  ArrowLeft,
+  RefreshCw
 } from 'lucide-react';
 import FormularioAtor from '@/components/atores/FormularioAtor';
 import PerfilAtor from '@/components/atores/PerfilAtor';
@@ -97,14 +98,17 @@ export default function Atores() {
   const [deleteId, setDeleteId] = useState(null);
   const [viewingAtor, setViewingAtor] = useState(null);
 
-  const { data: atores = [], isLoading } = useQuery({
+  const { data: atores = [], isLoading, refetch: refetchAtores } = useQuery({
     queryKey: ['atores'],
-    queryFn: () => base44.entities.Ator.list('-created_date')
+    queryFn: () => base44.entities.Ator.list('-created_date'),
+    staleTime: 30000,
+    refetchInterval: 60000
   });
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
-    queryFn: () => base44.entities.Comunidade.list()
+    queryFn: () => base44.entities.Comunidade.list(),
+    staleTime: 300000
   });
 
   const createMutation = useMutation({
@@ -173,6 +177,13 @@ export default function Atores() {
           <p className="text-slate-500 mt-1">{atores.length} atores mapeados</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => refetchAtores()}
+            disabled={isLoading}
+          >
+            <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+          </Button>
           <Link to={createPageUrl('MapaAtores')}>
             <Button variant="outline" className="gap-2">
               <Network className="w-4 h-4" />
