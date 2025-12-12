@@ -48,10 +48,7 @@ export default function ModeloPredicaoTensao() {
     const [municipiosEstado, setMunicipiosEstado] = useState([]);
     const [carregandoMunicipios, setCarregandoMunicipios] = useState(false);
 
-    const { data: comunidades = [] } = useQuery({
-        queryKey: ['comunidades-predicao'],
-        queryFn: () => base44.entities.Comunidade.list()
-    });
+
 
     const { data: registros = [] } = useQuery({
         queryKey: ['registros-predicao'],
@@ -103,39 +100,37 @@ Retorne uma lista com os 20 municípios mais populosos.`;
         }
     }, [filterEstado]);
 
-    // Comunidades filtradas pelos registros
-    const comunidadesFiltradas = [...new Set(registros.map(r => r.comunidade).filter(Boolean))];
+    // Comunidades únicas dos registros
+    const comunidadesUnicas = [...new Set(registros.map(r => r.comunidade).filter(Boolean))].sort();
 
     const calcularTensao = async () => {
         setAnalisando(true);
 
         try {
-            // Filtrar comunidades
-            let comunidadesParaAnalisar = comunidades;
+            // Filtrar comunidades pelos registros
+            let comunidadesParaAnalisar = comunidadesUnicas;
             
             if (filterComunidade !== 'todos') {
-                comunidadesParaAnalisar = comunidades.filter(c => c.nome === filterComunidade);
+                comunidadesParaAnalisar = [filterComunidade];
             } else if (filterMunicipio !== 'todos') {
-                comunidadesParaAnalisar = comunidades.filter(c => c.municipio === filterMunicipio);
-            } else if (filterEstado !== 'todos') {
-                comunidadesParaAnalisar = comunidades.filter(c => c.estado === filterEstado);
+                // Filtrar comunidades que podem estar no município
+                comunidadesParaAnalisar = comunidadesUnicas.filter(c => 
+                    c.toLowerCase().includes(filterMunicipio.toLowerCase())
+                );
             }
 
             const predicoesComunidades = [];
 
             for (const comunidade of comunidadesParaAnalisar.slice(0, 10)) {
-                const registrosCom = registros.filter(r => r.comunidade === comunidade.nome);
-                const compromissosCom = compromissos.filter(c => c.comunidade === comunidade.nome);
-                const riscosCom = riscos.filter(r => r.comunidade === comunidade.nome && r.status === "ativo");
+                const registrosCom = registros.filter(r => r.comunidade === comunidade);
+                const compromissosCom = compromissos.filter(c => c.comunidade === comunidade);
+                const riscosCom = riscos.filter(r => r.comunidade === comunidade && r.status === "ativo");
 
                 const compromissosAtrasados = compromissosCom.filter(c => c.status === "atrasado").length;
                 const demandasTotais = registrosCom.flatMap(r => r.demandas || []).length;
 
                 const contexto = `
-Comunidade: ${comunidade.nome}
-Município: ${comunidade.municipio || 'N/A'}
-Estado: ${comunidade.estado || 'N/A'}
-População: ${comunidade.populacao_estimada || "N/A"}
+Comunidade: ${comunidade}
 
 Dados dos Últimos 90 dias:
 - Total de Registros: ${registrosCom.length}
@@ -149,7 +144,8 @@ ${registrosCom.slice(0, 5).map(r => `- ${r.descricao?.substring(0, 150)}`).join(
 
 TAREFA:
 Calcule a probabilidade de tensão social nos próximos 14 dias.
-Considere: demandas não atendidas, compromissos descumpridos, riscos ativos, tom das interações.`;
+Considere: demandas não atendidas, compromissos descumpridos, riscos ativos, tom das interações.
+Gere uma previsão detalhada e estruturada.`;
 
                 const resultado = await base44.integrations.Core.InvokeLLM({
                     prompt: contexto,
@@ -168,9 +164,7 @@ Considere: demandas não atendidas, compromissos descumpridos, riscos ativos, to
                 });
 
                 predicoesComunidades.push({
-                    comunidade: comunidade.nome,
-                    municipio: comunidade.municipio,
-                    estado: comunidade.estado,
+                    comunidade,
                     ...resultado
                 });
             }
@@ -244,7 +238,7 @@ Considere: demandas não atendidas, compromissos descumpridos, riscos ativos, to
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="todos">Todas</SelectItem>
-                                        {comunidadesFiltradas.map(c => (
+                                        {comunidadesUnicas.map(c => (
                                             <SelectItem key={c} value={c}>{c}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -295,11 +289,6 @@ Considere: demandas não atendidas, compromissos descumpridos, riscos ativos, to
                                 <div className="flex items-start justify-between">
                                     <div>
                                         <CardTitle className="text-xl">{pred.comunidade}</CardTitle>
-                                        <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
-                                            <MapPin className="w-4 h-4" />
-                                            {pred.municipio && <span>{pred.municipio}</span>}
-                                            {pred.estado && <span>• {pred.estado}</span>}
-                                        </div>
                                         <p className="text-sm text-gray-500 mt-1">Previsão para os próximos 14 dias</p>
                                     </div>
                                     <div className="text-right">
