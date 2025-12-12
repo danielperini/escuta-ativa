@@ -43,16 +43,22 @@ TAREFA: Extrair TODAS as informações relevantes em UMA ÚNICA ANÁLISE:
    - Prazo sugerido
    - Prioridade (baixa, media, alta, urgente)
 
-5. ATORES IDENTIFICADOS
-   Lideranças:
-   - Nome completo
-   - Papel na comunidade
-   - Contato (se mencionado)
+5. STAKEHOLDERS IDENTIFICADOS (PESSOAS E ENTIDADES)
+   REGRA CRÍTICA: Incluir TODOS os nomes mencionados, mesmo incompletos
    
-   Organizações:
+   Para cada pessoa mencionada:
+   - Nome (mesmo incompleto: "Dona Maria", "Sr. João")
+   - Tipo: pessoa ou entidade
+   - Papel social (se mencionado)
+   - Organização (se mencionado)
+   - Contato (apenas se explicitamente dito)
+   - Município (OBRIGATÓRIO - inferir do contexto)
+   
+   Para cada entidade mencionada:
    - Nome
-   - Tipo (publica, privada, ONG, associacao)
+   - Tipo (associacao, ong, governo, outro)
    - Área de atuação
+   - Município
 
 6. RISCOS SOCIAIS
    Se identificar riscos:
@@ -134,30 +140,18 @@ IMPORTANTE:
               }
             }
           },
-          atores: {
-            type: "object",
-            properties: {
-              liderancas: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    nome: { type: "string" },
-                    papel: { type: "string" },
-                    contato: { type: "string" }
-                  }
-                }
-              },
-              organizacoes: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    nome: { type: "string" },
-                    tipo: { type: "string" },
-                    area: { type: "string" }
-                  }
-                }
+          stakeholders: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                nome: { type: "string" },
+                tipo: { type: "string", enum: ["pessoa", "entidade"] },
+                papel_social: { type: "string" },
+                organizacao: { type: "string" },
+                municipio: { type: "string" },
+                contato_telefone: { type: "string" },
+                contato_email: { type: "string" }
               }
             }
           },
@@ -256,22 +250,12 @@ export async function alimentarModulos(registroId, dadosProcessados) {
     }
   }
 
-  // 3. ATORES (Lideranças e Organizações)
-  if (dadosProcessados.atores) {
-    if (dadosProcessados.atores.liderancas) {
-      for (const lid of dadosProcessados.atores.liderancas) {
-        promises.push(
-          criarOuAtualizarLideranca(lid, registroId)
-        );
-      }
-    }
-
-    if (dadosProcessados.atores.organizacoes) {
-      for (const org of dadosProcessados.atores.organizacoes) {
-        promises.push(
-          criarOuAtualizarOrganizacao(org, registroId)
-        );
-      }
+  // 3. STAKEHOLDERS
+  if (dadosProcessados.stakeholders) {
+    for (const stakeholder of dadosProcessados.stakeholders) {
+      promises.push(
+        criarOuAtualizarStakeholder(stakeholder, registroId, dadosProcessados.identificacao?.comunidade)
+      );
     }
   }
 
@@ -349,45 +333,114 @@ async function criarOuAtualizarTema(nomeTema, dadosProcessados) {
   }
 }
 
-async function criarOuAtualizarLideranca(lideranca, registroId) {
+async function criarOuAtualizarStakeholder(stakeholderData, registroId, comunidade) {
   try {
-    const liderancas = await base44.entities.LiderancaComunitaria.list();
-    const existente = liderancas.find(l => 
-      l.nome.toLowerCase() === lideranca.nome.toLowerCase()
-    );
+    const stakeholders = await base44.entities.Stakeholder.list();
+    
+    // Fuzzy match (nome similar)
+    const existente = stakeholders.find(s => {
+      const nomeSimilar = s.nome.toLowerCase().includes(stakeholderData.nome.toLowerCase().split(' ')[0]) ||
+                         stakeholderData.nome.toLowerCase().includes(s.nome.toLowerCase().split(' ')[0]);
+      const mesmaComunidade = s.comunidade === comunidade;
+      return nomeSimilar && mesmaComunidade;
+    });
 
     if (existente) {
-      await base44.entities.LiderancaComunitaria.update(existente.id, {
-        ultima_interacao: new Date().toISOString(),
-        demandas_relacionadas: [...new Set([
-          ...(existente.demandas_relacionadas || []),
-          registroId
-        ])]
-      });
-    } else {
-      const novaLideranca = await base44.entities.LiderancaComunitaria.create({
-        nome: lideranca.nome,
-        papel_na_comunidade: lideranca.papel,
-        telefone: lideranca.contato,
-        ultima_interacao: new Date().toISOString(),
-        demandas_relacionadas: [registroId]
-      });
-      
-      // Criar também no Ator para o mapa
-      await base44.entities.Ator.create({
-        nome: lideranca.nome,
-        tipo: 'lideranca',
-        cargo: lideranca.papel,
-        nivel_influencia: 'alto',
-        nivel_atividade: 'moderado',
-        historico_interacoes: 1,
+      // EVOLUÇÃO INCREMENTAL - adicionar novas informações
+      const updates = {
+        registros_vinculados: [...new Set([...(existente.registros_vinculados || []), registroId])],
+        historico_interacoes: (existente.historico_interacoes || 0) + 1,
         ultima_interacao: new Date().toISOString().split('T')[0],
-        temas_interesse: []
-      }).catch(() => {}); // Ignorar erro se já existir
+        historico_evolucao: [
+          ...(existente.historico_evolucao || []),
+          {
+            data: new Date().toISOString(),
+            campo_atualizado: 'nova_interacao',
+            valor_novo: 'Mencionado em novo registro',
+            registro_fonte: registroId
+          }
+        ]
+      };
+
+      // Adicionar novos dados sem sobrescrever
+      if (stakeholderData.contato_telefone && !existente.contato?.telefone) {
+        updates.contato = { ...existente.contato, telefone: stakeholderData.contato_telefone };
+        updates.historico_evolucao.push({
+          data: new Date().toISOString(),
+          campo_atualizado: 'telefone',
+          valor_novo: stakeholderData.contato_telefone,
+          registro_fonte: registroId
+        });
+      }
+
+      if (stakeholderData.contato_email && !existente.contato?.email) {
+        updates.contato = { ...updates.contato, ...existente.contato, email: stakeholderData.contato_email };
+        updates.historico_evolucao.push({
+          data: new Date().toISOString(),
+          campo_atualizado: 'email',
+          valor_novo: stakeholderData.contato_email,
+          registro_fonte: registroId
+        });
+      }
+
+      if (stakeholderData.papel_social && !existente.papel_social) {
+        updates.papel_social = stakeholderData.papel_social;
+        updates.status_cadastro = 'parcial';
+      }
+
+      await base44.entities.Stakeholder.update(existente.id, updates);
+      return existente.id;
+    } else {
+      // CRIAR NOVO STAKEHOLDER PROVISÓRIO
+      const proximoId = stakeholders.reduce((max, s) => Math.max(max, s.id_sequencial || 0), 0) + 1;
+      
+      const novoStakeholder = await base44.entities.Stakeholder.create({
+        id_sequencial: proximoId,
+        nome: stakeholderData.nome,
+        tipo: stakeholderData.tipo || 'pessoa',
+        subtipo: inferirSubtipo(stakeholderData),
+        comunidade: comunidade || 'A definir',
+        municipio: stakeholderData.municipio || 'A definir',
+        papel_social: stakeholderData.papel_social,
+        organizacao: stakeholderData.organizacao,
+        contato: {
+          telefone: stakeholderData.contato_telefone || null,
+          email: stakeholderData.contato_email || null
+        },
+        primeira_mencao: new Date().toISOString(),
+        registro_origem: registroId,
+        registros_vinculados: [registroId],
+        historico_evolucao: [{
+          data: new Date().toISOString(),
+          campo_atualizado: 'criacao',
+          valor_novo: 'Criado automaticamente pela IA',
+          registro_fonte: registroId
+        }],
+        status_cadastro: 'provisorio',
+        nivel_atividade: 'baixo',
+        historico_interacoes: 1,
+        ultima_interacao: new Date().toISOString().split('T')[0]
+      });
+
+      return novoStakeholder.id;
     }
   } catch (error) {
-    console.error('Erro ao criar/atualizar liderança:', error);
+    console.error('Erro ao criar/atualizar stakeholder:', error);
+    return null;
   }
+}
+
+function inferirSubtipo(stakeholder) {
+  if (stakeholder.tipo === 'entidade') {
+    if (/associa[çc][ãa]o/i.test(stakeholder.nome)) return 'associacao';
+    if (/ong|instituto|funda[çc][ãa]o/i.test(stakeholder.nome)) return 'ong';
+    if (/prefeitura|secretaria|c[âa]mara/i.test(stakeholder.nome)) return 'governo';
+    return 'outro';
+  }
+
+  if (/lideran[çc]a|presidente|coordenador/i.test(stakeholder.papel_social || '')) return 'lideranca';
+  if (/representante|delegado/i.test(stakeholder.papel_social || '')) return 'representante';
+  return 'morador';
 }
 
 async function criarOuAtualizarOrganizacao(organizacao, registroId) {
