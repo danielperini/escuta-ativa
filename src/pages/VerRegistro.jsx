@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { BotoesExportacao } from "@/components/registro/ExportadorPDF";
 
 const tipoConfig = {
   reuniao: { label: 'Reunião', color: 'bg-purple-100 text-purple-700' },
@@ -177,7 +178,8 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <BotoesExportacao registro={registro} />
           <Link to={createPageUrl(`AuditoriaRegistro?id=${registro.id}`)}>
             <Button variant="outline" size="sm" className="gap-2">
               <Shield className="w-4 h-4" />
