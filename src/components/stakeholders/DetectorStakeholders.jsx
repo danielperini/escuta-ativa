@@ -100,6 +100,14 @@ Se identificar nome similar aos existentes, marque "stakeholder_existente_id"`,
   };
 
   const confirmarVinculacao = async () => {
+    if (selecionados.length === 0) {
+      // Sem seleção, apenas notificar e prosseguir
+      if (onStakeholdersVinculados) {
+        onStakeholdersVinculados([]);
+      }
+      return;
+    }
+
     const stakeholdersParaVincular = [];
 
     for (const index of selecionados) {
@@ -288,7 +296,9 @@ Se identificar nome similar aos existentes, marque "stakeholder_existente_id"`,
         size="lg"
       >
         <Plus className="w-5 h-5 mr-2" />
-        Criar/Atualizar {selecionados.length} Stakeholder{selecionados.length !== 1 && 's'}
+        {selecionados.length > 0 
+          ? `Criar/Atualizar ${selecionados.length} Stakeholder${selecionados.length !== 1 ? 's' : ''}` 
+          : 'Pular Esta Etapa'}
       </Button>
     </div>
   );

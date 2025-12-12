@@ -117,6 +117,14 @@ Para cada caso que deve ser aberto:
   };
 
   const confirmarAberturaCasos = async () => {
+    if (selecionados.length === 0) {
+      // Sem seleção, apenas notificar e prosseguir
+      if (onCasosCriados) {
+        onCasosCriados([]);
+      }
+      return;
+    }
+
     const casosCriados = [];
 
     for (const index of selecionados) {
@@ -260,7 +268,9 @@ Para cada caso que deve ser aberto:
         size="lg"
       >
         <Briefcase className="w-5 h-5 mr-2" />
-        Abrir {selecionados.length} Caso{selecionados.length !== 1 && 's'}
+        {selecionados.length > 0 
+          ? `Abrir ${selecionados.length} Caso${selecionados.length !== 1 ? 's' : ''}` 
+          : 'Pular Esta Etapa'}
       </Button>
     </div>
   );
