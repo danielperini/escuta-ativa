@@ -104,6 +104,22 @@ export default function RegistroUnificado() {
   const [mostrarGravador, setMostrarGravador] = useState(false);
   const [transcricaoTempoReal, setTranscricaoTempoReal] = useState(false);
 
+  const { data: comunidades = [] } = useQuery({
+    queryKey: ['comunidades'],
+    queryFn: () => base44.entities.Comunidade.list()
+  });
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser-registro'],
+    queryFn: () => base44.auth.me()
+  });
+
+  const { data: registroExistente, isLoading: carregandoRegistro } = useQuery({
+    queryKey: ['registro-editar', registroIdEditar],
+    queryFn: () => base44.entities.Registro.list().then(registros => registros.find(r => r.id === registroIdEditar)),
+    enabled: modoEdicao
+  });
+
   // Carregar dados do registro existente em modo edição
   React.useEffect(() => {
     if (modoEdicao && registroExistente) {
@@ -132,22 +148,6 @@ export default function RegistroUnificado() {
       setArquivosProcessados(registroExistente.arquivos || []);
     }
   }, [modoEdicao, registroExistente]);
-
-  const { data: comunidades = [] } = useQuery({
-    queryKey: ['comunidades'],
-    queryFn: () => base44.entities.Comunidade.list()
-  });
-
-  const { data: user } = useQuery({
-    queryKey: ['currentUser-registro'],
-    queryFn: () => base44.auth.me()
-  });
-
-  const { data: registroExistente, isLoading: carregandoRegistro } = useQuery({
-    queryKey: ['registro-editar', registroIdEditar],
-    queryFn: () => base44.entities.Registro.list().then(registros => registros.find(r => r.id === registroIdEditar)),
-    enabled: modoEdicao
-  });
 
   const createMutation = useMutation({
     mutationFn: (data) => modoEdicao 
