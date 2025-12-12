@@ -144,13 +144,14 @@ IMPORTANTE: Seja preciso. Vincular registros incorretos causa confusão.
     };
 
     const confirmarVinculacao = () => {
-        if (selecionados.length === 0) {
-            onIgnorar();
-            return;
-        }
-
-        if (confirm(`Confirma vincular este registro a ${selecionados.length} registro(s) anterior(es)?`)) {
+        if (onVincular) {
             onVincular(selecionados);
+        }
+    };
+
+    const prosseguirNovo = () => {
+        if (onIgnorar) {
+            onIgnorar();
         }
     };
 
@@ -196,7 +197,7 @@ IMPORTANTE: Seja preciso. Vincular registros incorretos causa confusão.
                             Este registro não possui continuidade com registros anteriores.
                         </p>
                         <div className="space-y-2">
-                            <Button onClick={onIgnorar} className="w-full bg-green-600 hover:bg-green-700">
+                            <Button onClick={prosseguirNovo} className="w-full bg-green-600 hover:bg-green-700">
                                 <Check className="w-4 h-4 mr-2" />
                                 Prosseguir com Registro Novo
                             </Button>
@@ -283,7 +284,7 @@ IMPORTANTE: Seja preciso. Vincular registros incorretos causa confusão.
                                 Atualizar Registro Antigo ({selecionados.length} selecionado{selecionados.length !== 1 ? 's' : ''})
                             </Button>
                             <Button
-                                onClick={onIgnorar}
+                                onClick={prosseguirNovo}
                                 className="w-full bg-green-600 hover:bg-green-700"
                             >
                                 <Check className="w-4 h-4 mr-2" />

@@ -997,9 +997,12 @@ Ou digite/cole o conteúdo diretamente..."
           <DetectorContinuidade
             atividadeNova={registroTemporario}
             onVincular={(continuidades) => {
+              console.log('Continuidades vinculadas:', continuidades);
               setFormData(prev => ({ ...prev, registros_continuidade: continuidades }));
             }}
-            onIgnorar={() => {}}
+            onIgnorar={() => {
+              console.log('Prosseguir sem continuidade');
+            }}
           />
 
           <Card className="border-2 border-purple-600">
