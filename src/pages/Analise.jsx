@@ -7,15 +7,11 @@ import { createPageUrl } from "@/utils";
 import GrafoRede from "../components/analise/GrafoRede";
 import GraficosAnalise from "../components/analise/GraficosAnalise";
 import IndicadoresCompromissos from "../components/analise/IndicadoresCompromissos";
-import SugestoesIA from "../components/analise/SugestoesIA";
 import ModeloPredicaoTensao from "../components/analise/ModeloPredicaoTensao";
-import RadarGovernanca from "../components/analise/RadarGovernanca";
 import LiderancasEmergentes from "../components/analise/LiderancasEmergentes";
 import ComparativoTerritorial from "../components/analise/ComparativoTerritorial";
 import StorytellingTerritorial from "../components/analise/StorytellingTerritorial";
-import ComparadorPeriodos from "../components/analise/ComparadorPeriodos";
 import PainelPendencias from "../components/devolutiva/PainelPendencias";
-import AnalisadorCruzamento from "../components/analise/AnalisadorCruzamento";
 
 export default function Analise() {
     const navigate = useNavigate();
@@ -38,18 +34,15 @@ export default function Analise() {
                 </div>
 
                 <Tabs defaultValue="rede" className="w-full">
-                    <TabsList className="grid w-full grid-cols-11 text-xs">
+                    <TabsList className="grid w-full grid-cols-8 text-xs">
                         <TabsTrigger value="rede">Grafo</TabsTrigger>
                         <TabsTrigger value="graficos">Gráficos</TabsTrigger>
                         <TabsTrigger value="indicadores">Compromissos</TabsTrigger>
                         <TabsTrigger value="pendencias">Pendências</TabsTrigger>
-                        <TabsTrigger value="cruzamento">Cruzamento IA</TabsTrigger>
                         <TabsTrigger value="predicao">Previsão</TabsTrigger>
-                        <TabsTrigger value="governanca">Governança</TabsTrigger>
                         <TabsTrigger value="liderancas">Lideranças</TabsTrigger>
-                        <TabsTrigger value="comparativo">Comparativo</TabsTrigger>
+                        <TabsTrigger value="comparativo">Território</TabsTrigger>
                         <TabsTrigger value="storytelling">Storytelling</TabsTrigger>
-                        <TabsTrigger value="sugestoes">IA</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="rede" className="mt-6">
@@ -68,16 +61,8 @@ export default function Analise() {
                         <PainelPendencias />
                     </TabsContent>
 
-                    <TabsContent value="cruzamento" className="mt-6">
-                        <AnalisadorCruzamento />
-                    </TabsContent>
-
                     <TabsContent value="predicao" className="mt-6">
                         <ModeloPredicaoTensao />
-                    </TabsContent>
-
-                    <TabsContent value="governanca" className="mt-6">
-                        <RadarGovernanca />
                     </TabsContent>
 
                     <TabsContent value="liderancas" className="mt-6">
@@ -90,10 +75,6 @@ export default function Analise() {
 
                     <TabsContent value="storytelling" className="mt-6">
                         <StorytellingTerritorial />
-                    </TabsContent>
-
-                    <TabsContent value="sugestoes" className="mt-6">
-                        <SugestoesIA />
                     </TabsContent>
                 </Tabs>
             </div>

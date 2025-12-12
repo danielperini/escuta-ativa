@@ -1,365 +1,361 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Download, TrendingUp, BarChart3, PieChart, Calendar } from "lucide-react";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
-import { Badge } from "@/components/ui/badge";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { TrendingUp, Users, MapPin, MessageSquare, AlertTriangle, Calendar } from 'lucide-react';
 
-const COLORS = ['#F2B632', '#0B1E33', '#8B5CF6', '#10B981', '#EF4444', '#3B82F6', '#F59E0B'];
+const COLORS = ['#2D6A4F', '#40916C', '#52B788', '#74C69D', '#95D5B2', '#B7E4C7', '#D8F3DC'];
 
 export default function GraficosAnalise() {
-    const [periodo, setPeriodo] = useState("2anos");
+  const [filterComunidade, setFilterComunidade] = useState('todos');
+  const [filterTema, setFilterTema] = useState('todos');
+  const [filterSentimento, setFilterSentimento] = useState('todos');
+  const [filterPeriodo, setFilterPeriodo] = useState('30');
 
-    const { data: atividades = [] } = useQuery({
-        queryKey: ['atividades-graficos'],
-        queryFn: () => base44.entities.Atividade.list()
+  const { data: registros = [] } = useQuery({
+    queryKey: ['registros-graficos'],
+    queryFn: () => base44.entities.Registro.list('-created_date', 500)
+  });
+
+  const { data: stakeholders = [] } = useQuery({
+    queryKey: ['stakeholders-graficos'],
+    queryFn: () => base44.entities.Stakeholder.list()
+  });
+
+  const { data: comunidades = [] } = useQuery({
+    queryKey: ['comunidades'],
+    queryFn: () => base44.entities.Comunidade.list()
+  });
+
+  const { data: temas = [] } = useQuery({
+    queryKey: ['temas'],
+    queryFn: () => base44.entities.Tema.list()
+  });
+
+  // Filtrar registros
+  const registrosFiltrados = registros.filter(r => {
+    const dataRegistro = new Date(r.created_date || r.data_registro);
+    const diasAtras = parseInt(filterPeriodo);
+    const dataLimite = new Date();
+    dataLimite.setDate(dataLimite.getDate() - diasAtras);
+
+    const dentroDataLimite = dataRegistro >= dataLimite;
+    const matchComunidade = filterComunidade === 'todos' || r.comunidade === filterComunidade;
+    const matchTema = filterTema === 'todos' || (r.temas_identificados && r.temas_identificados.includes(filterTema));
+    const matchSentimento = filterSentimento === 'todos' || r.sentimento === filterSentimento;
+
+    return dentroDataLimite && matchComunidade && matchTema && matchSentimento;
+  });
+
+  // Dados por comunidade
+  const dadosPorComunidade = Object.entries(
+    registrosFiltrados.reduce((acc, r) => {
+      if (r.comunidade) {
+        acc[r.comunidade] = (acc[r.comunidade] || 0) + 1;
+      }
+      return acc;
+    }, {})
+  ).map(([nome, total]) => ({ nome, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10);
+
+  // Dados por tema
+  const dadosPorTema = Object.entries(
+    registrosFiltrados.reduce((acc, r) => {
+      (r.temas_identificados || []).forEach(tema => {
+        acc[tema] = (acc[tema] || 0) + 1;
+      });
+      return acc;
+    }, {})
+  ).map(([nome, total]) => ({ nome, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 8);
+
+  // Evolução temporal
+  const evolucaoTemporal = registrosFiltrados.reduce((acc, r) => {
+    const data = new Date(r.created_date || r.data_registro);
+    const mes = `${data.getMonth() + 1}/${data.getFullYear()}`;
+    acc[mes] = (acc[mes] || 0) + 1;
+    return acc;
+  }, {});
+
+  const dadosEvolucao = Object.entries(evolucaoTemporal)
+    .map(([mes, total]) => ({ mes, total }))
+    .sort((a, b) => {
+      const [ma, ya] = a.mes.split('/').map(Number);
+      const [mb, yb] = b.mes.split('/').map(Number);
+      return ya !== yb ? ya - yb : ma - mb;
     });
 
-    const { data: temas = [] } = useQuery({
-        queryKey: ['temas-graficos'],
-        queryFn: () => base44.entities.Tema.list()
-    });
+  // Sentimento
+  const dadosSentimento = Object.entries(
+    registrosFiltrados.reduce((acc, r) => {
+      if (r.sentimento) {
+        acc[r.sentimento] = (acc[r.sentimento] || 0) + 1;
+      }
+      return acc;
+    }, {})
+  ).map(([nome, value]) => ({ nome, value }));
 
-    const { data: comunidades = [] } = useQuery({
-        queryKey: ['comunidades-graficos'],
-        queryFn: () => base44.entities.Comunidade.list()
-    });
+  // Temperatura do território
+  const dadosTemperatura = Object.entries(
+    registrosFiltrados.reduce((acc, r) => {
+      if (r.temperatura_territorio) {
+        acc[r.temperatura_territorio] = (acc[r.temperatura_territorio] || 0) + 1;
+      }
+      return acc;
+    }, {})
+  ).map(([nome, value]) => ({ nome, value }));
 
-    const { data: liderancas = [] } = useQuery({
-        queryKey: ['liderancas-graficos'],
-        queryFn: () => base44.entities.LiderancaComunitaria.list()
-    });
+  // Tipos de stakeholder
+  const dadosTipoStakeholder = Object.entries(
+    stakeholders.reduce((acc, s) => {
+      if (s.tipo) {
+        acc[s.tipo] = (acc[s.tipo] || 0) + 1;
+      }
+      return acc;
+    }, {})
+  ).map(([nome, value]) => ({ nome, value }));
 
-    // Filtrar atividades por período
-    const atividadesFiltradas = atividades.filter(a => {
-        const dataAtividade = new Date(a.created_date);
-        const hoje = new Date();
-        const diasAtras = {
-            "30dias": 30,
-            "90dias": 90,
-            "6meses": 180,
-            "1ano": 365,
-            "2anos": 730
-        }[periodo];
-
-        const dataLimite = new Date(hoje.setDate(hoje.getDate() - diasAtras));
-        return dataAtividade >= dataLimite;
-    });
-
-    // Temas mais citados
-    const temasCitados = {};
-    atividadesFiltradas.forEach(a => {
-        if (a.temas_identificados) {
-            a.temas_identificados.forEach(tema => {
-                temasCitados[tema] = (temasCitados[tema] || 0) + 1;
-            });
-        }
-    });
-
-    const dadosTemasCitados = Object.entries(temasCitados)
-        .map(([nome, count]) => ({ nome, quantidade: count }))
-        .sort((a, b) => b.quantidade - a.quantidade)
-        .slice(0, 10);
-
-    // Demandas por comunidade
-    const demandasPorComunidade = {};
-    atividadesFiltradas.forEach(a => {
-        const comunidade = a.local || "Não especificado";
-        if (a.demandas && a.demandas.length > 0) {
-            demandasPorComunidade[comunidade] = (demandasPorComunidade[comunidade] || 0) + a.demandas.length;
-        }
-    });
-
-    const dadosDemandasComunidade = Object.entries(demandasPorComunidade)
-        .map(([nome, quantidade]) => ({ nome, quantidade }))
-        .sort((a, b) => b.quantidade - a.quantidade)
-        .slice(0, 8);
-
-    // Série temporal (últimos meses)
-    const serieTemporal = {};
-    atividadesFiltradas.forEach(a => {
-        const mes = new Date(a.created_date).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-        serieTemporal[mes] = (serieTemporal[mes] || 0) + 1;
-    });
-
-    const dadosSerieTemporal = Object.entries(serieTemporal)
-        .map(([mes, quantidade]) => ({ mes, quantidade }))
-        .slice(-12);
-
-    // Distribuição por tipo de atividade
-    const tiposAtividade = {};
-    atividadesFiltradas.forEach(a => {
-        const tipo = a.tipo || "Não especificado";
-        tiposAtividade[tipo] = (tiposAtividade[tipo] || 0) + 1;
-    });
-
-    const dadosTiposAtividade = Object.entries(tiposAtividade)
-        .map(([name, value]) => ({ name, value }));
-
-    // Temas por comunidade
-    const temasPorComunidade = {};
-    atividadesFiltradas.forEach(a => {
-        const comunidade = a.local || "Não especificado";
-        if (a.temas_identificados) {
-            a.temas_identificados.forEach(tema => {
-                if (!temasPorComunidade[comunidade]) {
-                    temasPorComunidade[comunidade] = {};
-                }
-                temasPorComunidade[comunidade][tema] = (temasPorComunidade[comunidade][tema] || 0) + 1;
-            });
-        }
-    });
-
-    // Temas por liderança (top 5 lideranças)
-    const temasPorLideranca = {};
-    atividadesFiltradas.forEach(a => {
-        if (a.liderancas_relacionadas && a.temas_identificados) {
-            a.liderancas_relacionadas.forEach(lidId => {
-                const lideranca = liderancas.find(l => l.id === lidId);
-                if (lideranca) {
-                    if (!temasPorLideranca[lideranca.nome]) {
-                        temasPorLideranca[lideranca.nome] = {};
-                    }
-                    a.temas_identificados.forEach(tema => {
-                        temasPorLideranca[lideranca.nome][tema] = (temasPorLideranca[lideranca.nome][tema] || 0) + 1;
-                    });
-                }
-            });
-        }
-    });
-
-    const topLiderancas = Object.entries(temasPorLideranca)
-        .map(([nome, temas]) => ({ 
-            nome, 
-            total: Object.values(temas).reduce((sum, count) => sum + count, 0),
-            temas 
-        }))
-        .sort((a, b) => b.total - a.total)
-        .slice(0, 5);
-
-    const exportarGraficos = () => {
-        alert("Funcionalidade de exportação será implementada em breve.");
-    };
-
-    return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle>Filtros</CardTitle>
-                        <Button size="sm" onClick={exportarGraficos} variant="outline">
-                            <Download className="w-4 h-4 mr-2" />
-                            Exportar PDF
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex gap-4">
-                        <div className="flex-1">
-                            <Label>Período Analisado</Label>
-                            <Select value={periodo} onValueChange={setPeriodo}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="30dias">Últimos 30 dias</SelectItem>
-                                    <SelectItem value="90dias">Últimos 90 dias</SelectItem>
-                                    <SelectItem value="6meses">Últimos 6 meses</SelectItem>
-                                    <SelectItem value="1ano">Último ano</SelectItem>
-                                    <SelectItem value="2anos">Últimos 2 anos</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <BarChart3 className="w-5 h-5" />
-                            Temas Mais Citados
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={dadosTemasCitados}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="nome" angle={-45} textAnchor="end" height={100} />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="quantidade" fill="#F2B632" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <PieChart className="w-5 h-5" />
-                            Distribuição por Tipo de Atividade
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <RechartsPieChart>
-                                <Pie
-                                    data={dadosTiposAtividade}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={(entry) => entry.name}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                >
-                                    {dadosTiposAtividade.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </RechartsPieChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5" />
-                            Volume de Demandas por Comunidade
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={dadosDemandasComunidade}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="nome" angle={-45} textAnchor="end" height={100} />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="quantidade" fill="#0B1E33" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Calendar className="w-5 h-5" />
-                            Série Temporal de Atividades
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={dadosSerieTemporal}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="mes" />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-                                <Line type="monotone" dataKey="quantidade" stroke="#F2B632" strokeWidth={2} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
+  return (
+    <div className="space-y-6">
+      {/* Filtros */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <Label>Comunidade</Label>
+              <Select value={filterComunidade} onValueChange={setFilterComunidade}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas</SelectItem>
+                  {comunidades.map(c => (
+                    <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Temas por Comunidade (Heatmap)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr>
-                                    <th className="text-left p-2 border-b">Comunidade</th>
-                                    <th className="text-left p-2 border-b">Temas Principais</th>
-                                    <th className="text-right p-2 border-b">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {Object.entries(temasPorComunidade)
-                                    .sort((a, b) => {
-                                        const totalA = Object.values(a[1]).reduce((sum, val) => sum + val, 0);
-                                        const totalB = Object.values(b[1]).reduce((sum, val) => sum + val, 0);
-                                        return totalB - totalA;
-                                    })
-                                    .slice(0, 10)
-                                    .map(([comunidade, temas]) => {
-                                        const totalTemas = Object.values(temas).reduce((sum, val) => sum + val, 0);
-                                        const topTemas = Object.entries(temas)
-                                            .sort((a, b) => b[1] - a[1])
-                                            .slice(0, 3)
-                                            .map(([tema]) => tema);
-                                        return (
-                                            <tr key={comunidade} className="hover:bg-gray-50">
-                                                <td className="p-2 border-b font-medium">{comunidade}</td>
-                                                <td className="p-2 border-b">
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {topTemas.map(tema => (
-                                                            <Badge key={tema} variant="outline" className="text-xs">
-                                                                {tema}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                                <td className="p-2 border-b text-right font-semibold">{totalTemas}</td>
-                                            </tr>
-                                        );
-                                    })}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+            <div>
+              <Label>Tema</Label>
+              <Select value={filterTema} onValueChange={setFilterTema}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {temas.map(t => (
+                    <SelectItem key={t.id} value={t.nome}>{t.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Top 5 Lideranças por Temas Mencionados</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {topLiderancas.map((lideranca) => {
-                            const topTemasLid = Object.entries(lideranca.temas)
-                                .sort((a, b) => b[1] - a[1])
-                                .slice(0, 5);
-                            return (
-                                <div key={lideranca.nome} className="border rounded-lg p-4">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h4 className="font-semibold text-lg">{lideranca.nome}</h4>
-                                        <Badge style={{ backgroundColor: '#F2B632' }}>
-                                            {lideranca.total} menções
-                                        </Badge>
-                                    </div>
-                                    <ResponsiveContainer width="100%" height={200}>
-                                        <BarChart data={topTemasLid.map(([tema, count]) => ({ tema, count }))}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="tema" angle={-20} textAnchor="end" height={80} />
-                                            <YAxis />
-                                            <Tooltip />
-                                            <Bar dataKey="count" fill="#0B1E33" />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-    );
+            <div>
+              <Label>Sentimento</Label>
+              <Select value={filterSentimento} onValueChange={setFilterSentimento}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="positivo">Positivo</SelectItem>
+                  <SelectItem value="neutro">Neutro</SelectItem>
+                  <SelectItem value="negativo">Negativo</SelectItem>
+                  <SelectItem value="misto">Misto</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Período</Label>
+              <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">Últimos 7 dias</SelectItem>
+                  <SelectItem value="30">Últimos 30 dias</SelectItem>
+                  <SelectItem value="90">Últimos 90 dias</SelectItem>
+                  <SelectItem value="180">Últimos 6 meses</SelectItem>
+                  <SelectItem value="365">Último ano</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Estatísticas resumidas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <MessageSquare className="w-8 h-8 text-[#2D6A4F]" />
+              <div>
+                <p className="text-sm text-slate-500">Registros</p>
+                <p className="text-2xl font-bold">{registrosFiltrados.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <MapPin className="w-8 h-8 text-[#40916C]" />
+              <div>
+                <p className="text-sm text-slate-500">Comunidades</p>
+                <p className="text-2xl font-bold">{new Set(registrosFiltrados.map(r => r.comunidade).filter(Boolean)).size}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <Users className="w-8 h-8 text-[#52B788]" />
+              <div>
+                <p className="text-sm text-slate-500">Stakeholders</p>
+                <p className="text-2xl font-bold">{stakeholders.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-8 h-8 text-[#74C69D]" />
+              <div>
+                <p className="text-sm text-slate-500">Temas</p>
+                <p className="text-2xl font-bold">{dadosPorTema.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Gráficos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Registros por Comunidade</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={dadosPorComunidade}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="nome" angle={-45} textAnchor="end" height={100} />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="total" fill="#2D6A4F" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Temas Mais Discutidos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={dadosPorTema} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis dataKey="nome" type="category" width={120} />
+                <Tooltip />
+                <Bar dataKey="total" fill="#40916C" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Evolução Temporal</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={dadosEvolucao}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mes" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="total" stroke="#2D6A4F" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Distribuição de Sentimento</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie data={dadosSentimento} dataKey="value" nameKey="nome" cx="50%" cy="50%" outerRadius={100} label>
+                  {dadosSentimento.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Temperatura do Território</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie data={dadosTemperatura} dataKey="value" nameKey="nome" cx="50%" cy="50%" outerRadius={100} label>
+                  {dadosTemperatura.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Tipos de Stakeholder</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie data={dadosTipoStakeholder} dataKey="value" nameKey="nome" cx="50%" cy="50%" outerRadius={100} label>
+                  {dadosTipoStakeholder.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }

@@ -1,215 +1,199 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Star, Loader2, Brain, Users } from "lucide-react";
+import { Users, TrendingUp, AlertTriangle, Award, Flame } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function LiderancasEmergentes() {
-    const [analisando, setAnalisando] = useState(false);
-    const [emergentes, setEmergentes] = useState(null);
+  const [filterComunidade, setFilterComunidade] = useState('todos');
 
-    const { data: atividades = [] } = useQuery({
-        queryKey: ['atividades-liderancas'],
-        queryFn: () => base44.entities.Atividade.list('-created_date', 100)
+  const { data: stakeholders = [] } = useQuery({
+    queryKey: ['stakeholders-liderancas'],
+    queryFn: () => base44.entities.Stakeholder.list()
+  });
+
+  const { data: registros = [] } = useQuery({
+    queryKey: ['registros-liderancas'],
+    queryFn: () => base44.entities.Registro.list('-created_date', 500)
+  });
+
+  const { data: comunidades = [] } = useQuery({
+    queryKey: ['comunidades'],
+    queryFn: () => base44.entities.Comunidade.list()
+  });
+
+  const { data: temas = [] } = useQuery({
+    queryKey: ['temas'],
+    queryFn: () => base44.entities.Tema.list()
+  });
+
+  // Calcular citações e relevância de stakeholders
+  const stakeholdersComCitacoes = stakeholders.map(stakeholder => {
+    // Contar citações nos registros
+    const citacoes = registros.filter(r => 
+      r.participantes?.includes(stakeholder.nome) ||
+      r.stakeholders_vinculados?.includes(stakeholder.id) ||
+      r.liderancas_vinculadas?.includes(stakeholder.id)
+    ).length;
+
+    // Identificar temas críticos (alta urgência/temperatura)
+    const temasCriticos = new Set();
+    registros.forEach(r => {
+      const estaVinculado = r.participantes?.includes(stakeholder.nome) ||
+                           r.stakeholders_vinculados?.includes(stakeholder.id);
+      
+      if (estaVinculado) {
+        if (r.temperatura_territorio === 'alto' || r.temperatura_territorio === 'critico') {
+          (r.temas_identificados || []).forEach(tema => temasCriticos.add(tema));
+        }
+        
+        // Verificar demandas críticas/urgentes
+        (r.demandas || []).forEach(d => {
+          if (d.urgencia === 'critica' || d.urgencia === 'alta') {
+            (r.temas_identificados || []).forEach(tema => temasCriticos.add(tema));
+          }
+        });
+      }
     });
 
-    const { data: liderancas = [] } = useQuery({
-        queryKey: ['liderancas-emergentes'],
-        queryFn: () => base44.entities.LiderancaComunitaria.list()
-    });
+    // Score: citações + (temas críticos * 2)
+    const score = citacoes + (temasCriticos.size * 2);
 
-    const detectarEmergentes = async () => {
-        setAnalisando(true);
-
-        try {
-            const contexto = `
-DETECÇÃO DE LIDERANÇAS EMERGENTES
-
-Análise das últimas ${atividades.length} atividades para identificar novas lideranças comunitárias.
-
-Lideranças Cadastradas: ${liderancas.length}
-Nomes Cadastrados: ${liderancas.map(l => l.nome).join(', ')}
-
-Participantes Mencionados nas Atividades:
-${atividades.flatMap(a => a.participantes || []).slice(0, 200).join(', ')}
-
-Critérios para Identificar Liderança Emergente:
-1. Frequência de menções em atividades recentes
-2. Não estar cadastrada no sistema
-3. Papéis de articulação ou representação mencionados
-4. Presença em múltiplas comunidades ou eventos
-5. Engajamento em questões importantes
-
-TAREFA:
-Identifique até 10 lideranças emergentes que ainda NÃO estão cadastradas.
-Para cada uma, forneça:
-- Nome
-- Comunidade
-- Papel inferido
-- Frequência de menções
-- Potencial de influência (1-10)
-- Justificativa
-`;
-
-            const resultado = await base44.integrations.Core.InvokeLLM({
-                prompt: contexto,
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        liderancas_emergentes: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    nome: { type: "string" },
-                                    comunidade: { type: "string" },
-                                    papel_inferido: { type: "string" },
-                                    frequencia_mencoes: { type: "number" },
-                                    potencial_influencia: { type: "number", minimum: 1, maximum: 10 },
-                                    justificativa: { type: "string" },
-                                    temas_associados: { type: "array", items: { type: "string" } }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            setEmergentes(resultado.liderancas_emergentes || []);
-        } catch (error) {
-            console.error("Erro ao detectar emergentes:", error);
-            alert("Erro ao detectar lideranças: " + error.message);
-        } finally {
-            setAnalisando(false);
-        }
+    return {
+      ...stakeholder,
+      citacoes,
+      temasCriticos: Array.from(temasCriticos),
+      score,
+      emergente: citacoes >= 3 && temasCriticos.size > 0
     };
+  });
 
-    const cadastrarLideranca = async (lideranca) => {
-        try {
-            await base44.entities.LiderancaComunitaria.create({
-                nome: lideranca.nome,
-                comunidade: lideranca.comunidade,
-                papel_na_comunidade: lideranca.papel_inferido,
-                ultima_interacao: new Date().toISOString(),
-                avaliacao_interlocucao: "neutro"
-            });
+  // Filtrar e ordenar
+  const stakeholdersFiltrados = stakeholdersComCitacoes
+    .filter(s => {
+      const matchComunidade = filterComunidade === 'todos' || s.comunidade === filterComunidade;
+      return matchComunidade && s.emergente;
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 20);
 
-            alert(`✓ Liderança "${lideranca.nome}" cadastrada com sucesso!`);
-            setEmergentes(emergentes.filter(e => e.nome !== lideranca.nome));
-        } catch (error) {
-            alert("Erro ao cadastrar: " + error.message);
-        }
-    };
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Flame className="w-5 h-5 text-orange-500" />
+            Lideranças Emergentes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-amber-900">
+              <strong>Critério:</strong> Lideranças emergentes são identificadas com base no <strong>número de citações</strong> nos registros
+              e sua <strong>vinculação a temas críticos</strong> (alta temperatura territorial ou demandas urgentes).
+            </p>
+          </div>
 
-    return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-2">
-                            <Star className="w-5 h-5" />
-                            Detecção de Lideranças Emergentes
-                        </CardTitle>
-                        <Button 
-                            onClick={detectarEmergentes}
-                            disabled={analisando}
-                            style={{ backgroundColor: '#F2B632' }}
-                        >
-                            {analisando ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Detectando...
-                                </>
-                            ) : (
-                                <>
-                                    <Brain className="w-4 h-4 mr-2" />
-                                    Detectar Lideranças
-                                </>
-                            )}
-                        </Button>
+          <div className="mb-4">
+            <Label>Filtrar por Comunidade</Label>
+            <Select value={filterComunidade} onValueChange={setFilterComunidade}>
+              <SelectTrigger className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas</SelectItem>
+                {comunidades.map(c => (
+                  <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {stakeholdersFiltrados.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Users className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+            <h3 className="text-lg font-medium text-slate-900 mb-2">Nenhuma liderança emergente identificada</h3>
+            <p className="text-slate-500">
+              Continue registrando interações para identificar lideranças relevantes
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {stakeholdersFiltrados.map((stakeholder, index) => (
+            <Card key={stakeholder.id} className="hover:shadow-md transition-all">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 ${
+                    index < 3 ? 'bg-gradient-to-br from-orange-500 to-red-500' : 'bg-[#2D6A4F]'
+                  }`}>
+                    {index < 3 ? <Award className="w-6 h-6" /> : stakeholder.nome?.[0]?.toUpperCase()}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-semibold text-slate-900">{stakeholder.nome}</h3>
+                      <Badge className="bg-orange-100 text-orange-700 flex items-center gap-1 flex-shrink-0">
+                        <Flame className="w-3 h-3" />
+                        Score: {stakeholder.score}
+                      </Badge>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    {!emergentes && !analisando && (
-                        <div className="text-center py-8 text-gray-500">
-                            <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                            <p>A IA identificará novas lideranças não cadastradas</p>
-                            <p className="text-sm mt-2">Análise baseada em menções, papéis e frequência</p>
-                        </div>
+
+                    {stakeholder.papel_social && (
+                      <p className="text-sm text-slate-600 mb-2">{stakeholder.papel_social}</p>
                     )}
-                </CardContent>
-            </Card>
 
-            {emergentes && emergentes.length > 0 && (
-                <div className="grid gap-4">
-                    {emergentes.map((lid, idx) => (
-                        <Card key={idx} className="border-l-4 border-amber-500">
-                            <CardHeader>
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <CardTitle className="text-lg">{lid.nome}</CardTitle>
-                                        <p className="text-sm text-gray-500 mt-1">{lid.comunidade}</p>
-                                        <Badge className="mt-2 bg-purple-100 text-purple-800">
-                                            {lid.papel_inferido}
-                                        </Badge>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="text-2xl font-bold text-amber-600">
-                                            {lid.potencial_influencia}/10
-                                        </div>
-                                        <p className="text-xs text-gray-500">Potencial</p>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700">Justificativa</p>
-                                    <p className="text-sm text-gray-600 mt-1">{lid.justificativa}</p>
-                                </div>
+                    <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
+                      <span>{stakeholder.comunidade}</span>
+                      {stakeholder.organizacao && (
+                        <>
+                          <span>•</span>
+                          <span>{stakeholder.organizacao}</span>
+                        </>
+                      )}
+                    </div>
 
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <span className="font-medium">Menções:</span>
-                                    <Badge variant="outline">{lid.frequencia_mencoes}x</Badge>
-                                </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <TrendingUp className="w-4 h-4 text-blue-600" />
+                        <span className="font-medium">{stakeholder.citacoes}</span>
+                        <span className="text-slate-600">citações nos registros</span>
+                      </div>
 
-                                {lid.temas_associados && lid.temas_associados.length > 0 && (
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-700 mb-2">Temas Associados</p>
-                                        <div className="flex flex-wrap gap-1">
-                                            {lid.temas_associados.map((tema, i) => (
-                                                <Badge key={i} variant="secondary" className="text-xs">
-                                                    {tema}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <Button
-                                    size="sm"
-                                    onClick={() => cadastrarLideranca(lid)}
-                                    className="w-full"
-                                    style={{ backgroundColor: '#0B1E33', color: 'white' }}
-                                >
-                                    <Users className="w-4 h-4 mr-2" />
-                                    Cadastrar como Liderança
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    ))}
+                      {stakeholder.temasCriticos.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 text-sm mb-2">
+                            <AlertTriangle className="w-4 h-4 text-red-600" />
+                            <span className="font-medium text-slate-700">Vinculado a temas críticos:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {stakeholder.temasCriticos.slice(0, 5).map((tema, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                                {tema}
+                              </Badge>
+                            ))}
+                            {stakeholder.temasCriticos.length > 5 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{stakeholder.temasCriticos.length - 5}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-            )}
-
-            {emergentes && emergentes.length === 0 && (
-                <Card>
-                    <CardContent className="text-center py-8">
-                        <p className="text-gray-500">Nenhuma liderança emergente identificada</p>
-                        <p className="text-sm text-gray-400 mt-1">Todas as lideranças ativas já estão cadastradas</p>
-                    </CardContent>
-                </Card>
-            )}
+              </CardContent>
+            </Card>
+          ))}
         </div>
-    );
+      )}
+    </div>
+  );
 }
