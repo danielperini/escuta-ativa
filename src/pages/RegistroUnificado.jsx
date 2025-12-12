@@ -620,21 +620,9 @@ Extraia:
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
               Texto Consolidado
-              {arquivosProcessados.length > 0 && (
-                <Badge className="bg-emerald-600">{arquivosProcessados.length} arquivo(s)</Badge>
-              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
-            {arquivosProcessados.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {arquivosProcessados.map((arq, i) => (
-                  <Badge key={i} variant="secondary" className="text-xs">
-                    {arq.tipo}: {arq.nome}
-                  </Badge>
-                ))}
-              </div>
-            )}
 
             <Textarea
               className="min-h-[400px] font-mono text-sm"
