@@ -49,6 +49,7 @@ import { detectarContinuidadeInteligente } from '@/components/analise/DetectorCo
 import { gerarResumoExecutivo, gerarAtaReuniao } from '@/components/analise/GeradorResumoExecutivo';
 import GravadorAudioCompleto from '@/components/registro/GravadorAudioCompleto';
 import { processarRegistroCompleto, alimentarModulos } from '@/components/registro/ProcessadorIALote';
+import TranscricaoNativa from '@/components/registro/TranscricaoNativa';
 
 const tipoOptions = [
   { value: 'reuniao', label: 'Reunião' },
@@ -95,6 +96,7 @@ export default function RegistroUnificado() {
   const [errosProcessamento, setErrosProcessamento] = useState([]);
   const [sugestoesIA, setSugestoesIA] = useState(null);
   const [mostrarGravador, setMostrarGravador] = useState(false);
+  const [transcricaoTempoReal, setTranscricaoTempoReal] = useState(false);
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
@@ -488,12 +490,27 @@ Extraia:
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 max-w-3xl mx-auto pt-4">
                   <button
-                    onClick={() => setMostrarGravador(!mostrarGravador)}
+                    onClick={() => {
+                      setTranscricaoTempoReal(!transcricaoTempoReal);
+                      setEtapaAtual('texto');
+                    }}
+                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all bg-gradient-to-br from-[#40916C]/10 to-[#2D6A4F]/10"
+                  >
+                    <Mic className="w-8 h-8 text-[#40916C] mb-2" />
+                    <span className="text-sm font-medium">Transcrição</span>
+                    <span className="text-xs text-slate-400 mt-1">Tempo Real</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setMostrarGravador(!mostrarGravador);
+                      setEtapaAtual('texto');
+                    }}
                     className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all"
                   >
                     <Mic className="w-8 h-8 text-[#40916C] mb-2" />
                     <span className="text-sm font-medium">Gravar</span>
-                    <span className="text-xs text-slate-400 mt-1">Áudio</span>
+                    <span className="text-xs text-slate-400 mt-1">Arquivo</span>
                   </button>
                   
                   <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
@@ -541,13 +558,49 @@ Extraia:
           </Card>
         )}
 
+        {transcricaoTempoReal && (
+          <Card className="border-2 border-[#40916C] bg-gradient-to-br from-emerald-50 to-green-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-[#2D6A4F]">
+                <Mic className="w-5 h-5 animate-pulse" />
+                Transcrição em Tempo Real
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TranscricaoNativa
+                onTranscricaoFinal={(transcricao) => {
+                  const blocoTranscricao = `\n\n--- Transcrição Tempo Real ---\n${transcricao}\n`;
+                  setTextoConsolidado(prev => prev + blocoTranscricao);
+                  setTranscricaoTempoReal(false);
+                }}
+                onTranscricaoTempoReal={(transcricaoParcial) => {
+                  // Atualizar texto consolidado em tempo real
+                  setTextoConsolidado(prev => {
+                    // Remover transcrição parcial anterior se existir
+                    const textoSemParcial = prev.replace(/\n\n--- Transcrição em Andamento ---\n[\s\S]*?(?=\n\n---|\n\n\[|$)/, '');
+                    return textoSemParcial + `\n\n--- Transcrição em Andamento ---\n${transcricaoParcial}\n`;
+                  });
+                }}
+              />
+              <div className="flex justify-end mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setTranscricaoTempoReal(false)}
+                  size="sm"
+                >
+                  Fechar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {mostrarGravador && (
           <GravadorAudioCompleto
             onTranscricao={(transcricao) => {
               const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
               setTextoConsolidado(prev => prev + blocoTranscricao);
               setMostrarGravador(false);
-              setEtapaAtual('texto');
             }}
             onArquivoProcessado={(arquivo) => {
               setArquivosProcessados(prev => [...prev, arquivo]);
