@@ -88,22 +88,24 @@ export default function GravadorAudioCompleto({ onTranscricao, onArquivoProcessa
         onArquivoProcessado({ url: file_url, tipo: 'audio', nome: file.name });
       }
 
-      // 2. Transcrição via IA com suporte a múltiplos formatos
+      // 2. Transcrição via IA otimizada para áudio comprimido
       const resultado = await base44.integrations.Core.InvokeLLM({
-        prompt: `Você é um sistema de transcrição de áudio profissional.
+        prompt: `Você é um sistema de transcrição de áudio profissional especializado em áudio comprimido.
+
+FONTE: Gravação direta do navegador (formato WebM/Opus)
 
 TAREFA: Transcreva COMPLETAMENTE o áudio fornecido.
 
-FORMATOS ACEITOS: .ogg, .opus, .mp3, .wav, .m4a, .aac, .webm (incluindo áudios do WhatsApp)
-
 INSTRUÇÕES:
 1. Transcreva TODO o conteúdo falado
-2. Preserve pontuação natural
-3. Identifique mudanças de falante se houver
-4. Mantenha estrutura de parágrafos quando apropriado
-5. Corrija erros gramaticais óbvios mantendo o sentido original
+2. Preserve pontuação natural da fala
+3. Se houver múltiplos falantes, indique mudanças [Pessoa 1], [Pessoa 2]
+4. Ignore ruídos de fundo, foque apenas na fala
+5. Mantenha estrutura de parágrafos quando apropriado
+6. Para palavras ininteligíveis, use [inaudível]
+7. Não adicione interpretações, transcreva literalmente
 
-RETORNE: Apenas o texto transcrito, sem comentários adicionais.`,
+RETORNE APENAS: O texto transcrito, sem comentários.`,
         file_urls: [file_url]
       });
 
@@ -172,27 +174,32 @@ RETORNE: Apenas o texto transcrito, sem comentários adicionais.`,
         onArquivoProcessado({ url: file_url, tipo: 'audio', nome: file.name });
       }
 
-      // Transcrição com suporte multi-formato
+      // Transcrição com instruções específicas para áudio do WhatsApp
       const resultado = await base44.integrations.Core.InvokeLLM({
-        prompt: `Você é um sistema de transcrição de áudio profissional.
+        prompt: `Você é um sistema de transcrição de áudio profissional especializado em áudio comprimido.
 
-ARQUIVO: ${file.name} (formato ${extensao})
+ARQUIVO: ${file.name}
+FORMATO: ${extensao}
+ORIGEM POSSÍVEL: WhatsApp, Telegram, gravação direta
+
+IMPORTANTE - ÁUDIO DO WHATSAPP:
+- Formato .ogg/.opus com codec Opus
+- Alta compressão (16-32 kbps)
+- Pode conter ruídos de fundo
+- Qualidade pode ser limitada
 
 TAREFA: Transcreva COMPLETAMENTE o áudio fornecido.
 
-IMPORTANTE: 
-- Este arquivo pode estar em formato .ogg ou .opus (comum em mensagens de WhatsApp)
-- Processe o áudio independente do formato original
-- Áudios do WhatsApp frequentemente têm compressão alta
-
 INSTRUÇÕES:
-1. Transcreva TODO o conteúdo falado, mesmo com ruídos
-2. Preserve pontuação e estrutura natural
-3. Se houver múltiplos falantes, indique as mudanças
-4. Ignore sons de fundo, transcreva apenas a fala
-5. Se o áudio estiver de baixa qualidade, faça o melhor possível
+1. Transcreva TODO o conteúdo falado, mesmo com qualidade baixa
+2. Ignore ruídos, ecos, e sons de fundo - foque na fala
+3. Preserve pontuação e estrutura natural da fala
+4. Se houver múltiplos falantes, indique [Pessoa 1], [Pessoa 2]
+5. Se alguma palavra for ininteligível, use [inaudível]
+6. Faça o melhor possível mesmo com áudio de baixa qualidade
+7. Não adicione interpretações, apenas transcreva literalmente
 
-RETORNE: Apenas o texto transcrito, sem comentários.`,
+RETORNE APENAS: O texto transcrito, sem comentários ou análise.`,
         file_urls: [file_url]
       });
 
@@ -233,21 +240,26 @@ RETORNE: Apenas o texto transcrito, sem comentários.`,
       }
       
       alert(
-        `❌ Não foi possível processar após 3 tentativas.\n\n` +
+        `❌ Erro ao processar áudio após 3 tentativas.\n\n` +
         `📄 Arquivo: ${file.name}\n` +
         `📊 Tamanho: ${(file.size / 1024 / 1024).toFixed(2)} MB\n` +
-        `⚠️ Motivo: ${error.message}\n\n` +
-        `💡 Soluções:\n\n` +
-        `1️⃣ ÁUDIOS DO WHATSAPP:\n` +
-        `   • Encaminhe como DOCUMENTO (não como áudio)\n` +
-        `   • Ou use "Gravar Áudio" no app\n\n` +
-        `2️⃣ CONVERSÃO DE FORMATO:\n` +
-        `   • Use https://cloudconvert.com/ogg-to-mp3\n` +
-        `   • Converta para .mp3 ou .wav\n\n` +
-        `3️⃣ OUTRAS OPÇÕES:\n` +
-        `   • Grave diretamente no app (botão "Gravar Áudio")\n` +
-        `   • Use "Transcrição em Tempo Real" (Chrome/Edge)\n` +
-        `   • Verifique se o arquivo não está corrompido`
+        `⚠️ Erro: ${error.message}\n\n` +
+        `💡 SOLUÇÕES PARA ÁUDIO DO WHATSAPP:\n\n` +
+        `1️⃣ MÉTODO MAIS CONFIÁVEL:\n` +
+        `   • Reproduza o áudio do WhatsApp\n` +
+        `   • Use "Gravar Áudio" no app enquanto toca\n` +
+        `   • Funciona 100% das vezes\n\n` +
+        `2️⃣ CONVERTER FORMATO:\n` +
+        `   • Acesse: https://cloudconvert.com/ogg-to-mp3\n` +
+        `   • Faça upload do áudio .ogg do WhatsApp\n` +
+        `   • Baixe o .mp3 convertido\n` +
+        `   • Envie o .mp3 aqui\n\n` +
+        `3️⃣ TRANSCRIÇÃO EM TEMPO REAL:\n` +
+        `   • Use "Transcrição Tempo Real" (Chrome/Edge)\n` +
+        `   • Reproduza o áudio enquanto transcreve\n` +
+        `   • Não precisa de upload\n\n` +
+        `⚠️ NOTA: Áudios .ogg/.opus do WhatsApp têm compressão alta\n` +
+        `e podem não ser processados corretamente pela IA.`
       );
     } finally {
       setEnviandoArquivo(false);

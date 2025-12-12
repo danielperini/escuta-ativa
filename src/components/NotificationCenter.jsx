@@ -33,6 +33,27 @@ export default function NotificationCenter() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
     });
 
+    const excluirNotificacaoMutation = useMutation({
+        mutationFn: (id) => base44.entities.Notificacao.delete(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
+    });
+
+    // Auto-dismiss após 10 segundos
+    React.useEffect(() => {
+        const naoLidasRecentes = naoLidas.filter(n => {
+            const criacao = new Date(n.created_date);
+            const agora = new Date();
+            const diferenca = (agora - criacao) / 1000;
+            return diferenca >= 10;
+        });
+
+        if (naoLidasRecentes.length > 0) {
+            naoLidasRecentes.forEach(n => {
+                marcarComoLidaMutation.mutate(n.id);
+            });
+        }
+    }, [notificacoes]);
+
     const marcarTodasLidasMutation = useMutation({
         mutationFn: async () => {
             const naoLidas = notificacoes.filter(n => !n.lida);
@@ -124,9 +145,17 @@ export default function NotificationCenter() {
                                                 )}
                                             </div>
                                             <p className="text-xs text-gray-600 mt-1">{notif.mensagem}</p>
-                                            <p className="text-xs text-gray-400 mt-2">
-                                                {format(new Date(notif.created_date), 'dd/MM/yyyy HH:mm')}
-                                            </p>
+                                            <div className="flex items-center justify-between mt-2">
+                                               <p className="text-xs text-gray-400">
+                                                   {format(new Date(notif.created_date), 'dd/MM/yyyy HH:mm')}
+                                               </p>
+                                               {notif.lida && (
+                                                   <Badge variant="secondary" className="text-xs bg-emerald-100 text-emerald-700">
+                                                       <Check className="w-3 h-3 mr-1" />
+                                                       Resolvido
+                                                   </Badge>
+                                               )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
