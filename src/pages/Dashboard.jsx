@@ -9,6 +9,7 @@ import VozComunidade from "@/components/dashboard/VozComunidade";
 import DashboardKPIs from "@/components/dashboard/DashboardKPIs";
 import MonitorDemandasRecorrentes from "@/components/atores/MonitorDemandasRecorrentes";
 import MonitorDevolutivas from "@/components/devolutiva/MonitorDevolutivas";
+import BotaoPanicoAvancado from "@/components/dashboard/BotaoPanicoAvancado";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
@@ -21,12 +22,6 @@ export default function Dashboard() {
     });
 
     const paineisAtivos = user?.configuracoes?.paineis_dashboard || ['kpis', 'demandas_recorrentes', 'devolutivas', 'voz_comunidade'];
-
-    const handlePanico = async () => {
-        if (window.confirm("⚠️ Você está prestes a acionar o BOTÃO DE PÂNICO. Deseja continuar?")) {
-            alert("Alerta de emergência enviado!");
-        }
-    };
 
     const menuItems = [
         { title: "Atividades", icon: MessageSquare, path: "Atividades", description: "Gerencie reuniões, diálogos e demandas", color: "#3b82f6" },
@@ -114,15 +109,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex justify-start mt-8">
-                    <Button
-                        onClick={handlePanico}
-                        variant="outline"
-                        style={{ backgroundColor: '#C0392B' }}
-                        className="hover:opacity-90 text-white border-0 px-8 py-4 rounded-xl shadow-lg"
-                    >
-                        <AlertTriangle className="w-5 h-5 mr-2" />
-                        Botão de Pânico
-                    </Button>
+                    <BotaoPanicoAvancado />
                 </div>
             </div>
         </div>

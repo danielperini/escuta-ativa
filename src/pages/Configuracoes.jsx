@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, User, Palette, LayoutDashboard, Globe, Clock, Bell, Check } from "lucide-react";
+import { Save, User, Palette, LayoutDashboard, Globe, Clock, Bell, Check, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
     Select,
@@ -56,7 +56,11 @@ export default function Configuracoes() {
                     idioma_relatorios: user.configuracoes?.idioma_relatorios || 'pt-BR',
                     prazo_devolutiva_dias: user.configuracoes?.prazo_devolutiva_dias || 15,
                     notificacoes_email: user.configuracoes?.notificacoes_email !== false,
-                    exibir_tutorial: user.configuracoes?.exibir_tutorial !== false
+                    exibir_tutorial: user.configuracoes?.exibir_tutorial !== false,
+                    botao_panico: {
+                        whatsapp_numero: user.configuracoes?.botao_panico?.whatsapp_numero || '',
+                        mensagem_customizada: user.configuracoes?.botao_panico?.mensagem_customizada || ''
+                    }
                 }
             });
         }
@@ -350,6 +354,71 @@ export default function Configuracoes() {
                         </div>
                         <p className="text-xs text-gray-500 mt-2">
                             Após este prazo, devolutivas pendentes serão marcadas como "em atraso"
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Botão de Pânico */}
+            <Card className="border-red-200 bg-red-50">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-red-900">
+                        <AlertTriangle className="w-5 h-5" />
+                        Botão de Pânico
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="bg-white border border-red-200 rounded-lg p-3 text-sm text-red-800">
+                        <p className="font-semibold mb-2">🚨 Como funciona o Botão de Pânico:</p>
+                        <ul className="space-y-1 text-xs list-disc list-inside">
+                            <li>Pressione continuamente por <strong>15 segundos</strong></li>
+                            <li>OU clique <strong>10 vezes consecutivas</strong> em até 3 segundos</li>
+                            <li>Uma mensagem de emergência será enviada via WhatsApp</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <Label>Número de WhatsApp (com código do país)</Label>
+                        <Input
+                            value={formData.configuracoes.botao_panico.whatsapp_numero}
+                            onChange={(e) => setFormData({
+                                ...formData,
+                                configuracoes: {
+                                    ...formData.configuracoes,
+                                    botao_panico: {
+                                        ...formData.configuracoes.botao_panico,
+                                        whatsapp_numero: e.target.value
+                                    }
+                                }
+                            })}
+                            placeholder="Ex: 5511999999999"
+                            className="mt-2"
+                        />
+                        <p className="text-xs text-gray-600 mt-1">
+                            Número do grupo ou contato que receberá o alerta de emergência
+                        </p>
+                    </div>
+
+                    <div>
+                        <Label>Mensagem Customizada (opcional)</Label>
+                        <Textarea
+                            value={formData.configuracoes.botao_panico.mensagem_customizada}
+                            onChange={(e) => setFormData({
+                                ...formData,
+                                configuracoes: {
+                                    ...formData.configuracoes,
+                                    botao_panico: {
+                                        ...formData.configuracoes.botao_panico,
+                                        mensagem_customizada: e.target.value
+                                    }
+                                }
+                            })}
+                            placeholder={`Mensagem padrão:\n"O analista [seu nome] solicita o seu apoio urgente. Por favor, entre em contato."`}
+                            rows={3}
+                            className="mt-2"
+                        />
+                        <p className="text-xs text-gray-600 mt-1">
+                            Deixe vazio para usar a mensagem padrão
                         </p>
                     </div>
                 </CardContent>
