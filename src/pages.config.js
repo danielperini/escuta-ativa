@@ -30,6 +30,8 @@ import GerenciarPermissoes from './pages/GerenciarPermissoes';
 import PreferenciasUsuario from './pages/PreferenciasUsuario';
 import RegistroUnificado from './pages/RegistroUnificado';
 import MapaAtores from './pages/MapaAtores';
+import Stakeholders from './pages/Stakeholders';
+import Casos from './pages/Casos';
 import __Layout from './Layout.jsx';
 
 
@@ -66,6 +68,8 @@ export const PAGES = {
     "PreferenciasUsuario": PreferenciasUsuario,
     "RegistroUnificado": RegistroUnificado,
     "MapaAtores": MapaAtores,
+    "Stakeholders": Stakeholders,
+    "Casos": Casos,
 }
 
 export const pagesConfig = {

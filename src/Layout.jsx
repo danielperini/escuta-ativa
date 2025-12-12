@@ -42,9 +42,9 @@ const navigation = [
   { name: 'Mapa', href: 'Mapa', icon: MapPin },
   { name: 'Materialidade', href: 'Materialidade', icon: Target },
   { name: 'Voz da Comunidade', href: 'VozComunidade', icon: MessageCircle },
-  { name: 'Atores', href: 'Atores', icon: UsersIcon },
-  { name: 'Mapa de Atores', href: 'MapaAtores', icon: Users },
-  { name: 'Compromissos', href: 'Compromissos', icon: CheckSquare },
+  { name: 'Stakeholders', href: 'Stakeholders', icon: UsersIcon },
+  { name: 'Mapa de Stakeholders', href: 'MapaStakeholders', icon: Users },
+  { name: 'Casos', href: 'Casos', icon: CheckSquare },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
 ];
 
