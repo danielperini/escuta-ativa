@@ -374,6 +374,7 @@ export default function Atores() {
               </Card>
             );
           })
+          })
         )}
       </div>
 

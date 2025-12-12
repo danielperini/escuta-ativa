@@ -486,63 +486,7 @@ Seja conciso e objetivo.`;
             )}
           </div>
 
-          {/* OLD CODE - Remove this groupedByDate implementation */}
-          <div className="hidden">
-            {Object.entries(groupedByDate).map(([dateKey, demandas]) => (
-                <div key={dateKey}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-3 h-3 rounded-full bg-[#40916C]" />
-                    <h3 className="font-semibold text-slate-900">
-                      {format(new Date(dateKey), "dd 'de' MMMM, yyyy", { locale: ptBR })}
-                    </h3>
-                    <div className="flex-1 h-px bg-slate-200" />
-                  </div>
-                  <div className="ml-6 space-y-3">
-                    {demandas.map((demanda, idx) => {
-                      const urgencia = urgenciaConfig[demanda.urgencia] || urgenciaConfig.media;
-                      
-                      return (
-                        <Card 
-                          key={idx}
-                          className={cn(
-                            "p-4 border-l-4 cursor-pointer hover:shadow-md transition-all",
-                            demanda.urgencia === 'critica' ? 'border-l-red-500' :
-                            demanda.urgencia === 'alta' ? 'border-l-orange-500' :
-                            demanda.urgencia === 'media' ? 'border-l-amber-500' :
-                            'border-l-slate-300'
-                          )}
-                          onClick={() => window.location.href = createPageUrl(`VerRegistro?id=${demanda.registro.id}`)}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                              <p className="text-slate-900">{demanda.descricao}</p>
-                              <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                <Badge variant="secondary" className={cn("text-xs", urgencia.color)}>
-                                  {urgencia.label}
-                                </Badge>
-                                {demanda.comunidade && (
-                                  <span className="flex items-center gap-1 text-xs text-slate-500">
-                                    <MapPin className="w-3.5 h-3.5" />
-                                    {demanda.comunidade}
-                                  </span>
-                                )}
-                                <span className="flex items-center gap-1 text-xs text-slate-500">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  {formatDistanceToNow(new Date(demanda.data), { addSuffix: true, locale: ptBR })}
-                                </span>
-                              </div>
-                            </div>
-                            <ChevronRight className="w-5 h-5 text-slate-300" />
-                          </div>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          </div>
+        </div>
         </div>
 
         {/* Sidebar */}
