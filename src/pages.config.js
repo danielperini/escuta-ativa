@@ -29,7 +29,6 @@ import Documentos from './pages/Documentos';
 import GerenciarPermissoes from './pages/GerenciarPermissoes';
 import PreferenciasUsuario from './pages/PreferenciasUsuario';
 import RegistroUnificado from './pages/RegistroUnificado';
-import NovoRegistro from './pages/NovoRegistro';
 import __Layout from './Layout.jsx';
 
 
@@ -65,7 +64,6 @@ export const PAGES = {
     "GerenciarPermissoes": GerenciarPermissoes,
     "PreferenciasUsuario": PreferenciasUsuario,
     "RegistroUnificado": RegistroUnificado,
-    "NovoRegistro": NovoRegistro,
 }
 
 export const pagesConfig = {
