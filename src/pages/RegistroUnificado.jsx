@@ -47,6 +47,8 @@ import { analisarRiscosSociais, criarRiscosSociais } from '@/components/analise/
 import { gerarCompromissosInteligentes, criarCompromissos } from '@/components/analise/GeradorCompromissosInteligente';
 import { detectarContinuidadeInteligente } from '@/components/analise/DetectorContinuidadeAvancado';
 import { gerarResumoExecutivo, gerarAtaReuniao } from '@/components/analise/GeradorResumoExecutivo';
+import GravadorAudioCompleto from '@/components/registro/GravadorAudioCompleto';
+import { processarRegistroCompleto, alimentarModulos } from '@/components/registro/ProcessadorIALote';
 
 const tipoOptions = [
   { value: 'reuniao', label: 'Reunião' },
@@ -92,6 +94,7 @@ export default function RegistroUnificado() {
   const [registroTemporario, setRegistroTemporario] = useState(null);
   const [errosProcessamento, setErrosProcessamento] = useState([]);
   const [sugestoesIA, setSugestoesIA] = useState(null);
+  const [mostrarGravador, setMostrarGravador] = useState(false);
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
@@ -192,6 +195,63 @@ IMPORTANTE:
     setAnalisando(true);
 
     try {
+      // USAR PROCESSAMENTO EM LOTE ÚNICO
+      const analiseCompleta = await processarRegistroCompleto(textoConsolidado, formData.comunidade);
+      
+      // Popular formData com análise completa
+      const demandasProcessadas = (analiseCompleta.demandas || []).map(d => ({
+        descricao: d.descricao,
+        urgencia: d.urgencia || 'media',
+        status: 'pendente',
+        requer_devolutiva: d.requer_devolutiva !== false,
+        prazo_devolutiva: d.prazo_sugerido || calcularPrazoDevolutiva(d.urgencia),
+        devolutiva_realizada: false
+      }));
+
+      const compromissosProcessados = (analiseCompleta.compromissos || []).map(c => ({
+        descricao: c.descricao,
+        responsavel: c.responsavel || 'A definir',
+        status: 'pendente',
+        prioridade: c.prioridade || 'media',
+        prazo: c.prazo || calcularPrazoDevolutiva('media')
+      }));
+
+      setFormData(prev => ({
+        ...prev,
+        titulo: analiseCompleta.identificacao?.titulo || prev.titulo,
+        tipo: analiseCompleta.identificacao?.tipo || prev.tipo,
+        descricao: analiseCompleta.identificacao?.resumo || textoConsolidado.substring(0, 500),
+        transcricao: textoConsolidado,
+        participantes: analiseCompleta.analise?.participantes || [],
+        comunidade: analiseCompleta.identificacao?.comunidade || prev.comunidade,
+        local: analiseCompleta.identificacao?.local || prev.local,
+        temas_identificados: analiseCompleta.analise?.temas || [],
+        sentimento: analiseCompleta.analise?.sentimento || '',
+        temperatura_territorio: analiseCompleta.analise?.temperatura || '',
+        demandas: demandasProcessadas,
+        compromissos: compromissosProcessados,
+        proximos_passos: analiseCompleta.proximos_passos || [],
+        resumo_automatico: analiseCompleta.identificacao?.resumo || '',
+        localizacao: analiseCompleta.localizacao || null,
+        auditoria: {
+          ...prev.auditoria,
+          analise_lote_unico: analiseCompleta
+        }
+      }));
+
+      setSugestoesIA({
+        analise_basica: analiseCompleta,
+        riscos: { riscos_identificados: analiseCompleta.riscos || [], temperatura_geral: analiseCompleta.analise?.temperatura },
+        atores: analiseCompleta.atores,
+        materialidade: analiseCompleta.materialidade,
+        agenda_futura: analiseCompleta.agenda_futura
+      });
+
+      setEtapaAtual('formulario');
+      setSecaoExpandida('basico');
+      return;
+
+      /* CÓDIGO ANTIGO (REDUNDANTE) - Remover
       const analise = await base44.integrations.Core.InvokeLLM({
         prompt: `Analise APENAS este texto consolidado de interação comunitária e extraia dados estruturados:
 
@@ -278,6 +338,7 @@ Extraia:
 
       setEtapaAtual('formulario');
       setSecaoExpandida('basico');
+      */
     } catch (error) {
       alert('Erro ao analisar texto: ' + error.message);
     } finally {
@@ -319,6 +380,13 @@ Extraia:
 
     try {
       const registroCriado = await base44.entities.Registro.create(dadosFinais);
+      
+      // ALIMENTAR TODOS OS MÓDULOS EM PARALELO
+      const analiseCompleta = formData.auditoria?.analise_lote_unico;
+      
+      if (analiseCompleta) {
+        await alimentarModulos(registroCriado.id, analiseCompleta);
+      }
       
       // Criar riscos e compromissos da análise avançada
       const analiseAvancada = formData.auditoria?.analise_avancada;
@@ -419,10 +487,20 @@ Extraia:
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 max-w-3xl mx-auto pt-4">
-                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                  <button
+                    onClick={() => setMostrarGravador(!mostrarGravador)}
+                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all"
+                  >
                     <Mic className="w-8 h-8 text-[#40916C] mb-2" />
+                    <span className="text-sm font-medium">Gravar</span>
+                    <span className="text-xs text-slate-400 mt-1">Áudio</span>
+                  </button>
+                  
+                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                    <Upload className="w-8 h-8 text-[#40916C] mb-2" />
                     <span className="text-sm font-medium">Áudio</span>
-                    <input type="file" accept="audio/*" className="hidden" onChange={(e) => handleFileUpload(e, 'audio')} disabled={processando} />
+                    <span className="text-xs text-slate-400 mt-1">.ogg .mp3</span>
+                    <input type="file" accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a" className="hidden" onChange={(e) => handleFileUpload(e, 'audio')} disabled={processando} />
                   </label>
                   
                   <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
@@ -461,6 +539,24 @@ Extraia:
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {mostrarGravador && (
+          <GravadorAudioCompleto
+            onTranscricao={(transcricao) => {
+              const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
+              setTextoConsolidado(prev => prev + blocoTranscricao);
+              setMostrarGravador(false);
+              setEtapaAtual('texto');
+            }}
+            onArquivoProcessado={(arquivo) => {
+              setArquivosProcessados(prev => [...prev, arquivo]);
+              setFormData(prev => ({
+                ...prev,
+                arquivos: [...prev.arquivos, arquivo]
+              }));
+            }}
+          />
         )}
 
         {/* CAIXA DE TEXTO CONSOLIDADA */}

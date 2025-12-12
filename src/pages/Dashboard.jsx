@@ -86,7 +86,7 @@ export default function Dashboard() {
                             style={{ backgroundColor: '#F2B632' }}
                         >
                             <Plus className="w-8 h-8 mr-3" />
-                            Novo Registro
+                            Registre Escuta
                         </Button>
                     </div>
 
