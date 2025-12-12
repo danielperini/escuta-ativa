@@ -14,19 +14,13 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1B4332] via-[#2D6A4F] to-[#40916C] flex items-center justify-center p-4">
       <div className="max-w-2xl w-full text-center space-y-8">
-        {/* Logo/Icon */}
+        {/* Logo */}
         <div className="flex justify-center">
-          <div className="relative w-24 h-24">
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#52B788] to-[#2D6A4F] flex items-center justify-center shadow-2xl">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 4V20M8 7V17M16 7V17M4 10V14M20 10V14" 
-                      stroke="white" 
-                      strokeWidth="2.5" 
-                      strokeLinecap="round"/>
-              </svg>
-            </div>
-            <div className="absolute inset-0 rounded-2xl bg-[#52B788] opacity-30 animate-ping" style={{ animationDuration: '2s' }} />
-          </div>
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/0e1bf5b7b_ChatGPTImage11dedezde202515_14_03.png"
+            alt="Escuta Ativa"
+            className="h-32 object-contain drop-shadow-2xl"
+          />
         </div>
 
         {/* Title */}
