@@ -318,13 +318,16 @@ export default function Materialidade() {
                     key={tema.id}
                     className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
                     style={{ left: `${x}%`, top: `${y}%` }}
-                    onClick={() => handleEdit(tema)}
-                  >
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(tema);
+                    }}
+                    >
                     <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-transform group-hover:scale-125",
-                      categoriaColors[tema.categoria]?.split(' ')[0] || 'bg-slate-100'
+                     "w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-transform group-hover:scale-125",
+                     categoriaColors[tema.categoria]?.split(' ')[0] || 'bg-slate-100'
                     )}>
-                      <TrendIcon className={cn("w-4 h-4", tendenciaColor[tema.tendencia])} />
+                     <TrendIcon className={cn("w-4 h-4", tendenciaColor[tema.tendencia])} />
                     </div>
                     <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white px-2 py-1 rounded shadow-lg text-xs whitespace-nowrap z-10">
                       {tema.nome}
