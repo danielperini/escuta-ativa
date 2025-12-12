@@ -202,7 +202,17 @@ export default function Agenda() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {items.map(agenda => {
-                  const isPast = isBefore(new Date(agenda.data), startOfDay(new Date()));
+                  if (!agenda.data) return null;
+                  
+                  let dataAgenda;
+                  try {
+                    dataAgenda = new Date(agenda.data);
+                    if (isNaN(dataAgenda.getTime())) return null;
+                  } catch {
+                    return null;
+                  }
+                  
+                  const isPast = isBefore(dataAgenda, startOfDay(new Date()));
                   
                   return (
                     <Card 
@@ -244,7 +254,7 @@ export default function Agenda() {
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 text-sm text-slate-600">
                             <Calendar className="w-4 h-4" />
-                            {format(new Date(agenda.data), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                            {format(dataAgenda, "dd 'de' MMMM, yyyy", { locale: ptBR })}
                           </div>
                           {agenda.comunidade && (
                             <div className="flex items-center gap-2 text-sm text-slate-600">

@@ -47,27 +47,33 @@ export default function MonitorDevolutivas() {
             // Analisar demandas
             registro.demandas?.forEach((demanda, index) => {
                 if (!demanda.devolutiva_realizada && demanda.requer_devolutiva && demanda.prazo_devolutiva) {
-                    const prazo = new Date(demanda.prazo_devolutiva);
-                    const diasRestantes = Math.ceil((prazo - hoje) / (1000 * 60 * 60 * 24));
-                    
-                    if (diasRestantes < 0) {
-                        pendencias.atrasadas.push({
-                            tipo: 'demanda',
-                            registro,
-                            demanda,
-                            demandaIndex: index,
-                            diasAtraso: Math.abs(diasRestantes),
-                            prazo: demanda.prazo_devolutiva
-                        });
-                    } else if (diasRestantes <= 3) {
-                        pendencias.proximasVencer.push({
-                            tipo: 'demanda',
-                            registro,
-                            demanda,
-                            demandaIndex: index,
-                            diasRestantes,
-                            prazo: demanda.prazo_devolutiva
-                        });
+                    try {
+                        const prazo = new Date(demanda.prazo_devolutiva);
+                        if (isNaN(prazo.getTime())) return;
+                        
+                        const diasRestantes = Math.ceil((prazo - hoje) / (1000 * 60 * 60 * 24));
+                        
+                        if (diasRestantes < 0) {
+                            pendencias.atrasadas.push({
+                                tipo: 'demanda',
+                                registro,
+                                demanda,
+                                demandaIndex: index,
+                                diasAtraso: Math.abs(diasRestantes),
+                                prazo: demanda.prazo_devolutiva
+                            });
+                        } else if (diasRestantes <= 3) {
+                            pendencias.proximasVencer.push({
+                                tipo: 'demanda',
+                                registro,
+                                demanda,
+                                demandaIndex: index,
+                                diasRestantes,
+                                prazo: demanda.prazo_devolutiva
+                            });
+                        }
+                    } catch (error) {
+                        console.warn('Data inválida em demanda:', demanda.prazo_devolutiva);
                     }
                 }
             });
@@ -75,18 +81,24 @@ export default function MonitorDevolutivas() {
             // Analisar compromissos
             registro.compromissos?.forEach((compromisso, index) => {
                 if (compromisso.status === 'pendente' && compromisso.prazo) {
-                    const prazo = new Date(compromisso.prazo);
-                    const diasRestantes = Math.ceil((prazo - hoje) / (1000 * 60 * 60 * 24));
-                    
-                    if (diasRestantes < 0) {
-                        pendencias.compromissosAtrasados.push({
-                            tipo: 'compromisso',
-                            registro,
-                            compromisso,
-                            compromissoIndex: index,
-                            diasAtraso: Math.abs(diasRestantes),
-                            prazo: compromisso.prazo
-                        });
+                    try {
+                        const prazo = new Date(compromisso.prazo);
+                        if (isNaN(prazo.getTime())) return;
+                        
+                        const diasRestantes = Math.ceil((prazo - hoje) / (1000 * 60 * 60 * 24));
+                        
+                        if (diasRestantes < 0) {
+                            pendencias.compromissosAtrasados.push({
+                                tipo: 'compromisso',
+                                registro,
+                                compromisso,
+                                compromissoIndex: index,
+                                diasAtraso: Math.abs(diasRestantes),
+                                prazo: compromisso.prazo
+                            });
+                        }
+                    } catch (error) {
+                        console.warn('Data inválida em compromisso:', compromisso.prazo);
                     }
                 }
             });

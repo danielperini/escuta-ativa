@@ -17,25 +17,30 @@ export default function MonitorAgendaAtraso() {
                 const statusVerificar = ["confirmada", "prevista", "solicitada", "acordada"];
                 if (!statusVerificar.includes(agenda.status)) continue;
                 if (agenda.alerta_atraso_enviado) continue;
+                if (!agenda.data) continue;
 
-                const dataAgenda = new Date(agenda.data);
-                const diferencaHoras = (agora - dataAgenda) / (1000 * 60 * 60);
-
-                // Verificar se passaram 72 horas
-                if (diferencaHoras >= 72) {
-                    // Verificar se há evidências de realização
-                    const temEvidencias = agenda.evidencias_realizacao && agenda.evidencias_realizacao.length > 0;
+                try {
+                    const dataAgenda = new Date(agenda.data);
+                    if (isNaN(dataAgenda.getTime())) continue;
                     
-                    if (!temEvidencias) {
-                        // Marcar como Em Atraso
-                        await base44.entities.Agenda.update(agenda.id, {
-                            status: "em_atraso",
-                            alerta_atraso_enviado: true
-                        });
+                    const diferencaHoras = (agora - dataAgenda) / (1000 * 60 * 60);
+
+                    // Verificar se passaram 72 horas
+                    if (diferencaHoras >= 72) {
+                        // Verificar se há evidências de realização
+                        const temEvidencias = agenda.evidencias_realizacao && agenda.evidencias_realizacao.length > 0;
+                        
+                        if (!temEvidencias) {
+                            // Marcar como Em Atraso
+                            await base44.entities.Agenda.update(agenda.id, {
+                                status: "em_atraso",
+                                alerta_atraso_enviado: true
+                            });
+                        }
                     }
+                } catch (error) {
+                    console.warn('Data inválida na agenda:', agenda.id, agenda.data);
                 }
-
-
             }
         };
 
