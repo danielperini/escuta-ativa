@@ -32,6 +32,7 @@ import RegistroUnificado from './pages/RegistroUnificado';
 import MapaAtores from './pages/MapaAtores';
 import Stakeholders from './pages/Stakeholders';
 import Casos from './pages/Casos';
+import MapaStakeholders from './pages/MapaStakeholders';
 import __Layout from './Layout.jsx';
 
 
@@ -70,6 +71,7 @@ export const PAGES = {
     "MapaAtores": MapaAtores,
     "Stakeholders": Stakeholders,
     "Casos": Casos,
+    "MapaStakeholders": MapaStakeholders,
 }
 
 export const pagesConfig = {

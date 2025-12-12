@@ -39,6 +39,8 @@ import {
 import { cn } from "@/lib/utils";
 import DetectorContinuidade from '@/components/continuidade/DetectorContinuidade';
 import DetectorAtores from '@/components/atores/DetectorAtores';
+import DetectorStakeholders from '@/components/stakeholders/DetectorStakeholders';
+import DetectorCasosAutomatico from '@/components/casos/DetectorCasosAutomatico';
 import ProcessadorMidia from '@/components/registro/ProcessadorMidia';
 import AnalisadorTempoReal from '@/components/registro/AnalisadorTempoReal';
 import { criarAgendasAutomaticas, atualizarHistoricoAtor, registrarAuditoria } from '@/components/registro/AutomacaoAgenda';
@@ -358,7 +360,7 @@ Extraia:
     setMostrarDetectores(true);
   };
 
-  const finalizarComVinculacoes = async (atoresVinculados = [], continuidades = []) => {
+  const finalizarComVinculacoes = async (stakeholdersVinculados = [], continuidades = [], casosVinculados = []) => {
     // Obter coordenadas se tiver local mas não tiver localização
     let localizacao = formData.localizacao;
     if (formData.local && !localizacao?.lat) {
@@ -376,8 +378,10 @@ Extraia:
       ...formData,
       localizacao,
       status: 'finalizado',
-      liderancas_vinculadas: atoresVinculados,
-      registros_continuidade: continuidades
+      stakeholders_vinculados: stakeholdersVinculados,
+      liderancas_vinculadas: stakeholdersVinculados,
+      registros_continuidade: continuidades,
+      casos_vinculados: casosVinculados
     };
 
     try {
@@ -396,7 +400,7 @@ Extraia:
       const automacoes = [
         criarAgendasAutomaticas(registroCriado),
         sincronizarAposRegistro(registroCriado),
-        ...atoresVinculados.map(atorId => atualizarHistoricoAtor(atorId, registroCriado.id)),
+        ...stakeholdersVinculados.map(stakeholderId => atualizarHistoricoAtor(stakeholderId, registroCriado.id)),
         registrarAuditoria('Registro', registroCriado.id, 'criacao_completa', null, dadosFinais, 'criacao')
       ];
 
@@ -899,14 +903,39 @@ Ou digite/cole o conteúdo diretamente..."
             <CardHeader className="bg-purple-50">
               <CardTitle className="flex items-center gap-2 text-purple-900">
                 <Users className="w-6 h-6" />
-                Vincular Atores ao Registro
+                Vincular Stakeholders
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
-              <DetectorAtores
-                registro={registroTemporario}
-                onAtoresVinculados={(atores) => {
-                  setFormData(prev => ({ ...prev, liderancas_vinculadas: atores }));
+              <DetectorStakeholders
+                textoConsolidado={textoConsolidado}
+                comunidade={registroTemporario.comunidade}
+                municipio={registroTemporario.localizacao?.municipio || formData.localizacao?.municipio}
+                registroId={null}
+                onStakeholdersVinculados={(stakeholders) => {
+                  setFormData(prev => ({ ...prev, stakeholders_vinculados: stakeholders }));
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-blue-600">
+            <CardHeader className="bg-blue-50">
+              <CardTitle className="flex items-center gap-2 text-blue-900">
+                <Target className="w-6 h-6" />
+                Abertura Automática de Casos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <DetectorCasosAutomatico
+                textoConsolidado={textoConsolidado}
+                demandasExtraidas={registroTemporario.demandas}
+                comunidade={registroTemporario.comunidade}
+                municipio={registroTemporario.localizacao?.municipio || formData.localizacao?.municipio}
+                stakeholdersVinculados={formData.stakeholders_vinculados}
+                registroId={null}
+                onCasosCriados={(casos) => {
+                  setFormData(prev => ({ ...prev, casos_vinculados: casos }));
                 }}
               />
             </CardContent>
@@ -914,7 +943,11 @@ Ou digite/cole o conteúdo diretamente..."
 
           <div className="flex justify-center">
             <Button 
-              onClick={() => finalizarComVinculacoes(formData.liderancas_vinculadas || [], formData.registros_continuidade || [])}
+              onClick={() => finalizarComVinculacoes(
+                formData.stakeholders_vinculados || [], 
+                formData.registros_continuidade || [],
+                formData.casos_vinculados || []
+              )}
               size="lg"
               className="bg-[#2D6A4F] hover:bg-[#1B4332]"
             >
