@@ -169,13 +169,21 @@ export default function Atores() {
           <h2 className="text-2xl font-bold text-slate-900">Mapa de Atores</h2>
           <p className="text-slate-500 mt-1">{atores.length} atores mapeados</p>
         </div>
-        <Button 
-          className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
-          onClick={() => setShowDialog(true)}
-        >
-          <Plus className="w-4 h-4" />
-          Novo Ator
-        </Button>
+        <div className="flex gap-2">
+          <Link to={createPageUrl('MapaAtores')}>
+            <Button variant="outline" className="gap-2">
+              <Network className="w-4 h-4" />
+              Mapa de Rede
+            </Button>
+          </Link>
+          <Button 
+            className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
+            onClick={() => setShowDialog(true)}
+          >
+            <Plus className="w-4 h-4" />
+            Novo Ator
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
