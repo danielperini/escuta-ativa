@@ -460,21 +460,34 @@ Extraia:
   );
 
   if (etapaAtual === 'upload' || etapaAtual === 'texto') {
-    return (
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <div className="flex items-center gap-4">
-          <Link to={createPageUrl('Dashboard')}>
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Novo Registro</h2>
-            <p className="text-slate-500">
-              {etapaAtual === 'upload' ? 'Envie arquivos ou digite o texto' : 'Revise o texto antes de analisar'}
-            </p>
+      return (
+        <div className="space-y-6 max-w-4xl mx-auto">
+          <div className="flex items-center gap-4">
+            <Link to={createPageUrl('Dashboard')}>
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-slate-900">Novo Registro</h2>
+              <p className="text-slate-500">
+                {etapaAtual === 'upload' ? 'Envie arquivos ou digite o texto' : 'Revise o texto antes de analisar'}
+              </p>
+            </div>
+            {etapaAtual === 'upload' && (
+              <Button
+                onClick={() => {
+                  setMostrarGravador(true);
+                  setEtapaAtual('texto');
+                }}
+                size="lg"
+                className="bg-red-600 hover:bg-red-700 text-white shadow-xl"
+              >
+                <Mic className="w-5 h-5 mr-2 animate-pulse" />
+                Gravar e Analisar Tudo
+              </Button>
+            )}
           </div>
-        </div>
 
         {etapaAtual === 'upload' && (
           <Card className="border-2 border-dashed border-[#40916C]/30">
@@ -599,10 +612,71 @@ Extraia:
 
         {mostrarGravador && (
           <GravadorAudioCompleto
-            onTranscricao={(transcricao) => {
+            onTranscricao={async (transcricao) => {
               const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
-              setTextoConsolidado(prev => prev + blocoTranscricao);
+              setTextoConsolidado(blocoTranscricao);
               setMostrarGravador(false);
+
+              // Processar automaticamente e alimentar todos os módulos
+              setAnalisando(true);
+              try {
+                const analiseCompleta = await processarRegistroCompleto(transcricao, formData.comunidade);
+
+                const demandasProcessadas = (analiseCompleta.demandas || []).map(d => ({
+                  descricao: d.descricao,
+                  urgencia: d.urgencia || 'media',
+                  status: 'pendente',
+                  requer_devolutiva: d.requer_devolutiva !== false,
+                  prazo_devolutiva: d.prazo_sugerido || calcularPrazoDevolutiva(d.urgencia),
+                  devolutiva_realizada: false
+                }));
+
+                const compromissosProcessados = (analiseCompleta.compromissos || []).map(c => ({
+                  descricao: c.descricao,
+                  responsavel: c.responsavel || 'A definir',
+                  status: 'pendente',
+                  prioridade: c.prioridade || 'media',
+                  prazo: c.prazo || calcularPrazoDevolutiva('media')
+                }));
+
+                setFormData(prev => ({
+                  ...prev,
+                  titulo: analiseCompleta.identificacao?.titulo || 'Registro via Áudio',
+                  tipo: analiseCompleta.identificacao?.tipo || prev.tipo,
+                  descricao: analiseCompleta.identificacao?.resumo || transcricao.substring(0, 500),
+                  transcricao: transcricao,
+                  participantes: analiseCompleta.analise?.participantes || [],
+                  comunidade: analiseCompleta.identificacao?.comunidade || prev.comunidade,
+                  local: analiseCompleta.identificacao?.local || prev.local,
+                  temas_identificados: analiseCompleta.analise?.temas || [],
+                  sentimento: analiseCompleta.analise?.sentimento || '',
+                  temperatura_territorio: analiseCompleta.analise?.temperatura || '',
+                  demandas: demandasProcessadas,
+                  compromissos: compromissosProcessados,
+                  proximos_passos: analiseCompleta.proximos_passos || [],
+                  resumo_automatico: analiseCompleta.identificacao?.resumo || '',
+                  localizacao: analiseCompleta.localizacao || null,
+                  auditoria: {
+                    ...prev.auditoria,
+                    analise_lote_unico: analiseCompleta
+                  }
+                }));
+
+                setSugestoesIA({
+                  analise_basica: analiseCompleta,
+                  riscos: { riscos_identificados: analiseCompleta.riscos || [], temperatura_geral: analiseCompleta.analise?.temperatura },
+                  atores: analiseCompleta.atores,
+                  materialidade: analiseCompleta.materialidade,
+                  agenda_futura: analiseCompleta.agenda_futura
+                });
+
+                setEtapaAtual('formulario');
+                setSecaoExpandida('basico');
+              } catch (error) {
+                alert('Erro ao processar gravação: ' + error.message);
+              } finally {
+                setAnalisando(false);
+              }
             }}
             onArquivoProcessado={(arquivo) => {
               setArquivosProcessados(prev => [...prev, arquivo]);
