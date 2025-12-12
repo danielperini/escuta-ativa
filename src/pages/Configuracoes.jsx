@@ -38,7 +38,11 @@ export default function Configuracoes() {
             idioma_relatorios: 'pt-BR',
             prazo_devolutiva_dias: 15,
             notificacoes_email: true,
-            exibir_tutorial: true
+            exibir_tutorial: true,
+            botao_panico: {
+                whatsapp_numero: '',
+                mensagem_customizada: ''
+            }
         }
     });
 
