@@ -15,32 +15,64 @@ export default function GrafoRedeAtores({ atores, conexoes, onNodeClick }) {
   useEffect(() => {
     if (!atores || atores.length === 0) return;
 
-    // Criar nós
-    const nodesData = atores.map((ator, i) => ({
-      id: ator.id,
-      label: ator.nome,
-      tipo: ator.tipo,
-      influencia: ator.nivel_influencia || 'medio',
-      x: Math.random() * 800,
-      y: Math.random() * 600,
-      vx: 0,
-      vy: 0,
-      radius: getNodeRadius(ator)
-    }));
+    const canvas = canvasRef.current;
+    const width = canvas?.offsetWidth || 1200;
+    const height = canvas?.offsetHeight || 800;
 
-    // Criar links
+    // Criar nós com posicionamento circular inicial
+    const nodesData = atores.map((ator, i) => {
+      const angle = (i / atores.length) * 2 * Math.PI;
+      const radius = Math.min(width, height) * 0.35;
+      return {
+        id: ator.id,
+        label: ator.nome,
+        tipo: ator.tipo,
+        subtipo: ator.subtipo,
+        influencia: ator.nivel_influencia || 'medio',
+        comunidade: ator.comunidade,
+        x: width / 2 + Math.cos(angle) * radius,
+        y: height / 2 + Math.sin(angle) * radius,
+        vx: 0,
+        vy: 0,
+        radius: getNodeRadius(ator),
+        ator: ator
+      };
+    });
+
+    // Criar links baseados em registros compartilhados
     const linksData = [];
-    conexoes?.forEach(conn => {
-      const sourceNode = nodesData.find(n => n.id === conn.ator1_id);
-      const targetNode = nodesData.find(n => n.id === conn.ator2_id);
-      if (sourceNode && targetNode) {
-        linksData.push({
-          source: sourceNode,
-          target: targetNode,
-          strength: conn.forca_conexao || 0.5,
-          tipo: conn.tipo_relacao
-        });
-      }
+    const conexoesMap = new Map();
+
+    // Detectar conexões através de registros
+    atores.forEach((ator1, i) => {
+      atores.forEach((ator2, j) => {
+        if (i >= j) return;
+        
+        const registrosComum = (ator1.registros_vinculados || []).filter(r => 
+          (ator2.registros_vinculados || []).includes(r)
+        );
+        
+        const comunidadeComum = ator1.comunidade === ator2.comunidade;
+        const casosComum = (ator1.casos_vinculados || []).filter(c =>
+          (ator2.casos_vinculados || []).includes(c)
+        );
+
+        if (registrosComum.length > 0 || casosComum.length > 0) {
+          const strength = Math.min(1, (registrosComum.length + casosComum.length * 2) / 10);
+          const sourceNode = nodesData.find(n => n.id === ator1.id);
+          const targetNode = nodesData.find(n => n.id === ator2.id);
+          
+          if (sourceNode && targetNode) {
+            linksData.push({
+              source: sourceNode,
+              target: targetNode,
+              strength: strength,
+              tipo: casosComum.length > 0 ? 'caso' : comunidadeComum ? 'comunidade' : 'registro',
+              count: registrosComum.length + casosComum.length
+            });
+          }
+        }
+      });
     });
 
     setNodes(nodesData);
@@ -56,7 +88,7 @@ export default function GrafoRedeAtores({ atores, conexoes, onNodeClick }) {
     canvas.height = canvas.offsetHeight;
 
     const simulate = () => {
-      // Força de atração para centro
+      // Força de atração suave para centro
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
 
@@ -64,50 +96,61 @@ export default function GrafoRedeAtores({ atores, conexoes, onNodeClick }) {
         const dx = centerX - node.x;
         const dy = centerY - node.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        node.vx += (dx / distance) * 0.01;
-        node.vy += (dy / distance) * 0.01;
+        if (distance > 0) {
+          node.vx += (dx / distance) * 0.005;
+          node.vy += (dy / distance) * 0.005;
+        }
       });
 
-      // Força de repulsão entre nós
+      // Força de repulsão forte entre nós (mais espaçamento)
+      const minDistance = 180;
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const dx = nodes[j].x - nodes[i].x;
           const dy = nodes[j].y - nodes[i].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           
-          if (distance < 100) {
-            const force = (100 - distance) / distance;
-            nodes[i].vx -= (dx / distance) * force * 0.5;
-            nodes[i].vy -= (dy / distance) * force * 0.5;
-            nodes[j].vx += (dx / distance) * force * 0.5;
-            nodes[j].vy += (dy / distance) * force * 0.5;
+          if (distance < minDistance) {
+            const force = ((minDistance - distance) / distance) * 0.8;
+            const fx = (dx / distance) * force;
+            const fy = (dy / distance) * force;
+            nodes[i].vx -= fx;
+            nodes[i].vy -= fy;
+            nodes[j].vx += fx;
+            nodes[j].vy += fy;
           }
         }
       }
 
-      // Força de atração dos links
+      // Força de atração dos links (mais suave)
       links.forEach(link => {
         const dx = link.target.x - link.source.x;
         const dy = link.target.y - link.source.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const force = (distance - 150) * link.strength * 0.01;
+        const targetDistance = 220;
+        const force = (distance - targetDistance) * link.strength * 0.015;
         
-        link.source.vx += (dx / distance) * force;
-        link.source.vy += (dy / distance) * force;
-        link.target.vx -= (dx / distance) * force;
-        link.target.vy -= (dy / distance) * force;
+        if (distance > 0) {
+          const fx = (dx / distance) * force;
+          const fy = (dy / distance) * force;
+          link.source.vx += fx;
+          link.source.vy += fy;
+          link.target.vx -= fx;
+          link.target.vy -= fy;
+        }
       });
 
       // Atualizar posições
       nodes.forEach(node => {
         node.x += node.vx;
         node.y += node.vy;
-        node.vx *= 0.9; // Damping
-        node.vy *= 0.9;
+        node.vx *= 0.85; // Damping suave
+        node.vy *= 0.85;
 
-        // Manter dentro dos limites
-        node.x = Math.max(node.radius, Math.min(canvas.width - node.radius, node.x));
-        node.y = Math.max(node.radius, Math.min(canvas.height - node.radius, node.y));
+        // Manter dentro dos limites com margem
+        const margin = 100;
+        node.x = Math.max(margin, Math.min(canvas.width - margin, node.x));
+        node.y = Math.max(margin, Math.min(canvas.height - margin, node.y));
       });
 
       // Renderizar
@@ -119,27 +162,60 @@ export default function GrafoRedeAtores({ atores, conexoes, onNodeClick }) {
         ctx.moveTo(link.source.x * zoom, link.source.y * zoom);
         ctx.lineTo(link.target.x * zoom, link.target.y * zoom);
         ctx.strokeStyle = getConnectionColor(link.tipo);
-        ctx.lineWidth = link.strength * 3;
-        ctx.globalAlpha = 0.3;
+        ctx.lineWidth = Math.max(1, link.strength * 4) * zoom;
+        ctx.globalAlpha = 0.4 + (link.strength * 0.3);
         ctx.stroke();
         ctx.globalAlpha = 1;
       });
 
       // Desenhar nós
       nodes.forEach(node => {
+        // Círculo principal
         ctx.beginPath();
         ctx.arc(node.x * zoom, node.y * zoom, node.radius * zoom, 0, Math.PI * 2);
-        ctx.fillStyle = getNodeColor(node.tipo);
+        ctx.fillStyle = getNodeColor(node.subtipo || node.tipo);
         ctx.fill();
         ctx.strokeStyle = node.id === selectedNode?.id ? '#2D6A4F' : '#fff';
-        ctx.lineWidth = node.id === selectedNode?.id ? 4 : 2;
+        ctx.lineWidth = (node.id === selectedNode?.id ? 4 : 3) * zoom;
         ctx.stroke();
 
-        // Label
-        ctx.fillStyle = '#1e293b';
-        ctx.font = `${12 * zoom}px sans-serif`;
+        // Ícone
+        ctx.fillStyle = '#fff';
+        ctx.font = `${18 * zoom}px sans-serif`;
         ctx.textAlign = 'center';
-        ctx.fillText(node.label, node.x * zoom, (node.y + node.radius + 15) * zoom);
+        ctx.textBaseline = 'middle';
+        ctx.fillText(node.tipo === 'pessoa' ? '👤' : '🏢', node.x * zoom, node.y * zoom);
+
+        // Label com fundo
+        const labelY = (node.y + node.radius + 20) * zoom;
+        ctx.font = `bold ${13 * zoom}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        
+        // Fundo do label
+        const textWidth = ctx.measureText(node.label).width;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.fillRect(
+          (node.x * zoom) - (textWidth / 2) - 6,
+          labelY - 3,
+          textWidth + 12,
+          16 * zoom + 6
+        );
+        
+        // Texto do label
+        ctx.fillStyle = '#1e293b';
+        ctx.fillText(node.label, node.x * zoom, labelY);
+        
+        // Subtipo
+        if (node.subtipo) {
+          ctx.font = `${10 * zoom}px sans-serif`;
+          ctx.fillStyle = '#64748b';
+          ctx.fillText(
+            node.subtipo.charAt(0).toUpperCase() + node.subtipo.slice(1),
+            node.x * zoom,
+            labelY + (16 * zoom)
+          );
+        }
       });
 
       animationRef.current = requestAnimationFrame(simulate);
@@ -165,18 +241,26 @@ export default function GrafoRedeAtores({ atores, conexoes, onNodeClick }) {
 
   const getNodeColor = (tipo) => {
     const colors = {
+      // Subtipos
       lideranca: '#8B5CF6',
       representante: '#3B82F6',
       morador: '#10B981',
       associacao: '#F59E0B',
       ong: '#EC4899',
-      governo: '#EF4444'
+      governo: '#EF4444',
+      outro: '#64748B',
+      // Tipos base
+      pessoa: '#3B82F6',
+      entidade: '#8B5CF6'
     };
     return colors[tipo] || '#6B7280';
   };
 
   const getConnectionColor = (tipo) => {
     const colors = {
+      caso: '#EF4444',
+      comunidade: '#10B981',
+      registro: '#3B82F6',
       colaboracao: '#10B981',
       conflito: '#EF4444',
       familia: '#F59E0B',
@@ -253,25 +337,52 @@ export default function GrafoRedeAtores({ atores, conexoes, onNodeClick }) {
         <canvas
           ref={canvasRef}
           onClick={handleCanvasClick}
-          className="w-full h-[600px] border rounded-lg cursor-pointer bg-slate-50"
+          className="w-full h-[700px] border rounded-lg cursor-pointer bg-gradient-to-br from-slate-50 to-slate-100"
         />
         
         {/* Legenda */}
-        <div className="flex flex-wrap gap-2 mt-4">
-          <Badge variant="outline" className="bg-purple-100 text-purple-700">Liderança</Badge>
-          <Badge variant="outline" className="bg-blue-100 text-blue-700">Representante</Badge>
-          <Badge variant="outline" className="bg-emerald-100 text-emerald-700">Morador</Badge>
-          <Badge variant="outline" className="bg-amber-100 text-amber-700">Associação</Badge>
-          <Badge variant="outline" className="bg-pink-100 text-pink-700">ONG</Badge>
-          <Badge variant="outline" className="bg-red-100 text-red-700">Governo</Badge>
+        <div className="space-y-3 mt-4">
+          <div>
+            <p className="text-xs font-semibold text-slate-600 mb-2">Tipos de Stakeholders</p>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline" className="bg-purple-100 text-purple-700">👤 Liderança</Badge>
+              <Badge variant="outline" className="bg-blue-100 text-blue-700">👤 Representante</Badge>
+              <Badge variant="outline" className="bg-emerald-100 text-emerald-700">👤 Morador</Badge>
+              <Badge variant="outline" className="bg-amber-100 text-amber-700">🏢 Associação</Badge>
+              <Badge variant="outline" className="bg-pink-100 text-pink-700">🏢 ONG</Badge>
+              <Badge variant="outline" className="bg-red-100 text-red-700">🏢 Governo</Badge>
+              <Badge variant="outline" className="bg-slate-100 text-slate-700">Outro</Badge>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-slate-600 mb-2">Conexões</p>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline" className="bg-red-50 text-red-700">━ Caso Comum</Badge>
+              <Badge variant="outline" className="bg-emerald-50 text-emerald-700">━ Mesma Comunidade</Badge>
+              <Badge variant="outline" className="bg-blue-50 text-blue-700">━ Registro Compartilhado</Badge>
+            </div>
+          </div>
         </div>
 
         {selectedNode && (
-          <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-            <h4 className="font-semibold text-emerald-900">{selectedNode.label}</h4>
-            <p className="text-sm text-emerald-700 capitalize">
-              {selectedNode.tipo} • Influência: {selectedNode.influencia}
-            </p>
+          <div className="mt-4 p-4 bg-[#40916C]/10 border-2 border-[#40916C] rounded-lg">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="text-2xl">{selectedNode.tipo === 'pessoa' ? '👤' : '🏢'}</div>
+              <div>
+                <h4 className="font-semibold text-slate-900">{selectedNode.label}</h4>
+                <p className="text-xs text-slate-500 capitalize">
+                  {selectedNode.subtipo || selectedNode.tipo} • {selectedNode.comunidade}
+                </p>
+              </div>
+            </div>
+            {selectedNode.ator && (
+              <div className="flex items-center gap-2 mt-2 text-xs text-slate-600">
+                <span>Interações: {selectedNode.ator.historico_interacoes || 0}</span>
+                {selectedNode.ator.casos_vinculados?.length > 0 && (
+                  <span>• Casos: {selectedNode.ator.casos_vinculados.length}</span>
+                )}
+              </div>
+            )}
           </div>
         )}
       </CardContent>
