@@ -135,44 +135,59 @@ export default function NovoRegistro() {
   };
 
   const finalizarRegistro = async (atoresVinculados = [], continuidades = []) => {
-    let localizacao = formData.localizacao;
-    if (formData.local && !localizacao?.lat) {
-      const coords = await obterCoordenadas(formData.local, formData.comunidade);
-      if (coords) {
-        localizacao = { lat: coords.lat, lng: coords.lng, endereco: formData.local };
-      }
-    }
-
-    const dadosFinais = {
-      ...formData,
-      localizacao,
-      status: 'finalizado',
-      liderancas_vinculadas: atoresVinculados,
-      registros_continuidade: continuidades
-    };
-
     try {
+      // Geocodificar localização
+      let localizacao = formData.localizacao;
+      if (formData.local && !localizacao?.lat) {
+        const coords = await obterCoordenadas(formData.local, formData.comunidade);
+        if (coords) {
+          localizacao = { lat: coords.lat, lng: coords.lng, endereco: formData.local };
+        }
+      }
+
+      const dadosFinais = {
+        ...formData,
+        localizacao,
+        status: 'finalizado',
+        liderancas_vinculadas: atoresVinculados,
+        registros_continuidade: continuidades
+      };
+
+      // Criar registro
       const registro = await base44.entities.Registro.create(dadosFinais);
+      console.log('✅ Registro criado:', registro.id);
       
       const analiseAvancada = formData.auditoria?.analise_avancada;
       
-      await Promise.all([
+      // Execuções em paralelo
+      const resultados = await Promise.allSettled([
         criarAgendasAutomaticas(registro),
         sincronizarAposRegistro(registro),
         ...atoresVinculados.map(atorId => atualizarHistoricoAtor(atorId, registro.id)),
         registrarAuditoria('Registro', registro.id, 'criacao_completa', null, dadosFinais, 'criacao'),
         analiseAvancada?.riscos?.riscos_identificados?.length > 0 
-          ? criarRiscosSociais(analiseAvancada.riscos.riscos_identificados, registro.id, registro.comunidade, registro.localizacao)
-          : Promise.resolve(),
+          ? criarRiscosSociais(analiseAvancada.riscos.riscos_identificados, registro.id, registro.comunidade, localizacao)
+          : Promise.resolve([]),
         analiseAvancada?.compromissos_ia?.compromissos_sugeridos?.length > 0
           ? criarCompromissos(analiseAvancada.compromissos_ia.compromissos_sugeridos.slice(0, 3), registro.id, registro.comunidade)
-          : Promise.resolve()
+          : Promise.resolve([])
       ]);
 
+      // Log dos resultados
+      resultados.forEach((resultado, idx) => {
+        if (resultado.status === 'fulfilled') {
+          console.log(`✅ Tarefa ${idx + 1} concluída`);
+        } else {
+          console.error(`❌ Erro na tarefa ${idx + 1}:`, resultado.reason);
+        }
+      });
+
       queryClient.invalidateQueries();
+      alert('✅ Registro salvo com sucesso!');
       navigate(createPageUrl('Registros'));
     } catch (error) {
-      alert('Erro ao salvar: ' + error.message);
+      console.error('Erro ao salvar registro:', error);
+      alert('❌ Erro ao salvar: ' + error.message);
     }
   };
 
