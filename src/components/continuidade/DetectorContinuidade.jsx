@@ -232,12 +232,14 @@ IMPORTANTE: Seja preciso. Vincular registros incorretos causa confusão.
                                     <div className="flex items-start justify-between mb-2">
                                         <div className="flex-1">
                                             <p className="font-bold text-sm">{rel.titulo_registro}</p>
-                                            <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                                                <Calendar className="w-3 h-3" />
-                                                {moment(rel.data_registro).format('DD/MM/YYYY')}
-                                                <span>•</span>
-                                                <span>{moment(rel.data_registro).fromNow()}</span>
-                                            </div>
+                                            {rel.data_registro && (
+                                                <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                                                    <Calendar className="w-3 h-3" />
+                                                    {moment(rel.data_registro).format('DD/MM/YYYY')}
+                                                    <span>•</span>
+                                                    <span>{moment(rel.data_registro).fromNow()}</span>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex gap-2">
                                             <Badge className={corGrau(rel.grau_relacao)}>
