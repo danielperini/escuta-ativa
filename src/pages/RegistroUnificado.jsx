@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import DetectorContinuidade from '@/components/continuidade/DetectorContinuidade';
 import DetectorAtores from '@/components/atores/DetectorAtores';
 import ProcessadorMidia from '@/components/registro/ProcessadorMidia';
+import AnalisadorTempoReal from '@/components/registro/AnalisadorTempoReal';
 import { criarAgendasAutomaticas, atualizarHistoricoAtor, registrarAuditoria } from '@/components/registro/AutomacaoAgenda';
 import { sincronizarAposRegistro, obterCoordenadas } from '@/components/registro/SincronizadorDados';
 import { analisarRiscosSociais, criarRiscosSociais } from '@/components/analise/AnalisadorRiscosAvancado';
@@ -90,6 +91,7 @@ export default function RegistroUnificado() {
   const [mostrarDetectores, setMostrarDetectores] = useState(false);
   const [registroTemporario, setRegistroTemporario] = useState(null);
   const [errosProcessamento, setErrosProcessamento] = useState([]);
+  const [sugestoesIA, setSugestoesIA] = useState(null);
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
@@ -535,10 +537,68 @@ Ou digite/cole o conteúdo diretamente..."
             </div>
 
             <p className="text-xs text-slate-500 text-center">
-              ⚠️ A análise será baseada APENAS no texto desta caixa. Revise antes de continuar.
+              ⚠️ A IA analisará automaticamente este texto enquanto você digita
             </p>
           </CardContent>
         </Card>
+
+        {/* Analisador em Tempo Real */}
+        <AnalisadorTempoReal
+          textoConsolidado={textoConsolidado}
+          formData={formData}
+          onSugestoesGeradas={(sugestoes) => {
+            setSugestoesIA(sugestoes);
+            
+            // Auto-preencher campos com sugestões
+            setFormData(prev => ({
+              ...prev,
+              titulo: sugestoes.analise_basica.titulo_sugerido || prev.titulo,
+              tipo: sugestoes.analise_basica.tipo_sugerido || prev.tipo,
+              temas_identificados: sugestoes.analise_basica.temas_identificados || [],
+              participantes: [...new Set([...prev.participantes, ...(sugestoes.analise_basica.participantes || [])])],
+              demandas: (sugestoes.analise_basica.demandas || []).map(d => ({
+                descricao: d.descricao,
+                urgencia: d.urgencia,
+                status: 'pendente',
+                requer_devolutiva: true,
+                prazo_devolutiva: calcularPrazoDevolutiva(d.urgencia)
+              })),
+              compromissos: (sugestoes.analise_basica.compromissos || []).map(c => ({
+                descricao: c.descricao,
+                responsavel: c.responsavel || 'A definir',
+                status: 'pendente',
+                prazo: calcularPrazoDevolutiva('media')
+              })),
+              sentimento: sugestoes.analise_basica.sentimento || prev.sentimento,
+              temperatura_territorio: sugestoes.analise_basica.temperatura_territorio || prev.temperatura_territorio,
+              local: sugestoes.analise_basica.local_especifico || prev.local,
+              transcricao: textoConsolidado,
+              auditoria: {
+                ...prev.auditoria,
+                analise_avancada: {
+                  riscos: sugestoes.riscos,
+                  compromissos_ia: sugestoes.compromissos_ia,
+                  continuidade: sugestoes.continuidade
+                }
+              }
+            }));
+            
+            setEtapaAtual('formulario');
+          }}
+        />
+
+        {sugestoesIA && (
+          <div className="flex justify-center">
+            <Button
+              onClick={() => setEtapaAtual('formulario')}
+              size="lg"
+              className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+            >
+              <CheckCircle className="w-5 h-5 mr-2" />
+              Revisar e Completar Registro
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -601,6 +661,49 @@ Ou digite/cole o conteúdo diretamente..."
         </Button>
       </div>
 
+      {/* Análise Avançada IA */}
+      {sugestoesIA && (
+        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-purple-900">
+              <Sparkles className="w-5 h-5" />
+              Análise Avançada IA
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-3 text-sm">
+            {sugestoesIA.riscos?.riscos_identificados?.length > 0 && (
+              <div className="bg-red-50 p-3 rounded border border-red-200">
+                <p className="font-semibold text-red-900 mb-1">
+                  <AlertTriangle className="w-4 h-4 inline mr-1" />
+                  {sugestoesIA.riscos.riscos_identificados.length} Risco(s)
+                </p>
+                <p className="text-xs text-red-700">
+                  Nível: {sugestoesIA.riscos.temperatura_geral}
+                </p>
+              </div>
+            )}
+            {sugestoesIA.compromissos_ia?.compromissos_sugeridos?.length > 0 && (
+              <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                <p className="font-semibold text-blue-900 mb-1">
+                  <Target className="w-4 h-4 inline mr-1" />
+                  {sugestoesIA.compromissos_ia.compromissos_sugeridos.length} Compromisso(s)
+                </p>
+                <p className="text-xs text-blue-700">Sugeridos pela IA</p>
+              </div>
+            )}
+            {sugestoesIA.continuidade?.continuidades_detectadas?.length > 0 && (
+              <div className="bg-purple-50 p-3 rounded border border-purple-200">
+                <p className="font-semibold text-purple-900 mb-1">
+                  <Users className="w-4 h-4 inline mr-1" />
+                  {sugestoesIA.continuidade.continuidades_detectadas.length} Continuidade(s)
+                </p>
+                <p className="text-xs text-purple-700">Casos relacionados</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <div className="space-y-4">
         <SecaoCollapsible 
           id="basico" 
@@ -661,11 +764,22 @@ Ou digite/cole o conteúdo diretamente..."
           id="temas" 
           titulo="Temas Identificados" 
           icone={Target}
-          badge={formData.temas_identificados.length > 0 && <Badge className="bg-emerald-100 text-emerald-700">{formData.temas_identificados.length}</Badge>}
+          badge={formData.temas_identificados.length > 0 && <Badge className="bg-emerald-100 text-emerald-700">{formData.temas_identificados.length} IA</Badge>}
         >
+          <div className="bg-blue-50 p-3 rounded mb-3 border border-blue-200">
+            <p className="text-xs text-blue-800">
+              <Sparkles className="w-3 h-3 inline mr-1" />
+              Temas detectados automaticamente pela IA. Você pode editar ou remover.
+            </p>
+          </div>
           <div className="flex flex-wrap gap-2">
             {formData.temas_identificados.map((t, i) => (
-              <Badge key={i} variant="secondary">{t}</Badge>
+              <Badge key={i} variant="secondary" className="gap-1 pr-1">
+                {t}
+                <button onClick={() => setFormData(prev => ({ ...prev, temas_identificados: prev.temas_identificados.filter((_, idx) => idx !== i) }))}>
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
             ))}
           </div>
         </SecaoCollapsible>
@@ -674,15 +788,27 @@ Ou digite/cole o conteúdo diretamente..."
           id="demandas" 
           titulo="Demandas da Comunidade" 
           icone={AlertTriangle}
-          badge={formData.demandas.length > 0 && <Badge className="bg-amber-100 text-amber-700">{formData.demandas.length}</Badge>}
+          badge={formData.demandas.length > 0 && <Badge className="bg-amber-100 text-amber-700">{formData.demandas.length} IA</Badge>}
         >
+          <div className="bg-amber-50 p-3 rounded mb-3 border border-amber-200">
+            <p className="text-xs text-amber-800">
+              <Sparkles className="w-3 h-3 inline mr-1" />
+              Demandas detectadas automaticamente. Revise urgência e prazos.
+            </p>
+          </div>
           <div className="space-y-2">
             {formData.demandas.map((d, i) => (
-              <div key={i} className="p-3 bg-slate-50 rounded border">
-                <p className="text-sm font-medium">{d.descricao}</p>
+              <div key={i} className="p-3 bg-slate-50 rounded border relative group">
+                <button 
+                  onClick={() => setFormData(prev => ({ ...prev, demandas: prev.demandas.filter((_, idx) => idx !== i) }))}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-4 h-4 text-red-600" />
+                </button>
+                <p className="text-sm font-medium pr-6">{d.descricao}</p>
                 <div className="flex gap-2 mt-2 text-xs">
                   <Badge variant="secondary">{d.urgencia}</Badge>
-                  <Badge variant="outline">Prazo devolutiva: {new Date(d.prazo_devolutiva).toLocaleDateString('pt-BR')}</Badge>
+                  <Badge variant="outline">Devolutiva: {new Date(d.prazo_devolutiva).toLocaleDateString('pt-BR')}</Badge>
                 </div>
               </div>
             ))}
@@ -693,12 +819,24 @@ Ou digite/cole o conteúdo diretamente..."
           id="compromissos" 
           titulo="Compromissos Assumidos" 
           icone={CheckCircle2}
-          badge={formData.compromissos.length > 0 && <Badge className="bg-emerald-100 text-emerald-700">{formData.compromissos.length}</Badge>}
+          badge={formData.compromissos.length > 0 && <Badge className="bg-emerald-100 text-emerald-700">{formData.compromissos.length} IA</Badge>}
         >
+          <div className="bg-emerald-50 p-3 rounded mb-3 border border-emerald-200">
+            <p className="text-xs text-emerald-800">
+              <Sparkles className="w-3 h-3 inline mr-1" />
+              Compromissos identificados automaticamente. Revise responsáveis e prazos.
+            </p>
+          </div>
           <div className="space-y-2">
             {formData.compromissos.map((c, i) => (
-              <div key={i} className="p-3 bg-emerald-50 rounded border border-emerald-200">
-                <p className="text-sm font-medium">{c.descricao}</p>
+              <div key={i} className="p-3 bg-emerald-50 rounded border border-emerald-200 relative group">
+                <button 
+                  onClick={() => setFormData(prev => ({ ...prev, compromissos: prev.compromissos.filter((_, idx) => idx !== i) }))}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-4 h-4 text-red-600" />
+                </button>
+                <p className="text-sm font-medium pr-6">{c.descricao}</p>
                 <p className="text-xs text-slate-600 mt-1">
                   {c.responsavel && `Responsável: ${c.responsavel}`}
                   {c.prazo && ` • Prazo: ${new Date(c.prazo).toLocaleDateString('pt-BR')}`}

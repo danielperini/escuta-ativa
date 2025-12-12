@@ -61,7 +61,8 @@ export default function DashboardKPIs() {
     const { data: liderancas = [] } = useQuery({
         queryKey: ['liderancas-kpi'],
         queryFn: () => base44.entities.LiderancaComunitaria.list('-created_date', 100),
-        staleTime: 5 * 60 * 1000
+        staleTime: 5 * 60 * 1000,
+        refetchInterval: 5 * 60 * 1000
     });
 
     const { data: comunidades = [] } = useQuery({
@@ -79,7 +80,8 @@ export default function DashboardKPIs() {
     const { data: oportunidades = [] } = useQuery({
         queryKey: ['oportunidades-kpi'],
         queryFn: () => base44.entities.Oportunidade.list('-created_date', 50),
-        staleTime: 2 * 60 * 1000
+        staleTime: 2 * 60 * 1000,
+        refetchInterval: 3 * 60 * 1000
     });
 
     const { data: temas = [] } = useQuery({
