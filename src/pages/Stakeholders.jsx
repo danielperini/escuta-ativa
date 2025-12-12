@@ -47,11 +47,20 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import Pagination from '@/components/shared/Pagination';
 
@@ -92,6 +101,9 @@ export default function Stakeholders() {
   const [viewMode, setViewMode] = useState('cards');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingStakeholder, setEditingStakeholder] = useState(null);
+  const [formData, setFormData] = useState({});
 
   const { data: stakeholders = [], isLoading, refetch } = useQuery({
     queryKey: ['stakeholders'],
@@ -113,6 +125,38 @@ export default function Stakeholders() {
       setDeleteId(null);
     }
   });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Stakeholder.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stakeholders'] });
+      setShowEditDialog(false);
+      setEditingStakeholder(null);
+    }
+  });
+
+  const handleEdit = (stakeholder) => {
+    setEditingStakeholder(stakeholder);
+    setFormData({
+      nome: stakeholder.nome || '',
+      tipo: stakeholder.tipo || 'pessoa',
+      subtipo: stakeholder.subtipo || '',
+      comunidade: stakeholder.comunidade || '',
+      municipio: stakeholder.municipio || '',
+      papel_social: stakeholder.papel_social || '',
+      organizacao: stakeholder.organizacao || '',
+      endereco: stakeholder.endereco || '',
+      contato: stakeholder.contato || { telefone: '', email: '', whatsapp: '' },
+      nivel_influencia: stakeholder.nivel_influencia || 'medio',
+      nivel_atividade: stakeholder.nivel_atividade || 'baixo',
+      notas: stakeholder.notas || ''
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleSave = () => {
+    updateMutation.mutate({ id: editingStakeholder.id, data: formData });
+  };
 
   const filteredStakeholders = stakeholders.filter(s => {
     const matchSearch = !search || 
@@ -330,6 +374,10 @@ export default function Stakeholders() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(stakeholder)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => alert('Visualização em desenvolvimento')}>
                             <Eye className="w-4 h-4 mr-2" />
                             Ver Perfil
@@ -377,6 +425,10 @@ export default function Stakeholders() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(stakeholder)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => alert('Visualização em desenvolvimento')}>
                           <Eye className="w-4 h-4 mr-2" />
                           Ver Perfil
@@ -459,6 +511,203 @@ export default function Stakeholders() {
           />
         </Card>
       )}
+
+      {/* Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={(open) => {
+        setShowEditDialog(open);
+        if (!open) setEditingStakeholder(null);
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Stakeholder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nome *</Label>
+                <Input
+                  value={formData.nome || ''}
+                  onChange={(e) => setFormData(p => ({ ...p, nome: e.target.value }))}
+                  placeholder="Nome do stakeholder"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo</Label>
+                <Select
+                  value={formData.tipo || 'pessoa'}
+                  onValueChange={(value) => setFormData(p => ({ ...p, tipo: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pessoa">Pessoa</SelectItem>
+                    <SelectItem value="entidade">Entidade</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Subtipo</Label>
+                <Select
+                  value={formData.subtipo || ''}
+                  onValueChange={(value) => setFormData(p => ({ ...p, subtipo: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(subtipoConfig).map(([key, config]) => (
+                      <SelectItem key={key} value={key}>{config.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Comunidade *</Label>
+                <Select
+                  value={formData.comunidade || ''}
+                  onValueChange={(value) => setFormData(p => ({ ...p, comunidade: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {comunidades.map(c => (
+                      <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Município</Label>
+                <Input
+                  value={formData.municipio || ''}
+                  onChange={(e) => setFormData(p => ({ ...p, municipio: e.target.value }))}
+                  placeholder="Município"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Papel Social</Label>
+                <Input
+                  value={formData.papel_social || ''}
+                  onChange={(e) => setFormData(p => ({ ...p, papel_social: e.target.value }))}
+                  placeholder="Ex: Liderança comunitária"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Organização</Label>
+              <Input
+                value={formData.organizacao || ''}
+                onChange={(e) => setFormData(p => ({ ...p, organizacao: e.target.value }))}
+                placeholder="Organização vinculada"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Endereço</Label>
+              <Input
+                value={formData.endereco || ''}
+                onChange={(e) => setFormData(p => ({ ...p, endereco: e.target.value }))}
+                placeholder="Endereço completo"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Telefone</Label>
+                <Input
+                  value={formData.contato?.telefone || ''}
+                  onChange={(e) => setFormData(p => ({ ...p, contato: { ...p.contato, telefone: e.target.value } }))}
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>WhatsApp</Label>
+                <Input
+                  value={formData.contato?.whatsapp || ''}
+                  onChange={(e) => setFormData(p => ({ ...p, contato: { ...p.contato, whatsapp: e.target.value } }))}
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  value={formData.contato?.email || ''}
+                  onChange={(e) => setFormData(p => ({ ...p, contato: { ...p.contato, email: e.target.value } }))}
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nível de Influência</Label>
+                <Select
+                  value={formData.nivel_influencia || 'medio'}
+                  onValueChange={(value) => setFormData(p => ({ ...p, nivel_influencia: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(influenciaConfig).map(([key, config]) => (
+                      <SelectItem key={key} value={key}>{config.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Nível de Atividade</Label>
+                <Select
+                  value={formData.nivel_atividade || 'baixo'}
+                  onValueChange={(value) => setFormData(p => ({ ...p, nivel_atividade: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inativo">Inativo</SelectItem>
+                    <SelectItem value="baixo">Baixo</SelectItem>
+                    <SelectItem value="moderado">Moderado</SelectItem>
+                    <SelectItem value="alto">Alto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Notas</Label>
+              <Textarea
+                value={formData.notas || ''}
+                onChange={(e) => setFormData(p => ({ ...p, notas: e.target.value }))}
+                placeholder="Observações adicionais"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+              onClick={handleSave}
+              disabled={updateMutation.isPending || !formData.nome || !formData.comunidade}
+            >
+              {updateMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
