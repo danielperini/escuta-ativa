@@ -110,7 +110,7 @@ export default function Registros() {
             {filteredRegistros.length} de {registros.length} registro(s)
           </p>
         </div>
-        <Link to={createPageUrl('NovoRegistro')}>
+        <Link to={createPageUrl('RegistroUnificado')}>
           <Button className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2">
             <Plus className="w-4 h-4" />
             Novo Registro
@@ -140,7 +140,7 @@ export default function Registros() {
           <p className="text-slate-500 mb-4">
             Tente ajustar os filtros ou criar um novo registro
           </p>
-          <Link to={createPageUrl('NovoRegistro')}>
+          <Link to={createPageUrl('RegistroUnificado')}>
             <Button className="bg-[#2D6A4F] hover:bg-[#1B4332]">
               <Plus className="w-4 h-4 mr-2" />
               Criar Primeiro Registro
