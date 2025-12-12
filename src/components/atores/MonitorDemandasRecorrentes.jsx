@@ -16,6 +16,18 @@ export default function MonitorDemandasRecorrentes() {
         return saved ? JSON.parse(saved) : [];
     });
 
+    // Auto-dismiss após 10 segundos
+    useEffect(() => {
+        if (demandasRecorrentes.length > 0) {
+            const timer = setTimeout(() => {
+                demandasRecorrentes.forEach(demanda => {
+                    marcarComoVisto(demanda.tema);
+                });
+            }, 10000);
+            return () => clearTimeout(timer);
+        }
+    }, [demandasRecorrentes]);
+
     const { data: atividades = [] } = useQuery({
         queryKey: ['atividades-monitor'],
         queryFn: () => base44.entities.Atividade.list('-created_date', 500)
