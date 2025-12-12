@@ -158,7 +158,14 @@ export default function NovoRegistro() {
   const handleTranscricaoAudio = (transcricao, audioUrl) => {
     const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
     setTextoConsolidado(prev => prev + blocoTranscricao);
-    setMostrarGravador(false);
+    
+    // Feedback visual
+    console.log('✅ Transcrição adicionada:', transcricao);
+    
+    // Fechar gravador após 2 segundos
+    setTimeout(() => {
+      setMostrarGravador(false);
+    }, 2000);
   };
 
   const handleArquivoProcessado = (arquivo) => {

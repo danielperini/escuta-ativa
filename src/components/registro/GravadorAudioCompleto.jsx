@@ -112,11 +112,17 @@ RETORNE: Apenas o texto transcrito, sem comentários adicionais.`,
       if (textoTranscrito && textoTranscrito.trim()) {
         setTranscricao(textoTranscrito);
         
+        // Garantir que a callback é chamada
         if (onTranscricao) {
           onTranscricao(textoTranscrito, file_url);
         }
 
-        alert('✅ Áudio transcrito com sucesso!');
+        // Limpar após sucesso
+        setTimeout(() => {
+          limpar();
+        }, 2000);
+
+        alert('✅ Transcrição adicionada ao texto consolidado!');
       } else {
         throw new Error('Transcrição vazia ou áudio sem conteúdo de fala');
       }
@@ -195,17 +201,23 @@ RETORNE: Apenas o texto transcrito, sem comentários.`,
       if (textoTranscrito && textoTranscrito.trim()) {
         setTranscricao(textoTranscrito);
         
-        if (onTranscricao) {
-          onTranscricao(textoTranscrito, file_url);
-        }
-
-        // Criar blob para reprodução
+        // Criar blob para reprodução primeiro
         const response = await fetch(file_url);
         const blob = await response.blob();
         setAudioBlob(blob);
         setAudioURL(URL.createObjectURL(blob));
 
-        alert('✅ Áudio enviado e transcrito com sucesso!');
+        // Garantir que a callback é chamada
+        if (onTranscricao) {
+          onTranscricao(textoTranscrito, file_url);
+        }
+
+        // Limpar após sucesso
+        setTimeout(() => {
+          limpar();
+        }, 2000);
+
+        alert('✅ Transcrição adicionada ao texto consolidado!');
       } else {
         throw new Error('Transcrição vazia - áudio sem conteúdo de fala ou corrompido');
       }
