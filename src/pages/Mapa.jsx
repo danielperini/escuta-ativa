@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import DetectorRiscos from '../components/mapa/DetectorRiscos';
 import ControlesMapa from '../components/mapa/ControlesMapa';
+import DetalhesRegistroMapa from '../components/mapa/DetalhesRegistroMapa';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -466,70 +467,10 @@ export default function Mapa() {
 
           {/* Selected Registro Details */}
           {selectedRegistro && (
-            <Card className="mt-4 p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg text-slate-900">{selectedRegistro.titulo}</h3>
-                  <p className="text-slate-500 text-sm">{selectedRegistro.comunidade}</p>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setSelectedRegistro(null)}>
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                <div className="bg-slate-50 p-3 rounded-lg">
-                  <p className="text-xs text-slate-500">Data</p>
-                  <p className="font-semibold text-sm">
-                    {new Date(selectedRegistro.created_date).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg">
-                  <p className="text-xs text-slate-500">Temperatura</p>
-                  <p className="font-semibold capitalize text-sm" style={{ color: termometroColors[selectedRegistro.temperatura_territorio] }}>
-                    {selectedRegistro.temperatura_territorio || 'Baixo'}
-                  </p>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg">
-                  <p className="text-xs text-slate-500">Tipo</p>
-                  <p className="font-semibold text-sm capitalize">
-                    {selectedRegistro.tipo?.replace('_', ' ') || '-'}
-                  </p>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg">
-                  <p className="text-xs text-slate-500">Sentimento</p>
-                  <p className="font-semibold text-sm capitalize">
-                    {selectedRegistro.sentimento || '-'}
-                  </p>
-                </div>
-              </div>
-
-              {selectedRegistro.temas_identificados?.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm text-slate-500 mb-2">Temas Identificados</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedRegistro.temas_identificados.map((tema, idx) => (
-                      <Badge key={idx} variant="secondary" className="bg-emerald-100 text-emerald-700">
-                        {tema}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedRegistro.demandas?.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm font-semibold text-slate-700 mb-2">Demandas ({selectedRegistro.demandas.length})</p>
-                  <div className="space-y-2">
-                    {selectedRegistro.demandas.slice(0, 2).map((d, idx) => (
-                      <div key={idx} className="text-xs bg-amber-50 p-2 rounded border border-amber-200">
-                        {d.descricao}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </Card>
+            <DetalhesRegistroMapa 
+              registro={selectedRegistro} 
+              onClose={() => setSelectedRegistro(null)} 
+            />
           )}
 
           {/* Selected Community Details */}

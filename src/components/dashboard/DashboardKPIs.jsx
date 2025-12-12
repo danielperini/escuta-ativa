@@ -48,7 +48,9 @@ export default function DashboardKPIs() {
 
     const { data: atividades = [] } = useQuery({
         queryKey: ['atividades-kpi'],
-        queryFn: () => base44.entities.Atividade.list('-created_date', 500)
+        queryFn: () => base44.entities.Atividade.list('-created_date', 100),
+        staleTime: 30 * 1000,
+        refetchInterval: 60 * 1000
     });
 
     const { data: compromissos = [] } = useQuery({
@@ -67,7 +69,8 @@ export default function DashboardKPIs() {
 
     const { data: comunidades = [] } = useQuery({
         queryKey: ['comunidades-kpi'],
-        queryFn: () => base44.entities.Comunidade.list()
+        queryFn: () => base44.entities.Comunidade.list(),
+        staleTime: 5 * 60 * 1000
     });
 
     const { data: riscos = [] } = useQuery({
@@ -86,7 +89,8 @@ export default function DashboardKPIs() {
 
     const { data: temas = [] } = useQuery({
         queryKey: ['temas-kpi'],
-        queryFn: () => base44.entities.Tema.list()
+        queryFn: () => base44.entities.Tema.list(),
+        staleTime: 3 * 60 * 1000
     });
 
     const calcularKPI = (id) => {
