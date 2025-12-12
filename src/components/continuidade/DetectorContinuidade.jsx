@@ -191,14 +191,20 @@ IMPORTANTE: Seja preciso. Vincular registros incorretos causa confusão.
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
                 {registrosRelacionados.length === 0 ? (
-                    <div>
+                    <div className="space-y-3">
                         <p className="text-gray-700 mb-4">
                             Este registro não possui continuidade com registros anteriores.
                         </p>
-                        <Button onClick={onIgnorar} className="w-full bg-green-600 hover:bg-green-700">
-                            <Check className="w-4 h-4 mr-2" />
-                            Prosseguir como Registro Novo
-                        </Button>
+                        <div className="space-y-2">
+                            <Button onClick={onIgnorar} className="w-full bg-green-600 hover:bg-green-700">
+                                <Check className="w-4 h-4 mr-2" />
+                                Prosseguir com Registro Novo
+                            </Button>
+                            <Button onClick={() => window.history.back()} variant="outline" className="w-full">
+                                <X className="w-4 h-4 mr-2" />
+                                Não Prosseguir com Registro Novo
+                            </Button>
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -266,20 +272,28 @@ IMPORTANTE: Seja preciso. Vincular registros incorretos causa confusão.
                             ))}
                         </div>
 
-                        <div className="flex gap-3 pt-4 border-t">
+                        <div className="space-y-2 pt-4 border-t">
                             <Button
                                 onClick={confirmarVinculacao}
-                                className="flex-1 bg-green-600 hover:bg-green-700"
+                                className="w-full bg-blue-600 hover:bg-blue-700"
                             >
                                 <Link2 className="w-4 h-4 mr-2" />
-                                Vincular {selecionados.length} Selecionado(s)
+                                Atualizar Registro Antigo ({selecionados.length} selecionado{selecionados.length !== 1 ? 's' : ''})
+                            </Button>
+                            <Button
+                                onClick={onIgnorar}
+                                className="w-full bg-green-600 hover:bg-green-700"
+                            >
+                                <Check className="w-4 h-4 mr-2" />
+                                Prosseguir com Registro Novo
                             </Button>
                             <Button
                                 variant="outline"
-                                onClick={onIgnorar}
+                                onClick={() => window.history.back()}
+                                className="w-full"
                             >
                                 <X className="w-4 h-4 mr-2" />
-                                Prosseguir sem Vincular
+                                Não Prosseguir com Registro Novo
                             </Button>
                         </div>
                     </div>

@@ -875,44 +875,56 @@ Ou digite/cole o conteúdo diretamente..."
   }
 
   if (mostrarDetectores) {
-    return (
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setMostrarDetectores(false)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold">Detectando Vínculos</h2>
-            <p className="text-sm text-slate-500">A IA está identificando continuidades e atores</p>
+      return (
+        <div className="space-y-6 max-w-4xl mx-auto">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => setMostrarDetectores(false)}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h2 className="text-2xl font-bold">Detectando Vínculos</h2>
+              <p className="text-sm text-slate-500">A IA está identificando continuidades e atores</p>
+            </div>
+          </div>
+
+          <DetectorContinuidade
+            atividadeNova={registroTemporario}
+            onVincular={(continuidades) => {
+              setFormData(prev => ({ ...prev, registros_continuidade: continuidades }));
+            }}
+            onIgnorar={() => {}}
+          />
+
+          <Card className="border-2 border-purple-600">
+            <CardHeader className="bg-purple-50">
+              <CardTitle className="flex items-center gap-2 text-purple-900">
+                <Users className="w-6 h-6" />
+                Vincular Atores ao Registro
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <DetectorAtores
+                registro={registroTemporario}
+                onAtoresVinculados={(atores) => {
+                  setFormData(prev => ({ ...prev, liderancas_vinculadas: atores }));
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-center">
+            <Button 
+              onClick={() => finalizarComVinculacoes(formData.liderancas_vinculadas || [], formData.registros_continuidade || [])}
+              size="lg"
+              className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+            >
+              <Save className="w-5 h-5 mr-2" />
+              Finalizar Registro
+            </Button>
           </div>
         </div>
-
-        <DetectorContinuidade
-          atividadeNova={registroTemporario}
-          onVincular={(continuidades) => {
-            setFormData(prev => ({ ...prev, registros_continuidade: continuidades }));
-          }}
-          onIgnorar={() => {}}
-        />
-
-        <DetectorAtores
-          registro={registroTemporario}
-          onAtoresVinculados={(atores) => {
-            finalizarComVinculacoes(atores, formData.registros_continuidade || []);
-          }}
-        />
-
-        <div className="flex justify-end">
-          <Button 
-            variant="outline" 
-            onClick={() => finalizarComVinculacoes([], formData.registros_continuidade || [])}
-          >
-            Pular e Finalizar
-          </Button>
-        </div>
-      </div>
-    );
-  }
+      );
+    }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
