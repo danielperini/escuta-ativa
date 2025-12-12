@@ -79,16 +79,16 @@ export default function Dashboard() {
                     )}
 
                     <div className="flex justify-center">
-                        <Button
-                            onClick={() => navigate(createPageUrl("RegistroUnificado"))}
-                            size="lg"
-                            className="text-lg font-bold px-12 py-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-white"
-                            style={{ backgroundColor: '#F2B632' }}
-                        >
-                            <Plus className="w-8 h-8 mr-3" />
-                            Registre Escuta
-                        </Button>
-                    </div>
+                            <Button
+                                onClick={() => navigate(createPageUrl("Registros"))}
+                                size="lg"
+                                className="text-lg font-bold px-12 py-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-white"
+                                style={{ backgroundColor: '#2D6A4F' }}
+                            >
+                                <FileText className="w-8 h-8 mr-3" />
+                                Registros
+                            </Button>
+                        </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     {menuItems.map((item) => (
