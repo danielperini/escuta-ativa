@@ -19,6 +19,7 @@ import AnalisadorTempoReal from '@/components/registro/AnalisadorTempoReal';
 import DetectorContinuidade from '@/components/continuidade/DetectorContinuidade';
 import DetectorAtores from '@/components/atores/DetectorAtores';
 import GravadorAudioCompleto from '@/components/registro/GravadorAudioCompleto';
+import TranscricaoNativa from '@/components/registro/TranscricaoNativa';
 import { criarAgendasAutomaticas, atualizarHistoricoAtor, registrarAuditoria } from '@/components/registro/AutomacaoAgenda';
 import { sincronizarAposRegistro, obterCoordenadas } from '@/components/registro/SincronizadorDados';
 import { criarRiscosSociais } from '@/components/analise/AnalisadorRiscosAvancado';
@@ -508,10 +509,24 @@ export default function NovoRegistro() {
       </div>
 
       {mostrarGravador && (
-        <GravadorAudioCompleto
-          onTranscricao={handleTranscricaoAudio}
-          onArquivoProcessado={handleArquivoProcessado}
-        />
+        <div className="space-y-4">
+          <TranscricaoNativa
+            onTranscricao={(texto) => {
+              const blocoTranscricao = `\n\n--- Transcrição em Tempo Real ---\n${texto}\n`;
+              setTextoConsolidado(prev => prev + blocoTranscricao);
+              alert('✅ Transcrição adicionada ao texto!');
+            }}
+          />
+          
+          <div className="text-center">
+            <p className="text-sm text-slate-500 mb-2">ou</p>
+          </div>
+          
+          <GravadorAudioCompleto
+            onTranscricao={handleTranscricaoAudio}
+            onArquivoProcessado={handleArquivoProcessado}
+          />
+        </div>
       )}
 
       <Card className="border-2 border-dashed border-[#40916C]/30">
