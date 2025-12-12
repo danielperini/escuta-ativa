@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import FiltrosAvancados from '@/components/registros/FiltrosAvancados';
 import TabelaRegistros from '@/components/registros/TabelaRegistros';
+import Pagination from '@/components/shared/Pagination';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +24,8 @@ import {
 export default function Registros() {
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [filtros, setFiltros] = useState({
     busca: '',
     comunidade: 'todas',
@@ -98,9 +101,19 @@ export default function Registros() {
     if (filtros.dataFim && r.data_registro > filtros.dataFim) return false;
 
     return true;
-  });
+    });
 
-  return (
+    const totalPages = Math.ceil(filteredRegistros.length / itemsPerPage);
+    const paginatedRegistros = filteredRegistros.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+    );
+
+    React.useEffect(() => {
+    setCurrentPage(1);
+    }, [filtros.busca, filtros.comunidade, filtros.tipo, filtros.status, filtros.temperatura, filtros.tema, filtros.dataInicio, filtros.dataFim]);
+
+    return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -148,10 +161,21 @@ export default function Registros() {
           </Link>
         </Card>
       ) : (
-        <TabelaRegistros 
-          registros={filteredRegistros} 
-          onExcluir={(id) => setDeleteId(id)}
-        />
+        <>
+          <TabelaRegistros 
+            registros={paginatedRegistros} 
+            onExcluir={(id) => setDeleteId(id)}
+          />
+          <Card className="p-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={filteredRegistros.length}
+            />
+          </Card>
+        </>
       )}
 
       {/* Delete Dialog */}

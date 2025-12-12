@@ -52,6 +52,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import Pagination from '@/components/shared/Pagination';
 
 const statusConfig = {
   em_aberto: { label: 'Em Aberto', color: 'bg-amber-100 text-amber-700', icon: Clock },
@@ -85,6 +86,8 @@ export default function Casos() {
   const [filterComunidade, setFilterComunidade] = useState('todos');
   const [activeTab, setActiveTab] = useState('todos');
   const [deleteId, setDeleteId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: casos = [], isLoading, refetch } = useQuery({
     queryKey: ['casos'],
@@ -133,6 +136,16 @@ export default function Casos() {
     if (activeTab === 'concluidos') return matchSearch && matchComunidade && c.status === 'concluido';
     return matchSearch && matchComunidade;
   });
+
+  const totalPages = Math.ceil(filteredCasos.length / itemsPerPage);
+  const paginatedCasos = filteredCasos.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterComunidade, activeTab]);
 
   const stats = {
     total: casos.length,
@@ -229,7 +242,7 @@ export default function Casos() {
             </p>
           </Card>
         ) : (
-          filteredCasos.map(caso => {
+          paginatedCasos.map(caso => {
             const status = statusConfig[caso.isAtrasado ? 'em_aberto' : caso.status] || statusConfig.em_aberto;
             const prioridade = prioridadeConfig[caso.prioridade] || prioridadeConfig.media;
             const StatusIcon = status.icon;
@@ -345,6 +358,19 @@ export default function Casos() {
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && filteredCasos.length > 0 && (
+        <Card className="p-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredCasos.length}
+          />
+        </Card>
+      )}
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

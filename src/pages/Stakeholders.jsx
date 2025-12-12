@@ -20,7 +20,9 @@ import {
   Eye,
   ArrowLeft,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Grid3x3,
+  List
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +53,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import Pagination from '@/components/shared/Pagination';
 
 const tipoConfig = {
   pessoa: { label: 'Pessoa', color: 'bg-blue-100 text-blue-700' },
@@ -86,6 +89,9 @@ export default function Stakeholders() {
   const [filterComunidade, setFilterComunidade] = useState('todos');
   const [filterStatus, setFilterStatus] = useState('todos');
   const [deleteId, setDeleteId] = useState(null);
+  const [viewMode, setViewMode] = useState('cards');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: stakeholders = [], isLoading, refetch } = useQuery({
     queryKey: ['stakeholders'],
@@ -119,6 +125,16 @@ export default function Stakeholders() {
     return matchSearch && matchTipo && matchComunidade && matchStatus;
   });
 
+  const totalPages = Math.ceil(filteredStakeholders.length / itemsPerPage);
+  const paginatedStakeholders = filteredStakeholders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterTipo, filterComunidade, filterStatus]);
+
   const stats = {
     total: stakeholders.length,
     provisorios: stakeholders.filter(s => s.status_cadastro === 'provisorio').length,
@@ -135,6 +151,24 @@ export default function Stakeholders() {
           <p className="text-slate-500 mt-1">{stakeholders.length} stakeholders mapeados</p>
         </div>
         <div className="flex gap-2">
+          <div className="flex gap-1 border rounded-lg p-1">
+            <Button 
+              variant={viewMode === 'cards' ? 'default' : 'ghost'}
+              size="icon"
+              onClick={() => setViewMode('cards')}
+              className={cn("h-8 w-8", viewMode === 'cards' && "bg-[#2D6A4F]")}
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="icon"
+              onClick={() => setViewMode('list')}
+              className={cn("h-8 w-8", viewMode === 'list' && "bg-[#2D6A4F]")}
+            >
+              <List className="w-4 h-4" />
+            </Button>
+          </div>
           <Button 
             variant="outline"
             onClick={() => refetch()}
@@ -218,11 +252,13 @@ export default function Stakeholders() {
         </div>
       </Card>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Grid / List */}
+      <div className={cn(
+        viewMode === 'cards' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-3"
+      )}>
         {isLoading ? (
           Array(6).fill(0).map((_, i) => (
-            <Skeleton key={i} className="h-56 rounded-xl" />
+            <Skeleton key={i} className={cn(viewMode === 'cards' ? "h-56" : "h-32", "rounded-xl")} />
           ))
         ) : filteredStakeholders.length === 0 ? (
           <Card className="col-span-full p-12 text-center">
@@ -233,10 +269,82 @@ export default function Stakeholders() {
             </p>
           </Card>
         ) : (
-          filteredStakeholders.map(stakeholder => {
+          paginatedStakeholders.map(stakeholder => {
             const tipo = tipoConfig[stakeholder.tipo] || tipoConfig.pessoa;
             const statusCadastro = statusCadastroConfig[stakeholder.status_cadastro] || statusCadastroConfig.provisorio;
             const StatusIcon = statusCadastro.icon;
+
+            if (viewMode === 'list') {
+              return (
+                <Card key={stakeholder.id} className="hover:shadow-md transition-all p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="w-12 h-12 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
+                        {stakeholder.tipo === 'pessoa' ? '👤' : '🏢'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-slate-900">{stakeholder.nome}</h3>
+                          {stakeholder.id_sequencial && (
+                            <span className="text-xs text-slate-400">#{stakeholder.id_sequencial}</span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <Badge variant="secondary" className={cn("text-xs", tipo.color)}>
+                            {tipo.label}
+                          </Badge>
+                          {stakeholder.subtipo && (
+                            <Badge variant="secondary" className={cn("text-xs", subtipoConfig[stakeholder.subtipo]?.color)}>
+                              {subtipoConfig[stakeholder.subtipo]?.label}
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className={cn("text-xs flex items-center gap-1", statusCadastro.color)}>
+                            <StatusIcon className="w-3 h-3" />
+                            {statusCadastro.label}
+                          </Badge>
+                          <span className="flex items-center gap-1 text-sm text-slate-600">
+                            <MapPin className="w-4 h-4" />
+                            {stakeholder.comunidade}
+                          </span>
+                          {stakeholder.papel_social && (
+                            <span className="text-sm text-slate-500">• {stakeholder.papel_social}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-slate-900">
+                          {stakeholder.historico_interacoes || 0} interações
+                        </div>
+                        {stakeholder.casos_vinculados?.length > 0 && (
+                          <div className="text-xs text-slate-500">
+                            {stakeholder.casos_vinculados.length} caso{stakeholder.casos_vinculados.length !== 1 && 's'}
+                          </div>
+                        )}
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => alert('Visualização em desenvolvimento')}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Perfil
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(stakeholder.id)}>
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </Card>
+              );
+            }
 
             return (
               <Card key={stakeholder.id} className="hover:shadow-md transition-all">
@@ -338,6 +446,19 @@ export default function Stakeholders() {
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && filteredStakeholders.length > 0 && (
+        <Card className="p-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredStakeholders.length}
+          />
+        </Card>
+      )}
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
