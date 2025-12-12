@@ -43,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import CompromissosAtrasados from '@/components/agenda/CompromissosAtrasados';
 
 const statusConfig = {
   futura: { label: 'Futura', color: 'bg-purple-100 text-purple-700' },
@@ -178,6 +179,9 @@ export default function Agenda() {
           </Card>
         ))}
       </div>
+
+      {/* Compromissos Atrasados */}
+      <CompromissosAtrasados />
 
       {/* Agendas by Status */}
       <div className="space-y-6">
