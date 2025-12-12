@@ -46,6 +46,8 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import ComparadorPeriodos from "../components/analise/ComparadorPeriodos";
+import ResumoTemas from "@/components/analise/ResumoTemas";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const categoriaColors = {
   ambiental: 'bg-emerald-100 text-emerald-700',
@@ -243,7 +245,15 @@ export default function Materialidade() {
 
       <ComparadorPeriodos />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Tabs defaultValue="matriz" className="space-y-6">
+        <TabsList className="grid w-full max-w-lg grid-cols-3">
+          <TabsTrigger value="matriz">Matriz</TabsTrigger>
+          <TabsTrigger value="resumo">Resumo IA</TabsTrigger>
+          <TabsTrigger value="lista">Lista</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="matriz" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Matrix Chart */}
         <Card className="p-6">
           <CardHeader className="p-0 pb-4">
@@ -416,7 +426,74 @@ export default function Materialidade() {
             )}
           </CardContent>
         </Card>
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="resumo">
+          <ResumoTemas />
+        </TabsContent>
+
+        <TabsContent value="lista">
+          <Card>
+            <CardContent className="space-y-3 max-h-[600px] overflow-y-auto pt-6">
+              {filteredTemas.map(tema => {
+                const TrendIcon = tendenciaIcon[tema.tendencia] || Minus;
+                return (
+                  <div key={tema.id} className="p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-slate-900">{tema.nome}</h4>
+                          {tema.prioritario && <AlertTriangle className="w-4 h-4 text-amber-500" />}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <Badge variant="secondary" className={cn("text-xs", categoriaColors[tema.categoria])}>
+                            {tema.categoria}
+                          </Badge>
+                          <span className={cn("flex items-center gap-1 text-xs", tendenciaColor[tema.tendencia])}>
+                            <TrendIcon className="w-3 h-3" />
+                            {tema.tendencia}
+                          </span>
+                          {tema.mencoes_total && (
+                            <span className="text-xs text-slate-500">{tema.mencoes_total} menções</span>
+                          )}
+                        </div>
+                        <div className="flex gap-4 mt-3 text-xs">
+                          <div>
+                            <span className="text-slate-500">Comunidade:</span>
+                            <span className="ml-1 font-medium">{tema.relevancia_comunidade || 5}/10</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500">Empresa:</span>
+                            <span className="ml-1 font-medium">{tema.relevancia_empresa || 5}/10</span>
+                          </div>
+                        </div>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(tema)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600" onClick={() => deleteMutation.mutate(tema.id)}>
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog */}
       <Dialog open={showDialog} onOpenChange={(open) => { setShowDialog(open); if (!open) resetForm(); }}>
