@@ -31,44 +31,111 @@ export default function LiderancasEmergentes() {
     queryFn: () => base44.entities.Tema.list()
   });
 
+  const { data: casos = [] } = useQuery({
+    queryKey: ['casos-liderancas'],
+    queryFn: () => base44.entities.Caso.list()
+  });
+
   // Calcular citações e relevância de stakeholders
   const stakeholdersComCitacoes = stakeholders.map(stakeholder => {
-    // Contar citações nos registros
+    // 1. Contar citações nos registros
     const citacoes = registros.filter(r => 
       r.participantes?.includes(stakeholder.nome) ||
       r.stakeholders_vinculados?.includes(stakeholder.id) ||
       r.liderancas_vinculadas?.includes(stakeholder.id)
     ).length;
 
-    // Identificar temas críticos (alta urgência/temperatura)
+    // 2. Identificar temas críticos (alta urgência/temperatura)
     const temasCriticos = new Set();
+    const temasAltaPrioridade = new Set();
+    
     registros.forEach(r => {
       const estaVinculado = r.participantes?.includes(stakeholder.nome) ||
                            r.stakeholders_vinculados?.includes(stakeholder.id);
       
       if (estaVinculado) {
+        // Temas críticos (temperatura alta)
         if (r.temperatura_territorio === 'alto' || r.temperatura_territorio === 'critico') {
           (r.temas_identificados || []).forEach(tema => temasCriticos.add(tema));
         }
         
-        // Verificar demandas críticas/urgentes
+        // Temas de alta prioridade (demandas urgentes)
         (r.demandas || []).forEach(d => {
           if (d.urgencia === 'critica' || d.urgencia === 'alta') {
-            (r.temas_identificados || []).forEach(tema => temasCriticos.add(tema));
+            (r.temas_identificados || []).forEach(tema => {
+              temasCriticos.add(tema);
+              temasAltaPrioridade.add(tema);
+            });
           }
         });
       }
     });
 
-    // Score: citações + (temas críticos * 2)
-    const score = citacoes + (temasCriticos.size * 2);
+    // 3. Engajamento em temas prioritários do sistema
+    const temasPrioritarios = temas.filter(t => t.prioritario === true);
+    const engajamentoTemasChave = temasPrioritarios.filter(t => 
+      stakeholder.temas_recorrentes?.includes(t.nome)
+    ).length;
+
+    // 4. Participação ativa em casos relevantes
+    const casosRelevantes = casos.filter(c => 
+      c.stakeholders_envolvidos?.includes(stakeholder.id) &&
+      (c.prioridade === 'alta' || c.prioridade === 'urgente') &&
+      c.status !== 'cancelado'
+    );
+    const participacaoCasosRelevantes = casosRelevantes.length;
+
+    // 5. Score de feedback (da entidade Stakeholder)
+    const feedbackScore = stakeholder.feedbacks_recebidos?.length || 0;
+    const feedbackPositivo = (stakeholder.feedbacks_recebidos || []).filter(f => 
+      f.tipo === 'positivo' || f.descricao?.toLowerCase().includes('liderança')
+    ).length;
+
+    // 6. Engajamento em temas críticos (campo da entidade)
+    const engajamentoCriticoSalvo = stakeholder.engajamento_temas_criticos || 0;
+
+    // CÁLCULO DO SCORE REFINADO:
+    // - Citações base: 1 ponto cada
+    // - Temas críticos: 3 pontos cada
+    // - Temas alta prioridade: 2 pontos cada
+    // - Engajamento em temas-chave do sistema: 4 pontos cada
+    // - Participação em casos relevantes: 5 pontos cada
+    // - Feedback positivo: 3 pontos cada
+    // - Score de engajamento salvo: valor direto
+    const score = 
+      (citacoes * 1) +
+      (temasCriticos.size * 3) +
+      (temasAltaPrioridade.size * 2) +
+      (engajamentoTemasChave * 4) +
+      (participacaoCasosRelevantes * 5) +
+      (feedbackPositivo * 3) +
+      (engajamentoCriticoSalvo);
+
+    // Critério de emergência refinado
+    const emergente = (
+      citacoes >= 3 && 
+      (temasCriticos.size > 0 || participacaoCasosRelevantes > 0 || feedbackPositivo > 0)
+    );
 
     return {
       ...stakeholder,
       citacoes,
       temasCriticos: Array.from(temasCriticos),
+      engajamentoTemasChave,
+      participacaoCasosRelevantes,
+      feedbackPositivo,
+      casosRelevantes,
       score,
-      emergente: citacoes >= 3 && temasCriticos.size > 0
+      emergente,
+      detalhesScore: {
+        citacoes: citacoes * 1,
+        temasCriticos: temasCriticos.size * 3,
+        temasAltaPrioridade: temasAltaPrioridade.size * 2,
+        engajamentoChave: engajamentoTemasChave * 4,
+        casosRelevantes: participacaoCasosRelevantes * 5,
+        feedbacks: feedbackPositivo * 3,
+        engajamentoCritico: engajamentoCriticoSalvo
+      }
     };
   });
 
@@ -93,10 +160,17 @@ export default function LiderancasEmergentes() {
         </CardHeader>
         <CardContent>
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-amber-900">
-              <strong>Critério:</strong> Lideranças emergentes são identificadas com base no <strong>número de citações</strong> nos registros
-              e sua <strong>vinculação a temas críticos</strong> (alta temperatura territorial ou demandas urgentes).
+            <p className="text-sm text-amber-900 mb-2">
+              <strong>Algoritmo de Pontuação:</strong> Score calculado com base em múltiplos fatores:
             </p>
+            <ul className="text-xs text-amber-800 space-y-1">
+              <li>• <strong>Citações</strong> nos registros (1 pt cada)</li>
+              <li>• <strong>Temas críticos</strong> - alta temperatura (3 pts cada)</li>
+              <li>• <strong>Temas alta prioridade</strong> - demandas urgentes (2 pts cada)</li>
+              <li>• <strong>Engajamento em temas-chave</strong> do sistema (4 pts cada)</li>
+              <li>• <strong>Participação em casos relevantes</strong> (5 pts cada)</li>
+              <li>• <strong>Feedback positivo</strong> de stakeholders (3 pts cada)</li>
+            </ul>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -182,14 +256,16 @@ export default function LiderancasEmergentes() {
                       <div className="flex items-center gap-2 text-sm">
                         <TrendingUp className="w-4 h-4 text-blue-600" />
                         <span className="font-medium">{stakeholder.citacoes}</span>
-                        <span className="text-slate-600">citações nos registros</span>
+                        <span className="text-slate-600">citações ({stakeholder.detalhesScore.citacoes} pts)</span>
                       </div>
 
                       {stakeholder.temasCriticos.length > 0 && (
                         <div>
                           <div className="flex items-center gap-2 text-sm mb-2">
                             <AlertTriangle className="w-4 h-4 text-red-600" />
-                            <span className="font-medium text-slate-700">Vinculado a temas críticos:</span>
+                            <span className="font-medium text-slate-700">
+                              Temas críticos ({stakeholder.detalhesScore.temasCriticos} pts):
+                            </span>
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {stakeholder.temasCriticos.slice(0, 5).map((tema, idx) => (
@@ -203,6 +279,30 @@ export default function LiderancasEmergentes() {
                               </Badge>
                             )}
                           </div>
+                        </div>
+                      )}
+
+                      {stakeholder.engajamentoTemasChave > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <TrendingUp className="w-4 h-4 text-green-600" />
+                          <span className="font-medium">{stakeholder.engajamentoTemasChave}</span>
+                          <span className="text-slate-600">temas-chave ({stakeholder.detalhesScore.engajamentoChave} pts)</span>
+                        </div>
+                      )}
+
+                      {stakeholder.participacaoCasosRelevantes > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <AlertTriangle className="w-4 h-4 text-orange-600" />
+                          <span className="font-medium">{stakeholder.participacaoCasosRelevantes}</span>
+                          <span className="text-slate-600">casos relevantes ({stakeholder.detalhesScore.casosRelevantes} pts)</span>
+                        </div>
+                      )}
+
+                      {stakeholder.feedbackPositivo > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <TrendingUp className="w-4 h-4 text-purple-600" />
+                          <span className="font-medium">{stakeholder.feedbackPositivo}</span>
+                          <span className="text-slate-600">feedbacks positivos ({stakeholder.detalhesScore.feedbacks} pts)</span>
                         </div>
                       )}
                     </div>
