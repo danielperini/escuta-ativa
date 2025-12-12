@@ -81,10 +81,11 @@ export default function NovoRegistro() {
     return prazo.toISOString().split('T')[0];
   };
 
-  const processarArquivo = async (file, tipo) => {
+  const processarArquivo = async (file, tipo, tentativa = 1) => {
     setProcessando(true);
     
     try {
+      // Upload do arquivo
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       setFormData(prev => ({
@@ -92,12 +93,14 @@ export default function NovoRegistro() {
         arquivos: [...prev.arquivos, { url: file_url, tipo, nome: file.name }]
       }));
 
-      const promptExtracao = `Extraia TODO o texto deste ${tipo}. ${
-        tipo === 'audio' ? 'Transcreva completamente o áudio.' :
-        tipo === 'video' ? 'Extraia o áudio e transcreva.' :
-        tipo === 'foto' ? 'Extraia texto visível (OCR).' :
-        'Extraia todo o conteúdo textual preservando estrutura.'
-      } Retorne APENAS o texto, sem análise.`;
+      // Prompt específico por tipo
+      const promptExtracao = tipo === 'audio' 
+        ? `Transcreva COMPLETAMENTE este áudio. Aceite qualquer formato de áudio (.ogg, .opus, .mp3, .wav, .m4a, .aac, .webm). Retorne APENAS o texto transcrito, preservando pontuação e estrutura. Se o formato não for suportado nativamente, tente extrair o máximo possível de informação.`
+        : tipo === 'video' 
+        ? `Extraia o áudio deste vídeo e transcreva completamente. Retorne APENAS o texto transcrito.`
+        : tipo === 'foto' 
+        ? `Extraia TODO o texto visível nesta imagem (OCR). Preserve formatação e estrutura.`
+        : `Extraia TODO o conteúdo textual deste documento preservando estrutura e formatação.`;
 
       const extracao = await base44.integrations.Core.InvokeLLM({
         prompt: promptExtracao,
@@ -105,17 +108,40 @@ export default function NovoRegistro() {
         response_json_schema: {
           type: "object",
           properties: {
-            texto_extraido: { type: "string" }
+            texto_extraido: { type: "string" },
+            formato_detectado: { type: "string" },
+            qualidade_extracao: { type: "string" }
           }
         }
       });
 
-      if (extracao.texto_extraido) {
+      if (extracao.texto_extraido && extracao.texto_extraido.trim()) {
         const blocoTexto = `\n\n[${tipo.toUpperCase()} - ${file.name}]\n${extracao.texto_extraido}\n`;
         setTextoConsolidado(prev => prev + blocoTexto);
+        alert(`✅ ${tipo === 'audio' ? 'Áudio transcrito' : 'Arquivo processado'} com sucesso!`);
+      } else {
+        throw new Error('Nenhum conteúdo foi extraído');
       }
     } catch (error) {
-      alert('Erro ao processar arquivo: ' + error.message);
+      console.error(`Erro na tentativa ${tentativa}:`, error);
+      
+      // Retry automático até 2 tentativas
+      if (tentativa < 2) {
+        alert(`⚠️ Tentando novamente... (${tentativa}/2)`);
+        return processarArquivo(file, tipo, tentativa + 1);
+      }
+      
+      // Mensagem amigável após falha
+      const tipoNome = tipo === 'audio' ? 'áudio' : tipo === 'video' ? 'vídeo' : 'arquivo';
+      alert(
+        `❌ Não foi possível processar o ${tipoNome}.\n\n` +
+        `Motivo: ${error.message}\n\n` +
+        `Dicas:\n` +
+        `• Para áudos do WhatsApp (.ogg/.opus): tente gravar novamente\n` +
+        `• Verifique se o arquivo não está corrompido\n` +
+        `• Tente converter para .mp3 ou .wav antes de enviar\n\n` +
+        `O arquivo foi salvo, mas sem transcrição automática.`
+      );
     } finally {
       setProcessando(false);
     }
@@ -472,7 +498,14 @@ export default function NovoRegistro() {
               <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
                 <Mic className="w-8 h-8 text-[#40916C] mb-2" />
                 <span className="text-sm font-medium">Áudio</span>
-                <input type="file" accept="audio/*" className="hidden" onChange={(e) => handleFileUpload(e, 'audio')} disabled={processando} />
+                <span className="text-xs text-slate-400 mt-1">mp3, wav, ogg, opus, m4a</span>
+                <input 
+                  type="file" 
+                  accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a,.aac,.webm" 
+                  className="hidden" 
+                  onChange={(e) => handleFileUpload(e, 'audio')} 
+                  disabled={processando} 
+                />
               </label>
               
               <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
