@@ -53,9 +53,9 @@ export default function VozComunidade() {
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
   const [insights, setInsights] = useState(null);
 
-  const { data: atividades = [], isLoading, refetch: refetchAtividades } = useQuery({
-    queryKey: ['atividades-voz'],
-    queryFn: () => base44.entities.Atividade.list('-created_date', 100),
+  const { data: registros = [], isLoading, refetch: refetchRegistros } = useQuery({
+    queryKey: ['registros-voz'],
+    queryFn: () => base44.entities.Registro.list('-created_date', 200),
     staleTime: 30000,
     refetchInterval: 60000
   });
@@ -66,21 +66,22 @@ export default function VozComunidade() {
     staleTime: 300000
   });
 
-  // Extract all demands from activities
-  const todasDemandas = atividades
-    .filter(a => a.demandas && a.demandas.length > 0)
-    .flatMap(a => 
-      a.demandas.map(d => ({
-        descricao: d,
-        atividade: a,
-        data: a.created_date,
-        comunidade: a.local || a.comunidade,
-        urgencia: 'media'
+  // Extract all demands from registros
+  const todasDemandas = registros
+    .filter(r => r.demandas && r.demandas.length > 0)
+    .flatMap(r => 
+      r.demandas.map(d => ({
+        descricao: typeof d === 'string' ? d : d.descricao,
+        urgencia: typeof d === 'object' ? (d.urgencia || 'media') : 'media',
+        status: typeof d === 'object' ? d.status : 'pendente',
+        registro: r,
+        data: r.created_date || r.data_registro,
+        comunidade: r.comunidade
       }))
     );
 
   // Extract all themes
-  const todosTemas = atividades.flatMap(a => a.temas_identificados || []);
+  const todosTemas = registros.flatMap(r => r.temas_identificados || []);
   const temasCount = todosTemas.reduce((acc, tema) => {
     acc[tema] = (acc[tema] || 0) + 1;
     return acc;
@@ -152,12 +153,14 @@ Seja conciso e objetivo.`;
   }, {});
 
   // Get relevant speeches from last 30 days
-  const falas30Dias = atividades
-    .filter(a => {
-      const daysDiff = Math.floor((new Date() - new Date(a.created_date)) / (1000 * 60 * 60 * 24));
-      return daysDiff <= 30 && a.descricao;
+  const falas30Dias = registros
+    .filter(r => {
+      const dataRegistro = r.created_date || r.data_registro;
+      if (!dataRegistro) return false;
+      const daysDiff = Math.floor((new Date() - new Date(dataRegistro)) / (1000 * 60 * 60 * 24));
+      return daysDiff <= 30 && (r.transcricao || r.descricao);
     })
-    .slice(0, 10);
+    .slice(0, 15);
 
   return (
     <div className="space-y-6">
@@ -170,7 +173,7 @@ Seja conciso e objetivo.`;
         <div className="flex gap-2">
           <Button 
             variant="outline"
-            onClick={() => refetchAtividades()}
+            onClick={() => refetchRegistros()}
             disabled={isLoading}
           >
             <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
@@ -200,29 +203,38 @@ Seja conciso e objetivo.`;
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {falas30Dias.map(atividade => (
+            {falas30Dias.map(registro => (
               <div 
-                key={atividade.id}
-                className="p-4 bg-slate-50 rounded-lg border-l-4 border-l-[#40916C] hover:bg-slate-100 transition-colors"
+                key={registro.id}
+                className="p-4 bg-slate-50 rounded-lg border-l-4 border-l-[#40916C] hover:bg-slate-100 transition-colors cursor-pointer"
+                onClick={() => window.location.href = createPageUrl(`VerRegistro?id=${registro.id}`)}
               >
-                <p className="text-sm text-slate-700 italic mb-2">
-                  "{(atividade.transcricao_ia || atividade.descricao)?.substring(0, 200)}..."
-                </p>
-                <div className="flex items-center gap-3 text-xs text-slate-500">
-                  {(atividade.local || atividade.comunidade) && (
+                <div className="flex items-start gap-3 mb-2">
+                  <MessageCircle className="w-4 h-4 text-[#40916C] flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-slate-700 italic flex-1">
+                    "{(registro.transcricao || registro.descricao || registro.titulo)?.substring(0, 300)}..."
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+                  {registro.comunidade && (
                     <span className="flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
-                      {atividade.local || atividade.comunidade}
+                      {registro.comunidade}
                     </span>
                   )}
-                  {atividade.participantes?.[0] && (
+                  {registro.participantes?.[0] && (
                     <span className="flex items-center gap-1">
                       <Users className="w-3 h-3" />
-                      {atividade.participantes[0]}
+                      {registro.participantes[0]}
                     </span>
                   )}
+                  {registro.sentimento && (
+                    <Badge variant="outline" className={cn("text-xs", sentimentoConfig[registro.sentimento]?.color)}>
+                      {sentimentoConfig[registro.sentimento]?.label}
+                    </Badge>
+                  )}
                   <span>
-                    {format(new Date(atividade.created_date), "dd/MM/yyyy", { locale: ptBR })}
+                    {format(new Date(registro.created_date || registro.data_registro), "dd/MM/yyyy", { locale: ptBR })}
                   </span>
                 </div>
               </div>
@@ -246,7 +258,7 @@ Seja conciso e objetivo.`;
         <Card className="p-4">
           <div className="text-sm text-slate-500">Comunidades Ativas</div>
           <div className="text-2xl font-bold text-slate-900 mt-1">
-            {new Set(atividades.map(a => a.local || a.comunidade).filter(Boolean)).size}
+            {new Set(registros.map(r => r.comunidade).filter(Boolean)).size}
           </div>
         </Card>
         <Card className="p-4">
@@ -401,7 +413,7 @@ Seja conciso e objetivo.`;
                             demanda.urgencia === 'media' ? 'border-l-amber-500' :
                             'border-l-slate-300'
                           )}
-                          onClick={() => window.location.href = createPageUrl(`Atividades`)}
+                          onClick={() => window.location.href = createPageUrl(`VerRegistro?id=${demanda.registro.id}`)}
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1">
@@ -480,8 +492,8 @@ Seja conciso e objetivo.`;
             </CardHeader>
             <CardContent className="space-y-3">
               {Object.entries(sentimentoConfig).map(([key, config]) => {
-                const count = atividades.filter(a => a.sentimento === key).length;
-                const percentage = atividades.length > 0 ? Math.round((count / atividades.length) * 100) : 0;
+                const count = registros.filter(r => r.sentimento === key).length;
+                const percentage = registros.length > 0 ? Math.round((count / registros.length) * 100) : 0;
                 
                 return (
                   <div key={key} className="space-y-1">
