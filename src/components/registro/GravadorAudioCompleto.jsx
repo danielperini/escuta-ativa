@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mic, Square, Play, Pause, Loader2, Upload, X, CheckCircle } from 'lucide-react';
+import { Mic, Square, Play, Pause, Loader2, Upload, X, CheckCircle, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function GravadorAudioCompleto({ onTranscricao, onArquivoProcessado }) {

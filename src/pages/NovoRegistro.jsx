@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import AnalisadorTempoReal from '@/components/registro/AnalisadorTempoReal';
 import DetectorContinuidade from '@/components/continuidade/DetectorContinuidade';
 import DetectorAtores from '@/components/atores/DetectorAtores';
+import GravadorAudioCompleto from '@/components/registro/GravadorAudioCompleto';
 import { criarAgendasAutomaticas, atualizarHistoricoAtor, registrarAuditoria } from '@/components/registro/AutomacaoAgenda';
 import { sincronizarAposRegistro, obterCoordenadas } from '@/components/registro/SincronizadorDados';
 import { criarRiscosSociais } from '@/components/analise/AnalisadorRiscosAvancado';
@@ -42,6 +43,7 @@ export default function NovoRegistro() {
   const [sugestoesIA, setSugestoesIA] = useState(null);
   const [mostrarDetectores, setMostrarDetectores] = useState(false);
   const [novoParticipante, setNovoParticipante] = useState('');
+  const [mostrarGravador, setMostrarGravador] = useState(false);
   const [formData, setFormData] = useState({
     titulo: '',
     tipo: 'conversa_campo',
@@ -150,6 +152,28 @@ export default function NovoRegistro() {
   const handleFileUpload = (e, tipo) => {
     const file = e.target.files[0];
     if (file) processarArquivo(file, tipo);
+  };
+
+  const handleTranscricaoAudio = (transcricao, audioUrl) => {
+    const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
+    setTextoConsolidado(prev => prev + blocoTranscricao);
+    setMostrarGravador(false);
+  };
+
+  const handleArquivoProcessado = (arquivo) => {
+    setFormData(prev => ({
+      ...prev,
+      arquivos: [...prev.arquivos, arquivo]
+    }));
+  };
+
+  const removerArquivo = (index) => {
+    if (confirm('Deseja remover este arquivo?')) {
+      setFormData(prev => ({
+        ...prev,
+        arquivos: prev.arquivos.filter((_, i) => i !== index)
+      }));
+    }
   };
 
   const handleFinalizar = () => {
@@ -483,6 +507,13 @@ export default function NovoRegistro() {
         </div>
       </div>
 
+      {mostrarGravador && (
+        <GravadorAudioCompleto
+          onTranscricao={handleTranscricaoAudio}
+          onArquivoProcessado={handleArquivoProcessado}
+        />
+      )}
+
       <Card className="border-2 border-dashed border-[#40916C]/30">
         <CardContent className="p-8">
           <div className="text-center space-y-4">
@@ -495,10 +526,19 @@ export default function NovoRegistro() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 max-w-3xl mx-auto pt-4">
-              <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+              <button
+                onClick={() => setMostrarGravador(!mostrarGravador)}
+                className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all"
+              >
                 <Mic className="w-8 h-8 text-[#40916C] mb-2" />
+                <span className="text-sm font-medium">Gravar</span>
+                <span className="text-xs text-slate-400 mt-1">Microfone</span>
+              </button>
+              
+              <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                <Upload className="w-8 h-8 text-[#40916C] mb-2" />
                 <span className="text-sm font-medium">Áudio</span>
-                <span className="text-xs text-slate-400 mt-1">mp3, wav, ogg, opus, m4a</span>
+                <span className="text-xs text-slate-400 mt-1">ogg, opus, mp3</span>
                 <input 
                   type="file" 
                   accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a,.aac,.webm" 
@@ -545,13 +585,58 @@ export default function NovoRegistro() {
         </CardContent>
       </Card>
 
+      {formData.arquivos.length > 0 && (
+        <Card className="border-2 border-blue-500">
+          <CardHeader className="bg-blue-50">
+            <CardTitle className="text-base">
+              📎 Arquivos Anexados ({formData.arquivos.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="space-y-2">
+              {formData.arquivos.map((arquivo, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                  <div className="flex items-center gap-3">
+                    {arquivo.tipo === 'audio' ? <Mic className="w-5 h-5 text-blue-600" /> :
+                     arquivo.tipo === 'video' ? <Video className="w-5 h-5 text-purple-600" /> :
+                     arquivo.tipo === 'foto' ? <Camera className="w-5 h-5 text-green-600" /> :
+                     <FileText className="w-5 h-5 text-slate-600" />}
+                    <div>
+                      <p className="text-sm font-medium">{arquivo.nome}</p>
+                      <p className="text-xs text-slate-500">{arquivo.tipo}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => window.open(arquivo.url, '_blank')}
+                    >
+                      Ver
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removerArquivo(index)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="border-2 border-[#40916C]">
         <CardHeader className="bg-emerald-50">
           <CardTitle className="flex items-center gap-2 text-base">
             <FileText className="w-5 h-5" />
             Texto Consolidado
-            {formData.arquivos.length > 0 && (
-              <Badge className="bg-emerald-600">{formData.arquivos.length} arquivo(s)</Badge>
+            {textoConsolidado.length > 0 && (
+              <Badge className="bg-emerald-600">{textoConsolidado.length} caracteres</Badge>
             )}
           </CardTitle>
         </CardHeader>
