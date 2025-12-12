@@ -21,10 +21,8 @@ export default function LiderancasEmergentes() {
     queryFn: () => base44.entities.Registro.list('-created_date', 500)
   });
 
-  const { data: comunidades = [] } = useQuery({
-    queryKey: ['comunidades'],
-    queryFn: () => base44.entities.Comunidade.list()
-  });
+  // Extrair comunidades únicas dos stakeholders
+  const comunidadesStakeholders = [...new Set(stakeholders.map(s => s.comunidade).filter(Boolean))].sort();
 
   const { data: temas = [] } = useQuery({
     queryKey: ['temas'],
@@ -182,8 +180,8 @@ export default function LiderancasEmergentes() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todas</SelectItem>
-                  {comunidades.map(c => (
-                    <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                  {comunidadesStakeholders.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

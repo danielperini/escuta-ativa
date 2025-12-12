@@ -13,10 +13,8 @@ export default function StorytellingTerritorial() {
   const [carregando, setCarregando] = useState(false);
   const [narrativa, setNarrativa] = useState('');
 
-  const { data: comunidades = [] } = useQuery({
-    queryKey: ['comunidades'],
-    queryFn: () => base44.entities.Comunidade.list()
-  });
+  // Extrair comunidades únicas dos registros
+  const comunidadesUnicas = [...new Set(registros.map(r => r.comunidade).filter(Boolean))].sort();
 
   const { data: registros = [] } = useQuery({
     queryKey: ['registros-story'],
@@ -37,14 +35,11 @@ export default function StorytellingTerritorial() {
     if (!comunidadeSelecionada) return;
 
     setCarregando(true);
-    
-    const comunidade = comunidades.find(c => c.id === comunidadeSelecionada);
-    if (!comunidade) return;
 
     // Filtrar dados da comunidade
-    const registrosComunidade = registros.filter(r => r.comunidade === comunidade.nome);
-    const stakeholdersComunidade = stakeholders.filter(s => s.comunidade === comunidade.nome);
-    const casosComunidade = casos.filter(c => c.comunidade === comunidade.nome);
+    const registrosComunidade = registros.filter(r => r.comunidade === comunidadeSelecionada);
+    const stakeholdersComunidade = stakeholders.filter(s => s.comunidade === comunidadeSelecionada);
+    const casosComunidade = casos.filter(c => c.comunidade === comunidadeSelecionada);
 
     // Extrair temas e demandas
     const temas = [...new Set(registrosComunidade.flatMap(r => r.temas_identificados || []))];
@@ -63,7 +58,7 @@ export default function StorytellingTerritorial() {
       `${c.titulo}: ${c.descricao?.substring(0, 150)}`
     ).join('\n');
 
-    const prompt = `Você é um jornalista narrativo especializado em histórias comunitárias. Crie uma narrativa envolvente sobre a comunidade "${comunidade.nome}".
+    const prompt = `Você é um jornalista narrativo especializado em histórias comunitárias. Crie uma narrativa envolvente sobre a comunidade "${comunidadeSelecionada}".
 
 **ESTILO:**
 - Use frases curtas e diretas
@@ -81,7 +76,7 @@ export default function StorytellingTerritorial() {
 
 **DADOS DISPONÍVEIS:**
 
-Município/Comunidade: ${comunidade.nome}
+Município/Comunidade: ${comunidadeSelecionada}
 
 Registros recentes (resumo):
 ${contextoRegistros}
@@ -148,8 +143,8 @@ Gere a narrativa em português do Brasil, em texto corrido.`;
                   <SelectValue placeholder="Escolha uma comunidade para gerar a narrativa" />
                 </SelectTrigger>
                 <SelectContent>
-                  {comunidades.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                  {comunidadesUnicas.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

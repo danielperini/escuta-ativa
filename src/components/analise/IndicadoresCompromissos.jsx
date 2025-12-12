@@ -24,10 +24,8 @@ export default function IndicadoresCompromissos() {
         queryFn: () => base44.entities.Compromisso.list()
     });
 
-    const { data: comunidades = [] } = useQuery({
-        queryKey: ['comunidades-indicadores'],
-        queryFn: () => base44.entities.Comunidade.list()
-    });
+    // Extrair comunidades únicas dos compromissos
+    const comunidadesCompromissos = [...new Set(compromissos.map(c => c.comunidade).filter(Boolean))].sort();
 
     // Filtrar por período
     const compromissosFiltrados = compromissos.filter(c => {
@@ -59,36 +57,16 @@ export default function IndicadoresCompromissos() {
 
     // Compromissos por comunidade
     const compromissosPorComunidade = {};
-    comunidades.forEach(com => {
-        const compromissosCom = compromissosFiltrados.filter(c => c.comunidade === com.nome);
+    comunidadesCompromissos.forEach(comunidade => {
+        const compromissosCom = compromissosFiltrados.filter(c => c.comunidade === comunidade);
         const cumpridosCom = compromissosCom.filter(c => c.status === "concluido").length;
         const atrasadosCom = compromissosCom.filter(c => c.status === "atrasado").length;
-        compromissosPorComunidade[com.nome] = {
+        compromissosPorComunidade[comunidade] = {
             total: compromissosCom.length,
             cumpridos: cumpridosCom,
             atrasados: atrasadosCom,
             taxa: compromissosCom.length > 0 ? Math.round((cumpridosCom / compromissosCom.length) * 100) : 0
         };
-    });
-
-    // Compromissos por região (agregando comunidades)
-    const compromissosPorRegiao = {};
-    comunidades.forEach(com => {
-        const regiao = com.estado || "Região não especificada";
-        if (!compromissosPorRegiao[regiao]) {
-            compromissosPorRegiao[regiao] = { total: 0, cumpridos: 0, atrasados: 0 };
-        }
-        const dados = compromissosPorComunidade[com.nome];
-        if (dados) {
-            compromissosPorRegiao[regiao].total += dados.total;
-            compromissosPorRegiao[regiao].cumpridos += dados.cumpridos;
-            compromissosPorRegiao[regiao].atrasados += dados.atrasados;
-        }
-    });
-
-    Object.keys(compromissosPorRegiao).forEach(regiao => {
-        const dados = compromissosPorRegiao[regiao];
-        dados.taxa = dados.total > 0 ? Math.round((dados.cumpridos / dados.total) * 100) : 0;
     });
 
     const exportarRelatorio = () => {
@@ -132,8 +110,8 @@ export default function IndicadoresCompromissos() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="todas">Todas</SelectItem>
-                                    {comunidades.map(c => (
-                                        <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                                    {comunidadesCompromissos.map(c => (
+                                        <SelectItem key={c} value={c}>{c}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -243,40 +221,7 @@ export default function IndicadoresCompromissos() {
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5" />
-                        Taxa de Cumprimento por Região
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {Object.entries(compromissosPorRegiao)
-                            .filter(([_, dados]) => dados.total > 0)
-                            .sort((a, b) => b[1].taxa - a[1].taxa)
-                            .map(([regiao, dados]) => (
-                                <div key={regiao} className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium">{regiao}</span>
-                                            <Badge variant="outline">{dados.cumpridos}/{dados.total}</Badge>
-                                            {dados.atrasados > 0 && (
-                                                <Badge className="bg-red-100 text-red-800">
-                                                    {dados.atrasados} atrasados
-                                                </Badge>
-                                            )}
-                                        </div>
-                                        <span className="text-sm font-bold" style={{ color: '#F2B632' }}>
-                                            {dados.taxa}%
-                                        </span>
-                                    </div>
-                                    <Progress value={dados.taxa} className="h-2" />
-                                </div>
-                            ))}
-                    </div>
-                </CardContent>
-            </Card>
+
 
             <Card>
                 <CardHeader>

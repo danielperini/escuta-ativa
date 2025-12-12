@@ -13,7 +13,7 @@ import { createPageUrl } from "@/utils";
 
 export default function PainelPendencias() {
     const [filterComunidade, setFilterComunidade] = useState('todos');
-    const [filterTema, setFilterTema] = useState('todos');
+  
     const { data: atividades = [] } = useQuery({
         queryKey: ['atividades-pendencias'],
         queryFn: () => base44.entities.Atividade.list('-created_date', 500)

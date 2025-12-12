@@ -25,10 +25,8 @@ export default function GraficosAnalise() {
     queryFn: () => base44.entities.Stakeholder.list()
   });
 
-  const { data: comunidades = [] } = useQuery({
-    queryKey: ['comunidades'],
-    queryFn: () => base44.entities.Comunidade.list()
-  });
+  // Extrair comunidades únicas dos registros
+  const comunidadesRegistros = [...new Set(registros.map(r => r.comunidade).filter(Boolean))].sort();
 
   const { data: temas = [] } = useQuery({
     queryKey: ['temas'],
@@ -137,8 +135,8 @@ export default function GraficosAnalise() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todas</SelectItem>
-                  {comunidades.map(c => (
-                    <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                  {comunidadesRegistros.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
