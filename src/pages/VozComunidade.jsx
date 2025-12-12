@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '@/utils';
+import Pagination from '@/components/shared/Pagination';
 
 const urgenciaConfig = {
   baixa: { label: 'Baixa', color: 'bg-slate-100 text-slate-700' },
@@ -52,6 +53,9 @@ export default function VozComunidade() {
   const [filterUrgencia, setFilterUrgencia] = useState('todos');
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
   const [insights, setInsights] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPageFalas, setCurrentPageFalas] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: registros = [], isLoading, refetch: refetchRegistros } = useQuery({
     queryKey: ['registros-voz'],
@@ -159,8 +163,33 @@ Seja conciso e objetivo.`;
       if (!dataRegistro) return false;
       const daysDiff = Math.floor((new Date() - new Date(dataRegistro)) / (1000 * 60 * 60 * 24));
       return daysDiff <= 30 && (r.transcricao || r.descricao);
-    })
-    .slice(0, 15);
+    });
+
+  const totalPagesFalas = Math.ceil(falas30Dias.length / itemsPerPage);
+  const paginatedFalas = falas30Dias.slice(
+    (currentPageFalas - 1) * itemsPerPage,
+    currentPageFalas * itemsPerPage
+  );
+
+  // Paginate demands timeline
+  const demandas30Dias = filteredDemandas.filter(d => {
+    const daysDiff = Math.floor((new Date() - new Date(d.data)) / (1000 * 60 * 60 * 24));
+    return daysDiff <= 30;
+  });
+
+  const totalPagesDemandas = Math.ceil(demandas30Dias.length / itemsPerPage);
+  const paginatedDemandas = demandas30Dias.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterComunidade, filterUrgencia]);
+
+  React.useEffect(() => {
+    setCurrentPageFalas(1);
+  }, [registros.length]);
 
   return (
     <div className="space-y-6">
@@ -203,7 +232,7 @@ Seja conciso e objetivo.`;
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {falas30Dias.map(registro => (
+            {paginatedFalas.map(registro => (
               <div 
                 key={registro.id}
                 className="p-4 bg-slate-50 rounded-lg border-l-4 border-l-[#40916C] hover:bg-slate-100 transition-colors cursor-pointer"
@@ -239,6 +268,17 @@ Seja conciso e objetivo.`;
                 </div>
               </div>
             ))}
+            {falas30Dias.length > itemsPerPage && (
+              <div className="pt-4 border-t">
+                <Pagination
+                  currentPage={currentPageFalas}
+                  totalPages={totalPagesFalas}
+                  onPageChange={setCurrentPageFalas}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={falas30Dias.length}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -381,7 +421,7 @@ Seja conciso e objetivo.`;
               Array(3).fill(0).map((_, i) => (
                 <Skeleton key={i} className="h-32 rounded-xl" />
               ))
-            ) : Object.keys(groupedByDate).length === 0 ? (
+            ) : paginatedDemandas.length === 0 ? (
               <Card className="p-12 text-center">
                 <MessageCircle className="w-12 h-12 mx-auto mb-4 text-slate-300" />
                 <h3 className="text-lg font-medium text-slate-900 mb-2">Nenhuma demanda encontrada</h3>
@@ -390,7 +430,65 @@ Seja conciso e objetivo.`;
                 </p>
               </Card>
             ) : (
-              Object.entries(groupedByDate).map(([dateKey, demandas]) => (
+              <>
+                {paginatedDemandas.map((demanda, idx) => {
+                  const urgencia = urgenciaConfig[demanda.urgencia] || urgenciaConfig.media;
+                  
+                  return (
+                    <Card 
+                      key={idx}
+                      className={cn(
+                        "p-4 border-l-4 cursor-pointer hover:shadow-md transition-all",
+                        demanda.urgencia === 'critica' ? 'border-l-red-500' :
+                        demanda.urgencia === 'alta' ? 'border-l-orange-500' :
+                        demanda.urgencia === 'media' ? 'border-l-amber-500' :
+                        'border-l-slate-300'
+                      )}
+                      onClick={() => window.location.href = createPageUrl(`VerRegistro?id=${demanda.registro.id}`)}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <p className="text-slate-900">{demanda.descricao}</p>
+                          <div className="flex items-center gap-3 mt-2 flex-wrap">
+                            <Badge variant="secondary" className={cn("text-xs", urgencia.color)}>
+                              {urgencia.label}
+                            </Badge>
+                            {demanda.comunidade && (
+                              <span className="flex items-center gap-1 text-xs text-slate-500">
+                                <MapPin className="w-3.5 h-3.5" />
+                                {demanda.comunidade}
+                              </span>
+                            )}
+                            <span className="flex items-center gap-1 text-xs text-slate-500">
+                              <Clock className="w-3.5 h-3.5" />
+                              {formatDistanceToNow(new Date(demanda.data), { addSuffix: true, locale: ptBR })}
+                            </span>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-slate-300" />
+                      </div>
+                    </Card>
+                  );
+                })}
+
+                {demandas30Dias.length > itemsPerPage && (
+                  <Card className="p-4">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPagesDemandas}
+                      onPageChange={setCurrentPage}
+                      itemsPerPage={itemsPerPage}
+                      totalItems={demandas30Dias.length}
+                    />
+                  </Card>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* OLD CODE - Remove this groupedByDate implementation */}
+          <div className="hidden">
+            {Object.entries(groupedByDate).map(([dateKey, demandas]) => (
                 <div key={dateKey}>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-3 h-3 rounded-full bg-[#40916C]" />
@@ -443,6 +541,7 @@ Seja conciso e objetivo.`;
                 </div>
               ))
             )}
+          </div>
           </div>
         </div>
 

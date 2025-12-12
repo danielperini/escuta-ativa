@@ -64,6 +64,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import Pagination from '@/components/shared/Pagination';
 
 const tipoConfig = {
   lideranca: { label: 'Liderança', color: 'bg-purple-100 text-purple-700' },
@@ -97,6 +98,8 @@ export default function Atores() {
   const [editingAtor, setEditingAtor] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [viewingAtor, setViewingAtor] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const { data: atores = [], isLoading, refetch: refetchAtores } = useQuery({
     queryKey: ['atores'],
@@ -149,6 +152,16 @@ export default function Atores() {
     const matchComunidade = filterComunidade === 'todos' || a.comunidade === filterComunidade;
     return matchSearch && matchTipo && matchComunidade;
   });
+
+  const totalPages = Math.ceil(filteredAtores.length / itemsPerPage);
+  const paginatedAtores = filteredAtores.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterTipo, filterComunidade]);
 
   if (viewingAtor) {
     return (
@@ -243,7 +256,7 @@ export default function Atores() {
           Array(6).fill(0).map((_, i) => (
             <Skeleton key={i} className="h-48 rounded-xl" />
           ))
-        ) : filteredAtores.length === 0 ? (
+        ) : paginatedAtores.length === 0 ? (
           <Card className="col-span-full p-12 text-center">
             <Users className="w-12 h-12 mx-auto mb-4 text-slate-300" />
             <h3 className="text-lg font-medium text-slate-900 mb-2">Nenhum ator encontrado</h3>
@@ -264,7 +277,7 @@ export default function Atores() {
             )}
           </Card>
         ) : (
-          filteredAtores.map(ator => {
+          paginatedAtores.map(ator => {
             const tipo = tipoConfig[ator.tipo] || tipoConfig.outro;
             const influencia = influenciaConfig[ator.nivel_influencia] || influenciaConfig.medio;
             const atividade = atividadeConfig[ator.nivel_atividade] || atividadeConfig.baixo;
@@ -363,6 +376,19 @@ export default function Atores() {
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && filteredAtores.length > 0 && (
+        <Card className="p-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredAtores.length}
+          />
+        </Card>
+      )}
 
       {/* Dialog */}
       <Dialog open={showDialog} onOpenChange={(open) => { 

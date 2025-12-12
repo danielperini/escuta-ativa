@@ -47,6 +47,9 @@ export default function MapaStakeholders() {
     queryFn: () => base44.entities.Comunidade.list()
   });
 
+  // Obter todas comunidades dos stakeholders
+  const comunidadesStakeholders = [...new Set(stakeholders.map(s => s.comunidade).filter(Boolean))];
+
   // Filtrar stakeholders
   const stakeholdersFiltrados = stakeholders.filter(s => {
     const matchTipo = filterTipo === 'todos' || s.tipo === filterTipo;
@@ -158,8 +161,8 @@ export default function MapaStakeholders() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todas Comunidades</SelectItem>
-              {comunidades.map(c => (
-                <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+              {comunidadesStakeholders.sort().map(nome => (
+                <SelectItem key={nome} value={nome}>{nome}</SelectItem>
               ))}
             </SelectContent>
           </Select>

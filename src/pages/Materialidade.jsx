@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import ComparadorPeriodos from "../components/analise/ComparadorPeriodos";
 import ResumoTemas from "@/components/analise/ResumoTemas";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Pagination from '@/components/shared/Pagination';
 
 const categoriaColors = {
   ambiental: 'bg-emerald-100 text-emerald-700',
@@ -81,6 +82,8 @@ export default function Materialidade() {
   const [showDialog, setShowDialog] = useState(false);
   const [editingTema, setEditingTema] = useState(null);
   const [modoAdicaoInterativa, setModoAdicaoInterativa] = useState(false);
+  const [currentPageLista, setCurrentPageLista] = useState(1);
+  const itemsPerPage = 15;
   const [formData, setFormData] = useState({
     nome: '',
     categoria: 'social',
@@ -162,6 +165,16 @@ export default function Materialidade() {
     const matchCategoria = filterCategoria === 'todos' || t.categoria === filterCategoria;
     return matchSearch && matchCategoria;
   });
+
+  const totalPages = Math.ceil(filteredTemas.length / itemsPerPage);
+  const paginatedTemas = filteredTemas.slice(
+    (currentPageLista - 1) * itemsPerPage,
+    currentPageLista * itemsPerPage
+  );
+
+  React.useEffect(() => {
+    setCurrentPageLista(1);
+  }, [search, filterCategoria]);
 
   // Calculate matrix positions
   const getMatrixPosition = (tema) => {
@@ -435,8 +448,8 @@ export default function Materialidade() {
 
         <TabsContent value="lista">
           <Card>
-            <CardContent className="space-y-3 max-h-[600px] overflow-y-auto pt-6">
-              {filteredTemas.map(tema => {
+            <CardContent className="space-y-3 pt-6">
+              {paginatedTemas.map(tema => {
                 const TrendIcon = tendenciaIcon[tema.tendencia] || Minus;
                 return (
                   <div key={tema.id} className="p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
@@ -489,11 +502,22 @@ export default function Materialidade() {
                     </div>
                   </div>
                 );
-              })}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                })}
+                {filteredTemas.length > itemsPerPage && (
+                <div className="pt-4 border-t">
+                <Pagination
+                  currentPage={currentPageLista}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPageLista}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={filteredTemas.length}
+                />
+                </div>
+                )}
+                </CardContent>
+                </Card>
+                </TabsContent>
+                </Tabs>
 
       {/* Dialog */}
       <Dialog open={showDialog} onOpenChange={(open) => { setShowDialog(open); if (!open) resetForm(); }}>

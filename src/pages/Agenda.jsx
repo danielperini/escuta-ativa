@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import CompromissosAtrasados from '@/components/agenda/CompromissosAtrasados';
+import Pagination from '@/components/shared/Pagination';
 
 const statusConfig = {
   futura: { label: 'Futura', color: 'bg-purple-100 text-purple-700' },
@@ -65,6 +66,8 @@ export default function Agenda() {
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
   const [editingAgenda, setEditingAgenda] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   const [formData, setFormData] = useState({
     titulo: '',
     data: '',
@@ -151,6 +154,17 @@ export default function Agenda() {
     acordada: agendas.filter(a => a.status === 'acordada')
   };
 
+  const allAgendas = Object.values(agendasPorStatus).flat();
+  const totalPages = Math.ceil(allAgendas.length / itemsPerPage);
+  const paginatedAgendas = allAgendas.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [agendas.length]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -183,25 +197,10 @@ export default function Agenda() {
       {/* Compromissos Atrasados */}
       <CompromissosAtrasados />
 
-      {/* Agendas by Status */}
+      {/* Agendas */}
       <div className="space-y-6">
-        {Object.entries(statusConfig).map(([statusKey, statusInfo]) => {
-          const items = agendasPorStatus[statusKey];
-          
-          if (items.length === 0) return null;
-
-          return (
-            <div key={statusKey}>
-              <div className="flex items-center gap-3 mb-4">
-                <Badge variant="secondary" className={cn("text-sm", statusInfo.color)}>
-                  {statusInfo.label}
-                </Badge>
-                <div className="flex-1 h-px bg-slate-200" />
-                <span className="text-sm text-slate-500">{items.length} itens</span>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {items.map(agenda => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {paginatedAgendas.map(agenda => {
                   if (!agenda.data) return null;
                   
                   let dataAgenda;
@@ -213,6 +212,7 @@ export default function Agenda() {
                   }
                   
                   const isPast = isBefore(dataAgenda, startOfDay(new Date()));
+                  const status = statusConfig[agenda.status] || statusConfig.prevista;
                   
                   return (
                     <Card 
@@ -226,8 +226,15 @@ export default function Agenda() {
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-slate-900">{agenda.titulo}</h3>
-                            <p className="text-sm text-slate-500 mt-1 capitalize">{agenda.tipo}</p>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-slate-900">{agenda.titulo}</h3>
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge variant="secondary" className={cn("text-xs", status.color)}>
+                                {status.label}
+                              </Badge>
+                              <span className="text-xs text-slate-500 capitalize">{agenda.tipo}</span>
+                            </div>
                           </div>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -273,10 +280,20 @@ export default function Agenda() {
                     </Card>
                   );
                 })}
-              </div>
-            </div>
-          );
-        })}
+        </div>
+
+        {/* Pagination */}
+        {!isLoading && allAgendas.length > 0 && (
+          <Card className="p-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={allAgendas.length}
+            />
+          </Card>
+        )}
       </div>
 
       {isLoading && (
