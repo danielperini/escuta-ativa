@@ -4,13 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Clock, Calendar, MessageSquare } from "lucide-react";
+import { AlertTriangle, Clock, Calendar, MessageSquare, MapPin, CheckCircle2, ExternalLink } from "lucide-react";
 import moment from "moment";
 import RegistroDevolutiva from "./RegistroDevolutiva";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function MonitorDevolutivas() {
+    const navigate = useNavigate();
     const [devolutivasAtrasadas, setDevolutivasAtrasadas] = useState([]);
     const [registroSelecionado, setRegistroSelecionado] = useState(null);
+    const [autoDismissed, setAutoDismissed] = useState(false);
 
     const { data: atividades = [] } = useQuery({
         queryKey: ['atividades-devolutivas'],
@@ -25,6 +29,17 @@ export default function MonitorDevolutivas() {
     useEffect(() => {
         verificarDevolutivasAtrasadas();
     }, [atividades, user]);
+
+    // Auto-dismiss após 10 segundos
+    useEffect(() => {
+        if (devolutivasAtrasadas.length > 0 && !autoDismissed) {
+            const timer = setTimeout(() => {
+                setAutoDismissed(true);
+                setDevolutivasAtrasadas([]);
+            }, 10000);
+            return () => clearTimeout(timer);
+        }
+    }, [devolutivasAtrasadas, autoDismissed]);
 
     const verificarDevolutivasAtrasadas = () => {
         const hoje = new Date();
@@ -117,13 +132,30 @@ export default function MonitorDevolutivas() {
                                             </div>
                                         </div>
                                     </div>
-                                    <Badge className="bg-red-600">
-                                        {diasAtraso} dias de atraso
-                                    </Badge>
-                                </div>
+                                    <div className="flex items-center gap-2">
+                                        <Badge className="bg-red-600">
+                                            {diasAtraso} dias de atraso
+                                        </Badge>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => navigate(createPageUrl('Compromissos'))}
+                                            className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                        >
+                                            <ExternalLink className="w-3 h-3" />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => setRegistroSelecionado(ativ)}
+                                            className="bg-emerald-600 hover:bg-emerald-700"
+                                        >
+                                            <CheckCircle2 className="w-3 h-3" />
+                                        </Button>
+                                    </div>
+                                    </div>
 
-                                {ativ.demandas && ativ.demandas.length > 0 && (
-                                    <div className="mb-3">
+                                    {ativ.demandas && ativ.demandas.length > 0 && (
+                                    <div className="mt-3">
                                         <p className="text-xs font-semibold text-gray-700 mb-1">Demandas:</p>
                                         <ul className="space-y-1">
                                             {ativ.demandas.slice(0, 2).map((d, i) => (
@@ -131,16 +163,7 @@ export default function MonitorDevolutivas() {
                                             ))}
                                         </ul>
                                     </div>
-                                )}
-
-                                <Button
-                                    size="sm"
-                                    className="w-full bg-blue-600 hover:bg-blue-700"
-                                    onClick={() => setRegistroSelecionado(ativ)}
-                                >
-                                    <MessageSquare className="w-4 h-4 mr-2" />
-                                    Registrar Devolutiva Agora
-                                </Button>
+                                    )}
                             </div>
                         );
                     })}

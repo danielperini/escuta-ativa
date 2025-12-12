@@ -395,7 +395,7 @@ export default function Compromissos() {
                         onClick={() => handleQuickStatusChange(compromisso, 'concluido')}
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        Concluir
+                        Resolvido
                       </Button>
                     )}
                     <DropdownMenu>
