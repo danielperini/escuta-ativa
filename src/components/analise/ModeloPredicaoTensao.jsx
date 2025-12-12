@@ -65,6 +65,12 @@ export default function ModeloPredicaoTensao() {
         queryFn: () => base44.entities.RiscoSocial.list()
     });
 
+    // Comunidades únicas dos registros
+    const comunidadesUnicas = React.useMemo(() => 
+        [...new Set(registros.map(r => r.comunidade).filter(Boolean))].sort(),
+        [registros]
+    );
+
     // Buscar municípios do estado selecionado
     const buscarMunicipios = async (estadoSigla) => {
         setCarregandoMunicipios(true);
@@ -99,9 +105,6 @@ Retorne uma lista com os 20 municípios mais populosos.`;
             setMunicipiosEstado([]);
         }
     }, [filterEstado]);
-
-    // Comunidades únicas dos registros
-    const comunidadesUnicas = [...new Set(registros.map(r => r.comunidade).filter(Boolean))].sort();
 
     const calcularTensao = async () => {
         setAnalisando(true);

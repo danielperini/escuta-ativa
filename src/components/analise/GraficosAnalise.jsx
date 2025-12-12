@@ -25,13 +25,16 @@ export default function GraficosAnalise() {
     queryFn: () => base44.entities.Stakeholder.list()
   });
 
-  // Extrair comunidades únicas dos registros
-  const comunidadesRegistros = [...new Set(registros.map(r => r.comunidade).filter(Boolean))].sort();
-
   const { data: temas = [] } = useQuery({
     queryKey: ['temas'],
     queryFn: () => base44.entities.Tema.list()
   });
+
+  // Extrair comunidades únicas dos registros
+  const comunidadesRegistros = React.useMemo(() => 
+    [...new Set(registros.map(r => r.comunidade).filter(Boolean))].sort(),
+    [registros]
+  );
 
   // Filtrar registros
   const registrosFiltrados = registros.filter(r => {
