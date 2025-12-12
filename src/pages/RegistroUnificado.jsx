@@ -508,7 +508,7 @@ Extraia:
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-sm font-medium text-slate-700 mb-3">📝 Para Transcrição</h3>
-                    <div className="grid grid-cols-2 gap-3 max-w-md">
+                    <div className="grid grid-cols-3 gap-3 max-w-2xl">
                       <button
                         onClick={() => {
                           setTranscricaoTempoReal(!transcricaoTempoReal);
@@ -531,6 +531,35 @@ Extraia:
                         <Mic className="w-8 h-8 text-[#40916C] mb-2" />
                         <span className="text-sm font-medium">Gravar Áudio</span>
                       </button>
+
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                        <Upload className="w-8 h-8 text-[#40916C] mb-2" />
+                        <span className="text-sm font-medium">Upload Áudio</span>
+                        <span className="text-xs text-slate-400 mt-1">WhatsApp/MP3</span>
+                        <input 
+                          type="file" 
+                          accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a,.aac,.webm,.mp4" 
+                          className="hidden" 
+                          onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              setEtapaAtual('texto');
+                              setMostrarGravador(true);
+                              // Aguardar renderização do componente
+                              setTimeout(() => {
+                                // Disparar processamento através do GravadorAudioCompleto
+                                const fileInput = document.querySelector('input[type="file"][accept*="audio"]');
+                                if (fileInput) {
+                                  const event = new Event('change', { bubbles: true });
+                                  Object.defineProperty(event, 'target', { value: { files: [file] }, enumerable: true });
+                                  fileInput.dispatchEvent(event);
+                                }
+                              }, 100);
+                            }
+                          }}
+                          disabled={processando}
+                        />
+                      </label>
                     </div>
                   </div>
 
