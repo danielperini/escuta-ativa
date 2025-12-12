@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Mic, Square, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
-export default function TranscricaoNativa({ onTranscricao }) {
+export default function TranscricaoNativa({ onTranscricaoFinal, onTranscricaoTempoReal }) {
   const [gravando, setGravando] = useState(false);
   const [transcricao, setTranscricao] = useState('');
   const [suportado, setSuportado] = useState(true);
@@ -28,20 +28,33 @@ export default function TranscricaoNativa({ onTranscricao }) {
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
-      let transcricaoFinal = '';
+      let transcricaoCompleta = '';
       let transcricaoInterina = '';
-
+      
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
+        
         if (event.results[i].isFinal) {
-          transcricaoFinal += transcript + ' ';
+          transcricaoCompleta += transcript + ' ';
         } else {
           transcricaoInterina += transcript;
         }
       }
-
-      if (transcricaoFinal) {
-        setTranscricao(prev => prev + transcricaoFinal);
+      
+      const textoAtualizado = transcricaoCompleta ? 
+        (transcricao + transcricaoCompleta).trim() : 
+        (transcricao + ' ' + transcricaoInterina).trim();
+      
+      setTranscricao(textoAtualizado);
+      
+      // Callback em tempo real para atualizar o texto consolidado
+      if (onTranscricaoTempoReal && textoAtualizado) {
+        onTranscricaoTempoReal(textoAtualizado);
+      }
+      
+      // Salvar apenas texto final
+      if (transcricaoCompleta) {
+        setTranscricao(prev => prev + transcricaoCompleta);
       }
     };
 
@@ -69,7 +82,7 @@ export default function TranscricaoNativa({ onTranscricao }) {
         recognitionRef.current.stop();
       }
     };
-  }, [gravando]);
+  }, [gravando, transcricao]);
 
   const iniciarGravacao = () => {
     if (!recognitionRef.current) return;
@@ -101,8 +114,8 @@ export default function TranscricaoNativa({ onTranscricao }) {
     
     setGravando(false);
 
-    if (transcricao && onTranscricao) {
-      onTranscricao(transcricao);
+    if (transcricao && onTranscricaoFinal) {
+      onTranscricaoFinal(transcricao);
     }
   };
 
@@ -138,58 +151,50 @@ export default function TranscricaoNativa({ onTranscricao }) {
   }
 
   return (
-    <Card className="border-2 border-blue-500">
-      <CardHeader className="bg-blue-50">
-        <CardTitle className="flex items-center gap-2 text-blue-900">
-          <Mic className="w-5 h-5" />
-          Transcrição em Tempo Real
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-6 space-y-4">
-        <div className="text-center">
-          {gravando ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-4 h-4 rounded-full bg-red-600 animate-pulse" />
-                <span className="text-2xl font-mono font-bold text-red-600">
-                  {formatarTempo(duracao)}
-                </span>
-              </div>
-              <Button onClick={pararGravacao} variant="destructive" size="lg">
-                <Square className="w-5 h-5 mr-2" />
-                Parar Gravação
-              </Button>
+    <div className="space-y-4">
+      <div className="text-center">
+        {gravando ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-4 h-4 rounded-full bg-red-600 animate-pulse" />
+              <span className="text-2xl font-mono font-bold text-red-600">
+                {formatarTempo(duracao)}
+              </span>
             </div>
-          ) : (
-            <Button onClick={iniciarGravacao} className="bg-red-600 hover:bg-red-700" size="lg">
-              <Mic className="w-5 h-5 mr-2" />
-              Iniciar Gravação e Transcrição
+            <Button onClick={pararGravacao} variant="destructive" size="lg">
+              <Square className="w-5 h-5 mr-2" />
+              Parar Transcrição
             </Button>
-          )}
-        </div>
-
-        {transcricao && (
-          <div className="p-4 bg-emerald-50 border-2 border-emerald-500 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              {gravando ? (
-                <Loader2 className="w-5 h-5 text-emerald-600 animate-spin" />
-              ) : (
-                <CheckCircle className="w-5 h-5 text-emerald-600" />
-              )}
-              <h4 className="font-semibold text-emerald-900">
-                {gravando ? 'Transcrevendo...' : 'Transcrição Completa'}
-              </h4>
-            </div>
-            <p className="text-sm text-slate-700 whitespace-pre-wrap">{transcricao}</p>
           </div>
+        ) : (
+          <Button onClick={iniciarGravacao} className="bg-emerald-600 hover:bg-emerald-700" size="lg">
+            <Mic className="w-5 h-5 mr-2" />
+            Iniciar Transcrição em Tempo Real
+          </Button>
         )}
+      </div>
 
-        <p className="text-xs text-slate-500 text-center">
-          ✓ Transcrição automática em tempo real
-          <br />
-          Funciona apenas em Chrome e Edge
-        </p>
-      </CardContent>
-    </Card>
+      {transcricao && (
+        <div className="p-4 bg-emerald-50 border-2 border-emerald-500 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            {gravando ? (
+              <Loader2 className="w-5 h-5 text-emerald-600 animate-spin" />
+            ) : (
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
+            )}
+            <h4 className="font-semibold text-emerald-900">
+              {gravando ? 'Transcrevendo ao vivo...' : 'Transcrição Completa'}
+            </h4>
+          </div>
+          <p className="text-sm text-slate-700 whitespace-pre-wrap">{transcricao}</p>
+        </div>
+      )}
+
+      <p className="text-xs text-slate-500 text-center">
+        ✓ Transcrição automática em tempo real
+        <br />
+        Funciona apenas em Chrome e Edge
+      </p>
+    </div>
   );
 }
