@@ -65,7 +65,11 @@ export default function RegistroUnificado() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  const [etapaAtual, setEtapaAtual] = useState('upload');
+  const urlParams = new URLSearchParams(window.location.search);
+  const registroIdEditar = urlParams.get('editar');
+  const modoEdicao = !!registroIdEditar;
+  
+  const [etapaAtual, setEtapaAtual] = useState(modoEdicao ? 'formulario' : 'upload');
   const [secaoExpandida, setSecaoExpandida] = useState('basico');
   const [formData, setFormData] = useState({
     titulo: '',
@@ -100,6 +104,35 @@ export default function RegistroUnificado() {
   const [mostrarGravador, setMostrarGravador] = useState(false);
   const [transcricaoTempoReal, setTranscricaoTempoReal] = useState(false);
 
+  // Carregar dados do registro existente em modo edição
+  React.useEffect(() => {
+    if (modoEdicao && registroExistente) {
+      setFormData({
+        titulo: registroExistente.titulo || '',
+        tipo: registroExistente.tipo || 'conversa_campo',
+        descricao: registroExistente.descricao || '',
+        transcricao: registroExistente.transcricao || '',
+        participantes: registroExistente.participantes || [],
+        comunidade: registroExistente.comunidade || '',
+        local: registroExistente.local || '',
+        data_registro: registroExistente.data_registro || new Date().toISOString().split('T')[0],
+        temas_identificados: registroExistente.temas_identificados || [],
+        sentimento: registroExistente.sentimento || '',
+        temperatura_territorio: registroExistente.temperatura_territorio || '',
+        indicadores_risco: registroExistente.indicadores_risco || [],
+        demandas: registroExistente.demandas || [],
+        compromissos: registroExistente.compromissos || [],
+        proximos_passos: registroExistente.proximos_passos || [],
+        arquivos: registroExistente.arquivos || [],
+        resumo_automatico: registroExistente.resumo_automatico || '',
+        status: registroExistente.status || 'rascunho',
+        localizacao: registroExistente.localizacao || null
+      });
+      setTextoConsolidado(registroExistente.transcricao || '');
+      setArquivosProcessados(registroExistente.arquivos || []);
+    }
+  }, [modoEdicao, registroExistente]);
+
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
     queryFn: () => base44.entities.Comunidade.list()
@@ -110,8 +143,16 @@ export default function RegistroUnificado() {
     queryFn: () => base44.auth.me()
   });
 
+  const { data: registroExistente, isLoading: carregandoRegistro } = useQuery({
+    queryKey: ['registro-editar', registroIdEditar],
+    queryFn: () => base44.entities.Registro.list().then(registros => registros.find(r => r.id === registroIdEditar)),
+    enabled: modoEdicao
+  });
+
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Registro.create(data),
+    mutationFn: (data) => modoEdicao 
+      ? base44.entities.Registro.update(registroIdEditar, data)
+      : base44.entities.Registro.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['registros'] });
       navigate(createPageUrl('Registros'));
@@ -385,44 +426,52 @@ Extraia:
     };
 
     try {
-      const registroCriado = await base44.entities.Registro.create(dadosFinais);
+      const registroCriado = modoEdicao 
+        ? await base44.entities.Registro.update(registroIdEditar, dadosFinais)
+        : await base44.entities.Registro.create(dadosFinais);
       
-      // ALIMENTAR TODOS OS MÓDULOS EM PARALELO
-      const analiseCompleta = formData.auditoria?.analise_lote_unico;
+      const registroId = modoEdicao ? registroIdEditar : registroCriado.id;
       
-      if (analiseCompleta) {
-        await alimentarModulos(registroCriado.id, analiseCompleta);
+      // ALIMENTAR TODOS OS MÓDULOS EM PARALELO (apenas em criação)
+      if (!modoEdicao) {
+        const analiseCompleta = formData.auditoria?.analise_lote_unico;
+        
+        if (analiseCompleta) {
+          await alimentarModulos(registroId, analiseCompleta);
+        }
       }
       
       // Criar riscos e compromissos da análise avançada
       const analiseAvancada = formData.auditoria?.analise_avancada;
       
+      const registroAtualizado = modoEdicao ? { ...registroExistente, ...dadosFinais, id: registroId } : registroCriado;
+      
       const automacoes = [
-        criarAgendasAutomaticas(registroCriado),
-        sincronizarAposRegistro(registroCriado),
-        ...stakeholdersVinculados.map(stakeholderId => atualizarHistoricoAtor(stakeholderId, registroCriado.id)),
-        registrarAuditoria('Registro', registroCriado.id, 'criacao_completa', null, dadosFinais, 'criacao')
+        criarAgendasAutomaticas(registroAtualizado),
+        sincronizarAposRegistro(registroAtualizado),
+        ...stakeholdersVinculados.map(stakeholderId => atualizarHistoricoAtor(stakeholderId, registroId)),
+        registrarAuditoria('Registro', registroId, modoEdicao ? 'atualizacao' : 'criacao_completa', registroExistente, dadosFinais, modoEdicao ? 'atualizacao' : 'criacao')
       ];
 
-      // Criar riscos sociais detectados
-      if (analiseAvancada?.riscos?.riscos_identificados?.length > 0) {
+      // Criar riscos sociais detectados (apenas em criação)
+      if (!modoEdicao && analiseAvancada?.riscos?.riscos_identificados?.length > 0) {
         automacoes.push(
           criarRiscosSociais(
             analiseAvancada.riscos.riscos_identificados,
-            registroCriado.id,
-            registroCriado.comunidade,
-            registroCriado.localizacao
+            registroId,
+            registroAtualizado.comunidade,
+            registroAtualizado.localizacao
           )
         );
       }
 
-      // Criar compromissos sugeridos pela IA
-      if (analiseAvancada?.compromissos_ia?.compromissos_sugeridos?.length > 0) {
+      // Criar compromissos sugeridos pela IA (apenas em criação)
+      if (!modoEdicao && analiseAvancada?.compromissos_ia?.compromissos_sugeridos?.length > 0) {
         automacoes.push(
           criarCompromissos(
             analiseAvancada.compromissos_ia.compromissos_sugeridos.slice(0, 3), // Top 3
-            registroCriado.id,
-            registroCriado.comunidade
+            registroId,
+            registroAtualizado.comunidade
           )
         );
       }
@@ -473,7 +522,7 @@ Extraia:
               </Button>
             </Link>
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-slate-900">Novo Registro</h2>
+              <h2 className="text-2xl font-bold text-slate-900">{modoEdicao ? 'Editar Registro' : 'Novo Registro'}</h2>
               <p className="text-slate-500">
                 {etapaAtual === 'upload' ? 'Envie arquivos ou digite o texto' : 'Revise o texto antes de analisar'}
               </p>
@@ -714,18 +763,42 @@ Extraia:
                   <Upload className="w-5 h-5" />
                   Arquivos Anexados ({arquivosProcessados.length})
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setArquivosProcessados([]);
-                    setFormData(prev => ({ ...prev, arquivos: [] }));
-                  }}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Limpar Todos
-                </Button>
+                <div className="flex gap-2">
+                  <label>
+                    <Button variant="outline" size="sm" asChild>
+                      <div>
+                        <Plus className="w-4 h-4 mr-1" />
+                        Adicionar
+                      </div>
+                    </Button>
+                    <input 
+                      type="file" 
+                      accept="audio/*,video/*,image/*,.pdf,.doc,.docx"
+                      className="hidden" 
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const tipo = file.type.startsWith('audio/') ? 'audio' :
+                                      file.type.startsWith('video/') ? 'video' :
+                                      file.type.startsWith('image/') ? 'foto' : 'documento';
+                          processarArquivo(file, tipo);
+                        }
+                      }}
+                    />
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setArquivosProcessados([]);
+                      setFormData(prev => ({ ...prev, arquivos: [] }));
+                    }}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Limpar Todos
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
@@ -980,13 +1053,13 @@ Ou digite/cole o conteúdo diretamente..."
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold">Novo Registro</h2>
+            <h2 className="text-2xl font-bold">{modoEdicao ? 'Editar Registro' : 'Novo Registro'}</h2>
             <p className="text-sm text-slate-500">Revise e complete as informações</p>
           </div>
         </div>
-        <Button onClick={handleFinalizar} disabled={createMutation.isPending} className="bg-[#2D6A4F]">
-          {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-          Finalizar
+        <Button onClick={handleFinalizar} disabled={createMutation.isPending || carregandoRegistro} className="bg-[#2D6A4F]">
+          {(createMutation.isPending || carregandoRegistro) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+          {modoEdicao ? 'Salvar Alterações' : 'Finalizar'}
         </Button>
       </div>
 

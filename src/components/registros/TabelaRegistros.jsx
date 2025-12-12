@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
   ChevronLeft, ChevronRight, ArrowUpDown, MapPin, Calendar, 
-  Users, Target, AlertTriangle, ThermometerSun, Eye, MoreVertical, Trash2
+  Users, Target, AlertTriangle, ThermometerSun, Eye, MoreVertical, Trash2, Edit
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
@@ -168,6 +168,12 @@ export default function TabelaRegistros({ registros, onExcluir }) {
                           <Link to={createPageUrl('VerRegistro') + `?id=${registro.id}`}>
                             <Eye className="w-4 h-4 mr-2" />
                             Ver Detalhes
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl('RegistroUnificado') + `?editar=${registro.id}`}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
