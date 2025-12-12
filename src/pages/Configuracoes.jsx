@@ -9,6 +9,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Save, User, Palette, LayoutDashboard, Globe, Clock, Bell, Check, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { useToastSuccess } from "@/components/ui/toast-success";
 import {
     Select,
     SelectContent,
@@ -20,6 +21,7 @@ import {
 export default function Configuracoes() {
     const queryClient = useQueryClient();
     const [salvando, setSalvando] = useState(false);
+    const { showToast, ToastContainer } = useToastSuccess();
 
     const { data: user, isLoading } = useQuery({
         queryKey: ['currentUser'],
@@ -81,7 +83,7 @@ export default function Configuracoes() {
             });
 
             queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-            alert('✓ Configurações salvas com sucesso!');
+            showToast('✓ Configurações salvas com sucesso!');
         } catch (error) {
             alert("Erro ao salvar: " + error.message);
         } finally {
@@ -120,7 +122,9 @@ export default function Configuracoes() {
     }
 
     return (
-        <div className="space-y-6 max-w-4xl">
+        <>
+            <ToastContainer />
+            <div className="space-y-6 max-w-4xl">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold" style={{ color: '#0B1E33' }}>
                     Configurações
@@ -499,5 +503,6 @@ export default function Configuracoes() {
                 </Button>
             </div>
         </div>
+        </>
     );
 }
