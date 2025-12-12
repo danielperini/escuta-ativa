@@ -6,7 +6,8 @@ import {
   LayoutDashboard, 
   FileText, 
   MapPin, 
-  Users as UsersIcon, 
+  Users as UsersIcon,
+  Users, 
   Target, 
   MessageCircle,
   CheckSquare,
@@ -42,6 +43,7 @@ const navigation = [
   { name: 'Materialidade', href: 'Materialidade', icon: Target },
   { name: 'Voz da Comunidade', href: 'VozComunidade', icon: MessageCircle },
   { name: 'Atores', href: 'Atores', icon: UsersIcon },
+  { name: 'Mapa de Atores', href: 'MapaAtores', icon: Users },
   { name: 'Compromissos', href: 'Compromissos', icon: CheckSquare },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
 ];

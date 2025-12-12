@@ -365,13 +365,25 @@ async function criarOuAtualizarLideranca(lideranca, registroId) {
         ])]
       });
     } else {
-      await base44.entities.LiderancaComunitaria.create({
+      const novaLideranca = await base44.entities.LiderancaComunitaria.create({
         nome: lideranca.nome,
         papel_na_comunidade: lideranca.papel,
         telefone: lideranca.contato,
         ultima_interacao: new Date().toISOString(),
         demandas_relacionadas: [registroId]
       });
+      
+      // Criar também no Ator para o mapa
+      await base44.entities.Ator.create({
+        nome: lideranca.nome,
+        tipo: 'lideranca',
+        cargo: lideranca.papel,
+        nivel_influencia: 'alto',
+        nivel_atividade: 'moderado',
+        historico_interacoes: 1,
+        ultima_interacao: new Date().toISOString().split('T')[0],
+        temas_interesse: []
+      }).catch(() => {}); // Ignorar erro se já existir
     }
   } catch (error) {
     console.error('Erro ao criar/atualizar liderança:', error);
