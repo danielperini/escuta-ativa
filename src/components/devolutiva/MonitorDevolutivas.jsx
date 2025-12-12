@@ -56,31 +56,6 @@ export default function MonitorDevolutivas() {
         });
 
         setDevolutivasAtrasadas(atrasadas);
-
-        // Gerar notificações automáticas
-        atrasadas.forEach(async (ativ) => {
-            const notificacaoExiste = await base44.entities.Notificacao.list();
-            const jaNotificado = notificacaoExiste.some(n => 
-                n.entidade_relacionada_id === ativ.id && 
-                n.tipo === 'nova_demanda'
-            );
-
-            if (!jaNotificado) {
-                await base44.entities.Notificacao.create({
-                    tipo: 'nova_demanda',
-                    titulo: `⚠️ Devolutiva em Atraso - ${ativ.local}`,
-                    mensagem: `A demanda registrada em ${moment(ativ.created_date).format('DD/MM/YYYY')} para ${ativ.local} não possui devolutiva há ${Math.floor((hoje - new Date(ativ.created_date)) / (1000 * 60 * 60 * 24))} dias.`,
-                    prioridade: 'alta',
-                    entidade_relacionada_tipo: 'Atividade',
-                    entidade_relacionada_id: ativ.id
-                });
-
-                // Atualizar status
-                await base44.entities.Atividade.update(ativ.id, {
-                    status_devolutiva: 'em_atraso'
-                });
-            }
-        });
     };
 
     if (devolutivasAtrasadas.length === 0) return null;
