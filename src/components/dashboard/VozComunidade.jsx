@@ -10,53 +10,70 @@ export default function VozComunidade() {
     const [falasRelevantes, setFalasRelevantes] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const { data: atividades = [] } = useQuery({
-        queryKey: ['atividades-voz'],
-        queryFn: () => base44.entities.Atividade.list('-created_date', 50)
+    const { data: registros = [] } = useQuery({
+        queryKey: ['registros-voz'],
+        queryFn: () => base44.entities.Registro.list('-created_date', 100)
     });
 
     useEffect(() => {
         const selecionarFalas = async () => {
-            if (atividades.length === 0) {
+            if (registros.length === 0) {
                 setLoading(false);
                 return;
             }
 
             try {
-                const ultimos30Dias = new Date();
-                ultimos30Dias.setDate(ultimos30Dias.getDate() - 30);
+                const ultimos60Dias = new Date();
+                ultimos60Dias.setDate(ultimos60Dias.getDate() - 60);
 
-                const atividadesRecentes = atividades.filter(a => 
-                    new Date(a.created_date) >= ultimos30Dias
+                const registrosRecentes = registros.filter(r => 
+                    new Date(r.created_date) >= ultimos60Dias && 
+                    (r.transcricao || r.descricao)
                 );
 
-                const textoAtividades = atividadesRecentes.slice(0, 20).map(a => ({
-                    texto: a.descricao || a.transcricao_ia || "",
-                    local: a.local || "Comunidade não especificada",
-                    tipo: a.tipo,
-                    data: a.data
+                const textoRegistros = registrosRecentes.slice(0, 30).map(r => ({
+                    texto: r.transcricao || r.descricao || "",
+                    comunidade: r.comunidade,
+                    local: r.local,
+                    tipo: r.tipo,
+                    data: r.data_registro,
+                    temas: r.temas_identificados,
+                    demandas: r.demandas,
+                    temperatura: r.temperatura_territorio
                 }));
 
-                const prompt = `
-Analise os seguintes registros de atividades comunitárias dos últimos 30 dias e extraia de 3 a 5 falas/citações mais relevantes.
+                const prompt = `Você é um analista de comunicação comunitária especializado em extrair FALAS REAIS e identificar TEMAS RECORRENTES e DEMANDAS.
 
-Critérios de seleção:
-- Relevância temática
-- Representatividade territorial
-- Emoção/preocupação significativa
-- Indicação de risco ou oportunidade
-- Recorrência de temas
+REGISTROS COMUNITÁRIOS DOS ÚLTIMOS 60 DIAS:
+${JSON.stringify(textoRegistros, null, 2)}
 
-Registros:
-${JSON.stringify(textoAtividades, null, 2)}
+TAREFAS:
 
-Para cada fala selecionada, extraia:
-- A citação exata (máximo 150 caracteres)
-- Identificação mínima (ex: "Morador de [Comunidade]", "Liderança local", "Participante da reunião")
-- Tipo de relevância (tema, risco, oportunidade, sentimento)
+1. EXTRAIR 5-8 FALAS/CITAÇÕES MAIS RELEVANTES:
+   - Deve ser citação LITERAL do texto (não parafraseie)
+   - Máximo 150 caracteres
+   - Priorize falas com:
+     * Emoção/sentimento forte
+     * Demandas específicas
+     * Sinais de risco
+     * Oportunidades
+     * Reivindicações
+     * Elogios ou críticas
 
-Retorne falas reais extraídas dos textos, não invente.
-`;
+2. IDENTIFICAR TEMAS RECORRENTES:
+   - Liste os 5 temas mais mencionados
+   - Conte frequência de cada tema
+   - Indique tendência (subindo/estavel/caindo)
+
+3. DEMANDAS RECORRENTES:
+   - Liste demandas que aparecem em múltiplos registros
+   - Agrupe demandas similares
+   - Indique urgência percebida
+
+IMPORTANTE:
+- Citações devem ser REAIS (copie do texto)
+- Não invente ou parafraseie
+- Se não houver citação direta, use resumo entre colchetes [Morador relatou...]`;
 
                 const resultado = await base44.integrations.Core.InvokeLLM({
                     prompt: prompt,
@@ -72,8 +89,31 @@ Retorne falas reais extraídas dos textos, não invente.
                                         identificacao: { type: "string" },
                                         relevancia: { 
                                             type: "string",
-                                            enum: ["tema", "risco", "oportunidade", "sentimento"]
-                                        }
+                                            enum: ["tema", "risco", "oportunidade", "sentimento", "demanda"]
+                                        },
+                                        comunidade: { type: "string" }
+                                    }
+                                }
+                            },
+                            temas_recorrentes: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        tema: { type: "string" },
+                                        frequencia: { type: "number" },
+                                        tendencia: { type: "string", enum: ["subindo", "estavel", "caindo"] }
+                                    }
+                                }
+                            },
+                            demandas_recorrentes: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        demanda: { type: "string" },
+                                        urgencia: { type: "string" },
+                                        comunidades: { type: "array", items: { type: "string" } }
                                     }
                                 }
                             }
@@ -90,7 +130,7 @@ Retorne falas reais extraídas dos textos, não invente.
         };
 
         selecionarFalas();
-    }, [atividades]);
+    }, [registros]);
 
     const proximaFala = () => {
         setCurrentIndex((prev) => (prev + 1) % falasRelevantes.length);

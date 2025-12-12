@@ -25,33 +25,60 @@ export default function DetectorAtores({ registro, onAtoresVinculados }) {
         base44.entities.ProjetoOrganizacao.list()
       ]);
 
-      const prompt = `Analise este registro e identifique ATORES mencionados (pessoas, lideranças, organizações):
+      const prompt = `Você é um sistema especializado em identificação de ATORES SOCIAIS em registros comunitários.
 
-REGISTRO:
+REGISTRO COMPLETO:
+═══════════════
 Título: ${registro.titulo}
+Comunidade: ${registro.comunidade}
+Local: ${registro.local}
 Descrição: ${registro.descricao}
-Participantes: ${registro.participantes?.join(', ')}
-Transcricão: ${registro.transcricao || ''}
+Participantes listados: ${registro.participantes?.join(', ') || 'não especificado'}
+Transcrição completa: ${registro.transcricao || ''}
+═══════════════
 
-ATORES JÁ CADASTRADOS:
-${JSON.stringify(atoresExistentes.slice(0, 30), null, 2)}
+ATORES JÁ CADASTRADOS NO SISTEMA (para referência de duplicatas):
+Atores: ${JSON.stringify(atoresExistentes.map(a => ({ id: a.id, nome: a.nome, tipo: a.tipo })).slice(0, 30), null, 2)}
+Lideranças: ${JSON.stringify(liderancas.map(l => ({ id: l.id, nome: l.nome })).slice(0, 30), null, 2)}
+Organizações: ${JSON.stringify(organizacoes.map(o => ({ id: o.id, nome_oficial: o.nome_oficial })).slice(0, 30), null, 2)}
 
-LIDERANÇAS CADASTRADAS:
-${JSON.stringify(liderancas.slice(0, 30), null, 2)}
+TAREFA: Identificar TODOS os atores mencionados no registro acima.
 
-ORGANIZAÇÕES CADASTRADAS:
-${JSON.stringify(organizacoes.slice(0, 30), null, 2)}
+ATORES = Pessoas, lideranças, representantes, moradores, organizações, associações, governos.
 
-Para cada ator mencionado, retorne:
-1. Se já existe: ator_id e tipo_vinculo (forte/medio/fraco)
-2. Se novo: dados para criar (nome, tipo, cargo_funcao, contato_inferido)
+INSTRUÇÕES CRÍTICAS:
+━━━━━━━━━━━━━━━
+1. BUSQUE ATIVAMENTE por:
+   ✓ Nomes próprios (ex: "João Silva", "Maria Santos")
+   ✓ Funções/cargos mencionados (ex: "o presidente", "a secretária", "representante da")
+   ✓ Organizações citadas (ex: "Associação de Moradores", "Prefeitura", "CRAS")
+   ✓ Grupos mencionados (ex: "liderança local", "comerciantes", "grupo de mulheres")
 
-Critérios de vinculação:
-- Forte: Nome completo mencionado ou identificação clara
-- Médio: Nome parcial com contexto suficiente
-- Fraco: Apenas função/cargo sem identificação precisa
+2. PARA ATORES EXISTENTES:
+   - Verifique se o nome/organização JÁ EXISTE na base
+   - Se SIM: retorne o ator_id e tipo_vinculo (forte/medio/fraco)
+   - Tipo_vinculo FORTE = nome completo ou identificação clara
+   - Tipo_vinculo MEDIO = nome parcial com contexto
+   - Tipo_vinculo FRACO = apenas função sem nome
 
-IMPORTANTE: Apenas retorne atores com identificação razoavelmente clara.`;
+3. PARA NOVOS ATORES:
+   - Se NÃO existe: retorne dados completos para criar
+   - Infira tipo (lideranca, morador, representante, associacao, ong, governo)
+   - Tente extrair cargo/função se mencionado
+   - Capture contato (telefone/email) se disponível
+
+4. NÃO IGNORE NINGUÉM:
+   - Mesmo menções indiretas devem ser capturadas
+   - "Fulano comentou que..." = ATOR
+   - "Segundo a associação..." = ATOR
+   - "Os moradores disseram..." = pode ser grupo de atores
+
+5. CONTEXTO É ESSENCIAL:
+   - Inclua onde/como o ator foi mencionado
+   - Descreva o papel dele na interação
+
+RETORNE OBRIGATORIAMENTE PELO MENOS 1 ATOR (se houver qualquer menção humana/organizacional).
+Se não encontrar NENHUM ator específico, retorne participantes genéricos como novos atores.`;
 
       const resultado = await base44.integrations.Core.InvokeLLM({
         prompt: prompt,
