@@ -58,13 +58,17 @@ function MapController({ center, zoom }) {
 export default function Mapa() {
   const [search, setSearch] = useState('');
   const [filterTema, setFilterTema] = useState('todos');
+  const [filterRisco, setFilterRisco] = useState('todos');
+  const [filterDataInicio, setFilterDataInicio] = useState('');
+  const [filterDataFim, setFilterDataFim] = useState('');
   const [camadasVisiveis, setCamadasVisiveis] = useState({
     comunidades: true,
     riscos: true,
     oportunidades: true,
-    atividades: false
+    registros: true
   });
   const [selectedComunidade, setSelectedComunidade] = useState(null);
+  const [selectedRegistro, setSelectedRegistro] = useState(null);
   const [mapCenter, setMapCenter] = useState([-14.235, -51.9253]); // Brazil center
   const [mapZoom, setMapZoom] = useState(4);
 
@@ -76,8 +80,9 @@ export default function Mapa() {
 
   const { data: registros = [] } = useQuery({
     queryKey: ['registros-mapa'],
-    queryFn: () => base44.entities.Registro.list('-created_date', 100),
-    staleTime: 60 * 1000
+    queryFn: () => base44.entities.Registro.list('-created_date', 200),
+    staleTime: 30 * 1000,
+    refetchInterval: 2 * 60 * 1000
   });
 
   const { data: temas = [] } = useQuery({
@@ -88,8 +93,9 @@ export default function Mapa() {
 
   const { data: riscos = [] } = useQuery({
     queryKey: ['riscos-mapa'],
-    queryFn: () => base44.entities.RiscoSocial.list('-created_date', 50),
-    staleTime: 2 * 60 * 1000
+    queryFn: () => base44.entities.RiscoSocial.list('-created_date', 100),
+    staleTime: 30 * 1000,
+    refetchInterval: 2 * 60 * 1000
   });
 
   const { data: oportunidades = [] } = useQuery({
@@ -102,7 +108,19 @@ export default function Mapa() {
     const matchSearch = !search || 
       c.nome?.toLowerCase().includes(search.toLowerCase()) ||
       c.municipio?.toLowerCase().includes(search.toLowerCase());
-    return matchSearch;
+    
+    const matchRisco = filterRisco === 'todos' || c.termometro_social === filterRisco;
+    
+    return matchSearch && matchRisco;
+  });
+
+  const filteredRegistros = registros.filter(r => {
+    const matchData = (!filterDataInicio || r.data_registro >= filterDataInicio) &&
+                      (!filterDataFim || r.data_registro <= filterDataFim);
+    
+    const matchRisco = filterRisco === 'todos' || r.temperatura_territorio === filterRisco;
+    
+    return matchData && matchRisco && r.localizacao?.lat && r.localizacao?.lng;
   });
 
   const comunidadesWithLocation = filteredComunidades.filter(c => 
@@ -152,18 +170,39 @@ export default function Mapa() {
                 className="pl-10"
               />
             </div>
-            <Select value={filterTema} onValueChange={setFilterTema}>
+            <Select value={filterRisco} onValueChange={setFilterRisco}>
               <SelectTrigger>
                 <Filter className="w-4 h-4 mr-2 text-slate-400" />
-                <SelectValue placeholder="Filtrar por tema" />
+                <SelectValue placeholder="Nível de risco" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todos os temas</SelectItem>
-                {temas.map(t => (
-                  <SelectItem key={t.id} value={t.nome}>{t.nome}</SelectItem>
-                ))}
+                <SelectItem value="todos">Todos os níveis</SelectItem>
+                <SelectItem value="baixo">Baixo</SelectItem>
+                <SelectItem value="medio">Médio</SelectItem>
+                <SelectItem value="alto">Alto</SelectItem>
+                <SelectItem value="critico">Crítico</SelectItem>
               </SelectContent>
             </Select>
+            
+            <div className="space-y-2">
+              <label className="text-xs text-slate-600">Período</label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="date"
+                  value={filterDataInicio}
+                  onChange={(e) => setFilterDataInicio(e.target.value)}
+                  className="text-xs"
+                  placeholder="Data inicial"
+                />
+                <Input
+                  type="date"
+                  value={filterDataFim}
+                  onChange={(e) => setFilterDataFim(e.target.value)}
+                  className="text-xs"
+                  placeholder="Data final"
+                />
+              </div>
+            </div>
           </Card>
 
           {/* Camadas */}
@@ -196,6 +235,15 @@ export default function Mapa() {
                   className="rounded"
                 />
                 <span className="text-sm">Oportunidades</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={camadasVisiveis.registros}
+                  onChange={() => setCamadasVisiveis({...camadasVisiveis, registros: !camadasVisiveis.registros})}
+                  className="rounded"
+                />
+                <span className="text-sm">Registros Individuais</span>
               </label>
             </div>
           </Card>
@@ -357,11 +405,218 @@ export default function Mapa() {
                   </React.Fragment>
                 );
               })}
+
+              {/* Registros Individuais */}
+              {camadasVisiveis.registros && filteredRegistros.map(registro => {
+                const color = termometroColors[registro.temperatura_territorio] || termometroColors.baixo;
+                const riscoColor = registro.temperatura_territorio === 'critico' ? '#ef4444' : 
+                                   registro.temperatura_territorio === 'alto' ? '#f97316' :
+                                   registro.temperatura_territorio === 'medio' ? '#f59e0b' : '#22c55e';
+                
+                return (
+                  <Marker 
+                    key={registro.id}
+                    position={[registro.localizacao.lat, registro.localizacao.lng]}
+                    icon={L.divIcon({
+                      className: 'custom-marker',
+                      html: `<div style="background-color: ${riscoColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+                      iconSize: [12, 12],
+                      iconAnchor: [6, 6]
+                    })}
+                    eventHandlers={{
+                      click: () => setSelectedRegistro(registro)
+                    }}
+                  >
+                    <Popup>
+                      <div className="p-2 min-w-64">
+                        <h3 className="font-semibold text-slate-900">{registro.titulo}</h3>
+                        <p className="text-xs text-slate-500 mt-1">{new Date(registro.created_date).toLocaleDateString('pt-BR')}</p>
+                        
+                        <div className="mt-2 space-y-1">
+                          <Badge 
+                            variant="secondary"
+                            style={{ 
+                              backgroundColor: `${color}20`,
+                              color: color
+                            }}
+                          >
+                            {registro.temperatura_territorio || 'baixo'}
+                          </Badge>
+                          
+                          {registro.temas_identificados?.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs text-slate-500">Temas:</p>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {registro.temas_identificados.slice(0, 3).map((t, i) => (
+                                  <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {registro.demandas?.length > 0 && (
+                            <p className="text-xs text-slate-600 mt-2">
+                              {registro.demandas.length} demanda(s) registrada(s)
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+
+              {/* Riscos Sociais */}
+              {camadasVisiveis.riscos && riscos.filter(r => r.status === 'ativo' && r.geolocalizacao).map(risco => {
+                const coords = risco.geolocalizacao.split(',').map(c => parseFloat(c.trim()));
+                if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return null;
+                
+                const riskColor = risco.nivel === 'critico' ? '#dc2626' :
+                                 risco.nivel === 'alto' ? '#ea580c' :
+                                 risco.nivel === 'moderado' ? '#f59e0b' : '#3b82f6';
+                
+                return (
+                  <React.Fragment key={risco.id}>
+                    <Circle
+                      center={[coords[0], coords[1]]}
+                      radius={1000}
+                      pathOptions={{
+                        color: riskColor,
+                        fillColor: riskColor,
+                        fillOpacity: 0.2,
+                        weight: 2,
+                        dashArray: '5, 5'
+                      }}
+                    />
+                    <Marker 
+                      position={[coords[0], coords[1]]}
+                      icon={L.divIcon({
+                        className: 'custom-marker-risk',
+                        html: `<div style="background-color: ${riskColor}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 2L1 21h22L12 2zm0 4l8.5 15h-17L12 6zm-1 5v4h2v-4h-2zm0 6v2h2v-2h-2z"/>
+                          </svg>
+                        </div>`,
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                      })}
+                    >
+                      <Popup>
+                        <div className="p-2 min-w-64">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="w-5 h-5" style={{ color: riskColor }} />
+                            <h3 className="font-semibold text-slate-900">{risco.titulo}</h3>
+                          </div>
+                          <Badge 
+                            style={{ 
+                              backgroundColor: `${riskColor}20`,
+                              color: riskColor
+                            }}
+                          >
+                            {risco.nivel.toUpperCase()}
+                          </Badge>
+                          <p className="text-sm text-slate-700 mt-2">{risco.descricao}</p>
+                          
+                          {risco.causas?.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs font-semibold text-slate-600">Causas:</p>
+                              <ul className="text-xs text-slate-600 list-disc list-inside">
+                                {risco.causas.slice(0, 2).map((c, i) => (
+                                  <li key={i}>{c}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {risco.acoes_preventivas?.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs font-semibold text-emerald-700">Ações Preventivas:</p>
+                              <ul className="text-xs text-emerald-700 list-disc list-inside">
+                                {risco.acoes_preventivas.slice(0, 2).map((a, i) => (
+                                  <li key={i}>{a}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </Popup>
+                    </Marker>
+                  </React.Fragment>
+                );
+              })}
             </MapContainer>
           </Card>
 
+          {/* Selected Registro Details */}
+          {selectedRegistro && (
+            <Card className="mt-4 p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-semibold text-lg text-slate-900">{selectedRegistro.titulo}</h3>
+                  <p className="text-slate-500 text-sm">{selectedRegistro.comunidade}</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setSelectedRegistro(null)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                <div className="bg-slate-50 p-3 rounded-lg">
+                  <p className="text-xs text-slate-500">Data</p>
+                  <p className="font-semibold text-sm">
+                    {new Date(selectedRegistro.created_date).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-lg">
+                  <p className="text-xs text-slate-500">Temperatura</p>
+                  <p className="font-semibold capitalize text-sm" style={{ color: termometroColors[selectedRegistro.temperatura_territorio] }}>
+                    {selectedRegistro.temperatura_territorio || 'Baixo'}
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-lg">
+                  <p className="text-xs text-slate-500">Tipo</p>
+                  <p className="font-semibold text-sm capitalize">
+                    {selectedRegistro.tipo?.replace('_', ' ') || '-'}
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-lg">
+                  <p className="text-xs text-slate-500">Sentimento</p>
+                  <p className="font-semibold text-sm capitalize">
+                    {selectedRegistro.sentimento || '-'}
+                  </p>
+                </div>
+              </div>
+
+              {selectedRegistro.temas_identificados?.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm text-slate-500 mb-2">Temas Identificados</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedRegistro.temas_identificados.map((tema, idx) => (
+                      <Badge key={idx} variant="secondary" className="bg-emerald-100 text-emerald-700">
+                        {tema}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedRegistro.demandas?.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm font-semibold text-slate-700 mb-2">Demandas ({selectedRegistro.demandas.length})</p>
+                  <div className="space-y-2">
+                    {selectedRegistro.demandas.slice(0, 2).map((d, idx) => (
+                      <div key={idx} className="text-xs bg-amber-50 p-2 rounded border border-amber-200">
+                        {d.descricao}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Card>
+          )}
+
           {/* Selected Community Details */}
-          {selectedComunidade && (
+          {selectedComunidade && !selectedRegistro && (
             <Card className="mt-4 p-4">
               <div className="flex items-start justify-between">
                 <div>

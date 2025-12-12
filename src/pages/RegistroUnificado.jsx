@@ -41,7 +41,7 @@ import DetectorContinuidade from '@/components/continuidade/DetectorContinuidade
 import DetectorAtores from '@/components/atores/DetectorAtores';
 import ProcessadorMidia from '@/components/registro/ProcessadorMidia';
 import { criarAgendasAutomaticas, atualizarHistoricoAtor, registrarAuditoria } from '@/components/registro/AutomacaoAgenda';
-import { sincronizarAposRegistro } from '@/components/registro/SincronizadorDados';
+import { sincronizarAposRegistro, obterCoordenadas } from '@/components/registro/SincronizadorDados';
 import { analisarRiscosSociais, criarRiscosSociais } from '@/components/analise/AnalisadorRiscosAvancado';
 import { gerarCompromissosInteligentes, criarCompromissos } from '@/components/analise/GeradorCompromissosInteligente';
 import { detectarContinuidadeInteligente } from '@/components/analise/DetectorContinuidadeAvancado';
@@ -294,8 +294,22 @@ Extraia:
   };
 
   const finalizarComVinculacoes = async (atoresVinculados = [], continuidades = []) => {
+    // Obter coordenadas se tiver local mas não tiver localização
+    let localizacao = formData.localizacao;
+    if (formData.local && !localizacao?.lat) {
+      const coords = await obterCoordenadas(formData.local, formData.comunidade);
+      if (coords) {
+        localizacao = {
+          lat: coords.lat,
+          lng: coords.lng,
+          endereco: formData.local
+        };
+      }
+    }
+
     const dadosFinais = {
       ...formData,
+      localizacao,
       status: 'finalizado',
       liderancas_vinculadas: atoresVinculados,
       registros_continuidade: continuidades

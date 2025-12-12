@@ -54,7 +54,8 @@ export default function DashboardKPIs() {
     const { data: compromissos = [] } = useQuery({
         queryKey: ['compromissos-kpi'],
         queryFn: () => base44.entities.Compromisso.list('-created_date', 100),
-        staleTime: 2 * 60 * 1000
+        staleTime: 30 * 1000,
+        refetchInterval: 60 * 1000
     });
 
     const { data: liderancas = [] } = useQuery({
@@ -71,7 +72,8 @@ export default function DashboardKPIs() {
     const { data: riscos = [] } = useQuery({
         queryKey: ['riscos-kpi'],
         queryFn: () => base44.entities.RiscoSocial.list('-created_date', 50),
-        staleTime: 2 * 60 * 1000
+        staleTime: 30 * 1000,
+        refetchInterval: 60 * 1000
     });
 
     const { data: oportunidades = [] } = useQuery({

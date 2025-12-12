@@ -127,3 +127,37 @@ export async function atualizarLocalizacaoRegistro(registroId, localizacao) {
     console.error('Erro ao atualizar localização:', error);
   }
 }
+
+/**
+ * Obtém coordenadas geográficas a partir de endereço usando IA
+ */
+export async function obterCoordenadas(endereco, comunidade) {
+  try {
+    const resultado = await base44.integrations.Core.InvokeLLM({
+      prompt: `Retorne as coordenadas geográficas (latitude e longitude) para:
+      
+Endereço: ${endereco}
+Comunidade: ${comunidade}
+
+IMPORTANTE: Use fontes confiáveis e retorne coordenadas reais e precisas.
+Se não encontrar coordenadas exatas, retorne as coordenadas aproximadas do centro da comunidade/município.`,
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          lat: { type: "number" },
+          lng: { type: "number" },
+          precisao: {
+            type: "string",
+            enum: ["exata", "aproximada", "centro_municipio"]
+          }
+        }
+      }
+    });
+
+    return resultado;
+  } catch (error) {
+    console.error('Erro ao obter coordenadas:', error);
+    return null;
+  }
+}
