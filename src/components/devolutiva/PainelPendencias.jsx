@@ -24,19 +24,14 @@ export default function PainelPendencias() {
         queryFn: () => base44.entities.Comunidade.list()
     });
 
-    const { data: temas = [] } = useQuery({
-        queryKey: ['temas-pendencias'],
-        queryFn: () => base44.entities.Tema.list()
-    });
+
 
     const pendentesSemFiltro = atividades.filter(a => 
         a.demanda_requer_devolutiva && !a.devolutiva_realizada
     );
 
     const pendentes = pendentesSemFiltro.filter(a => {
-        const matchComunidade = filterComunidade === 'todos' || a.local === filterComunidade;
-        const matchTema = filterTema === 'todos' || (a.temas_identificados && a.temas_identificados.includes(filterTema));
-        return matchComunidade && matchTema;
+        return filterComunidade === 'todos' || a.local === filterComunidade;
     });
 
     const emAtraso = pendentes.filter(a => {
@@ -67,7 +62,7 @@ export default function PainelPendencias() {
                     <CardTitle>Filtros</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         <div>
                             <Label>Comunidade</Label>
                             <Select value={filterComunidade} onValueChange={setFilterComunidade}>
@@ -78,20 +73,6 @@ export default function PainelPendencias() {
                                     <SelectItem value="todos">Todas</SelectItem>
                                     {comunidades.map(c => (
                                         <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <Label>Tema</Label>
-                            <Select value={filterTema} onValueChange={setFilterTema}>
-                                <SelectTrigger className="mt-2">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="todos">Todos</SelectItem>
-                                    {temas.map(t => (
-                                        <SelectItem key={t.id} value={t.nome}>{t.nome}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
