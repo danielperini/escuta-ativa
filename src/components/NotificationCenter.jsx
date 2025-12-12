@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, X, Check, AlertCircle, Users, Building2, FileText } from "lucide-react";
+import { Bell, X, Check, AlertCircle, Users, Building2, FileText, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +35,11 @@ export default function NotificationCenter() {
 
     const excluirNotificacaoMutation = useMutation({
         mutationFn: (id) => base44.entities.Notificacao.delete(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
+    });
+
+    const resolverNotificacaoMutation = useMutation({
+        mutationFn: (id) => base44.entities.Notificacao.update(id, { status: 'resolvida', lida: true }),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
     });
 
@@ -130,8 +135,7 @@ export default function NotificationCenter() {
                             {notificacoes.map((notif) => (
                                 <div 
                                     key={notif.id}
-                                    className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${!notif.lida ? 'bg-blue-50' : ''}`}
-                                    onClick={() => handleNotificationClick(notif)}
+                                    className={`p-4 hover:bg-gray-50 transition-colors ${!notif.lida ? 'bg-blue-50' : ''}`}
                                 >
                                     <div className="flex items-start gap-3">
                                         <div className={`p-2 rounded-full ${getPrioridadeColor(notif.prioridade)}`}>
@@ -139,20 +143,45 @@ export default function NotificationCenter() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2">
-                                                <p className="font-medium text-sm">{notif.titulo}</p>
-                                                {!notif.lida && (
-                                                    <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5" />
-                                                )}
+                                                <div className="flex-1 cursor-pointer" onClick={() => handleNotificationClick(notif)}>
+                                                    <p className="font-medium text-sm">{notif.titulo}</p>
+                                                    <p className="text-xs text-gray-600 mt-1">{notif.mensagem}</p>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    {!notif.lida && notif.status !== 'resolvida' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                resolverNotificacaoMutation.mutate(notif.id);
+                                                            }}
+                                                            title="Marcar como resolvida"
+                                                        >
+                                                            <CheckCircle2 className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            excluirNotificacaoMutation.mutate(notif.id);
+                                                        }}
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
                                             </div>
-                                            <p className="text-xs text-gray-600 mt-1">{notif.mensagem}</p>
-                                            <div className="flex items-center justify-between mt-2">
+                                            <div className="flex items-center gap-2 mt-2">
                                                <p className="text-xs text-gray-400">
                                                    {format(new Date(notif.created_date), 'dd/MM/yyyy HH:mm')}
                                                </p>
-                                               {notif.lida && (
+                                               {notif.status === 'resolvida' && (
                                                    <Badge variant="secondary" className="text-xs bg-emerald-100 text-emerald-700">
-                                                       <Check className="w-3 h-3 mr-1" />
-                                                       Resolvido
+                                                       ✓ Resolvida
                                                    </Badge>
                                                )}
                                             </div>
