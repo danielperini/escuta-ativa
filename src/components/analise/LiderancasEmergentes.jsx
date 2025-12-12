@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 
 export default function LiderancasEmergentes() {
   const [filterComunidade, setFilterComunidade] = useState('todos');
+  const [filterTema, setFilterTema] = useState('todos');
 
   const { data: stakeholders = [] } = useQuery({
     queryKey: ['stakeholders-liderancas'],
@@ -75,7 +76,8 @@ export default function LiderancasEmergentes() {
   const stakeholdersFiltrados = stakeholdersComCitacoes
     .filter(s => {
       const matchComunidade = filterComunidade === 'todos' || s.comunidade === filterComunidade;
-      return matchComunidade && s.emergente;
+      const matchTema = filterTema === 'todos' || s.temasCriticos.includes(filterTema);
+      return matchComunidade && matchTema && s.emergente;
     })
     .sort((a, b) => b.score - a.score)
     .slice(0, 20);
@@ -97,19 +99,36 @@ export default function LiderancasEmergentes() {
             </p>
           </div>
 
-          <div className="mb-4">
-            <Label>Filtrar por Comunidade</Label>
-            <Select value={filterComunidade} onValueChange={setFilterComunidade}>
-              <SelectTrigger className="mt-2">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todas</SelectItem>
-                {comunidades.map(c => (
-                  <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <Label>Filtrar por Comunidade</Label>
+              <Select value={filterComunidade} onValueChange={setFilterComunidade}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas</SelectItem>
+                  {comunidades.map(c => (
+                    <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Filtrar por Tema</Label>
+              <Select value={filterTema} onValueChange={setFilterTema}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {temas.map(t => (
+                    <SelectItem key={t.id} value={t.nome}>{t.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>

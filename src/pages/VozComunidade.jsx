@@ -51,11 +51,10 @@ export default function VozComunidade() {
   const [search, setSearch] = useState('');
   const [filterComunidade, setFilterComunidade] = useState('todos');
   const [filterUrgencia, setFilterUrgencia] = useState('todos');
-  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
-  const [insights, setInsights] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentPageFalas, setCurrentPageFalas] = useState(1);
   const itemsPerPage = 10;
+  const itemsPerPageFalas = 4;
 
   const { data: registros = [], isLoading, refetch: refetchRegistros } = useQuery({
     queryKey: ['registros-voz'],
@@ -103,51 +102,6 @@ export default function VozComunidade() {
     return matchSearch && matchComunidade && matchUrgencia;
   });
 
-  // Generate insights with AI
-  const generateInsights = async () => {
-    setIsGeneratingInsights(true);
-    
-    const demandasTexto = todasDemandas.slice(0, 30).map(d => 
-      `- ${d.descricao} (${d.comunidade || 'Sem comunidade'}, ${d.urgencia})`
-    ).join('\n');
-
-    const temasTexto = temasOrdenados.map(([tema, count]) => 
-      `- ${tema}: ${count} menções`
-    ).join('\n');
-
-    const prompt = `Analise as seguintes demandas e temas identificados em interações comunitárias e gere insights estratégicos:
-
-DEMANDAS RECENTES:
-${demandasTexto}
-
-TEMAS MAIS FREQUENTES:
-${temasTexto}
-
-Gere uma análise contendo:
-1. Principais padrões identificados (3-4 pontos)
-2. Temas que precisam de atenção imediata
-3. Recomendações de ação (3-4 recomendações práticas)
-4. Tendências observadas
-
-Seja conciso e objetivo.`;
-
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          padroes: { type: "array", items: { type: "string" } },
-          atencao_imediata: { type: "array", items: { type: "string" } },
-          recomendacoes: { type: "array", items: { type: "string" } },
-          tendencias: { type: "array", items: { type: "string" } }
-        }
-      }
-    });
-
-    setInsights(result);
-    setIsGeneratingInsights(false);
-  };
-
   // Group by date for timeline
   const groupedByDate = filteredDemandas.reduce((acc, demanda) => {
     const dateKey = format(new Date(demanda.data), 'yyyy-MM-dd');
@@ -156,19 +110,28 @@ Seja conciso e objetivo.`;
     return acc;
   }, {});
 
-  // Get relevant speeches from last 30 days
+  // Get relevant speeches - prioritize critical/materiality themes
   const falas30Dias = registros
     .filter(r => {
       const dataRegistro = r.created_date || r.data_registro;
       if (!dataRegistro) return false;
       const daysDiff = Math.floor((new Date() - new Date(dataRegistro)) / (1000 * 60 * 60 * 24));
       return daysDiff <= 30 && (r.transcricao || r.descricao);
-    });
+    })
+    .map(r => ({
+      ...r,
+      relevancia: (
+        (r.temperatura_territorio === 'critico' ? 10 : r.temperatura_territorio === 'alto' ? 5 : 0) +
+        (r.demandas?.some(d => d.urgencia === 'critica' || d.urgencia === 'alta') ? 5 : 0) +
+        (r.temas_identificados?.length > 0 ? 2 : 0)
+      )
+    }))
+    .sort((a, b) => b.relevancia - a.relevancia);
 
-  const totalPagesFalas = Math.ceil(falas30Dias.length / itemsPerPage);
+  const totalPagesFalas = Math.ceil(falas30Dias.length / itemsPerPageFalas);
   const paginatedFalas = falas30Dias.slice(
-    (currentPageFalas - 1) * itemsPerPage,
-    currentPageFalas * itemsPerPage
+    (currentPageFalas - 1) * itemsPerPageFalas,
+    currentPageFalas * itemsPerPageFalas
   );
 
   // Paginate demands timeline
@@ -199,27 +162,13 @@ Seja conciso e objetivo.`;
           <h2 className="text-2xl font-bold text-slate-900">Voz da Comunidade</h2>
           <p className="text-slate-500 mt-1">Linha do tempo de demandas e insights comunitários</p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => refetchRegistros()}
-            disabled={isLoading}
-          >
-            <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
-          </Button>
-          <Button 
-            className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
-            onClick={generateInsights}
-            disabled={isGeneratingInsights || todasDemandas.length === 0}
-          >
-            {isGeneratingInsights ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4" />
-            )}
-            Gerar Insights
-          </Button>
-        </div>
+        <Button 
+          variant="outline"
+          onClick={() => refetchRegistros()}
+          disabled={isLoading}
+        >
+          <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+        </Button>
       </div>
 
       {/* Falas Relevantes */}
@@ -268,13 +217,13 @@ Seja conciso e objetivo.`;
                 </div>
               </div>
             ))}
-            {falas30Dias.length > itemsPerPage && (
+            {falas30Dias.length > itemsPerPageFalas && (
               <div className="pt-4 border-t">
                 <Pagination
                   currentPage={currentPageFalas}
                   totalPages={totalPagesFalas}
                   onPageChange={setCurrentPageFalas}
-                  itemsPerPage={itemsPerPage}
+                  itemsPerPage={itemsPerPageFalas}
                   totalItems={falas30Dias.length}
                 />
               </div>
@@ -307,73 +256,7 @@ Seja conciso e objetivo.`;
         </Card>
       </div>
 
-      {/* Insights Panel */}
-      {insights && (
-        <Card className="border-[#40916C] bg-[#40916C]/5">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg flex items-center gap-2 text-[#2D6A4F]">
-              <Sparkles className="w-5 h-5" />
-              Insights Gerados por IA
-            </CardTitle>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={generateInsights}
-              disabled={isGeneratingInsights}
-            >
-              <RefreshCw className={cn("w-4 h-4", isGeneratingInsights && "animate-spin")} />
-            </Button>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-2">Padrões Identificados</h4>
-              <ul className="space-y-2">
-                {insights.padroes?.map((p, idx) => (
-                  <li key={idx} className="text-sm text-slate-700 flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#40916C] mt-2 flex-shrink-0" />
-                    {p}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-2">Atenção Imediata</h4>
-              <ul className="space-y-2">
-                {insights.atencao_imediata?.map((a, idx) => (
-                  <li key={idx} className="text-sm text-red-700 flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    {a}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-2">Recomendações</h4>
-              <ul className="space-y-2">
-                {insights.recomendacoes?.map((r, idx) => (
-                  <li key={idx} className="text-sm text-slate-700 flex items-start gap-2">
-                    <span className="w-5 h-5 rounded-full bg-[#40916C]/20 text-[#2D6A4F] flex items-center justify-center text-xs font-medium flex-shrink-0">
-                      {idx + 1}
-                    </span>
-                    {r}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-2">Tendências</h4>
-              <ul className="space-y-2">
-                {insights.tendencias?.map((t, idx) => (
-                  <li key={idx} className="text-sm text-slate-700 flex items-start gap-2">
-                    <TrendingUp className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-500" />
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Timeline */}

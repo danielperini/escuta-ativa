@@ -1,23 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { AlertTriangle, Clock, MapPin, TrendingUp } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import moment from "moment";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function PainelPendencias() {
+    const [filterComunidade, setFilterComunidade] = useState('todos');
+    const [filterTema, setFilterTema] = useState('todos');
     const { data: atividades = [] } = useQuery({
         queryKey: ['atividades-pendencias'],
         queryFn: () => base44.entities.Atividade.list('-created_date', 500)
     });
 
-    const pendentes = atividades.filter(a => 
+    const { data: comunidades = [] } = useQuery({
+        queryKey: ['comunidades-pendencias'],
+        queryFn: () => base44.entities.Comunidade.list()
+    });
+
+    const { data: temas = [] } = useQuery({
+        queryKey: ['temas-pendencias'],
+        queryFn: () => base44.entities.Tema.list()
+    });
+
+    const pendentesSemFiltro = atividades.filter(a => 
         a.demanda_requer_devolutiva && !a.devolutiva_realizada
     );
+
+    const pendentes = pendentesSemFiltro.filter(a => {
+        const matchComunidade = filterComunidade === 'todos' || a.local === filterComunidade;
+        const matchTema = filterTema === 'todos' || (a.temas_identificados && a.temas_identificados.includes(filterTema));
+        return matchComunidade && matchTema;
+    });
 
     const emAtraso = pendentes.filter(a => {
         const dias = Math.floor((new Date() - new Date(a.created_date)) / (1000 * 60 * 60 * 24));
@@ -42,6 +62,44 @@ export default function PainelPendencias() {
 
     return (
         <div className="space-y-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Filtros</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label>Comunidade</Label>
+                            <Select value={filterComunidade} onValueChange={setFilterComunidade}>
+                                <SelectTrigger className="mt-2">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="todos">Todas</SelectItem>
+                                    {comunidades.map(c => (
+                                        <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Tema</Label>
+                            <Select value={filterTema} onValueChange={setFilterTema}>
+                                <SelectTrigger className="mt-2">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="todos">Todos</SelectItem>
+                                    {temas.map(t => (
+                                        <SelectItem key={t.id} value={t.nome}>{t.nome}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="border-l-4 border-red-600">
                     <CardContent className="pt-6">

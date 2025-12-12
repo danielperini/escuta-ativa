@@ -9,7 +9,7 @@ import GraficosAnalise from "../components/analise/GraficosAnalise";
 import IndicadoresCompromissos from "../components/analise/IndicadoresCompromissos";
 import ModeloPredicaoTensao from "../components/analise/ModeloPredicaoTensao";
 import LiderancasEmergentes from "../components/analise/LiderancasEmergentes";
-import ComparativoTerritorial from "../components/analise/ComparativoTerritorial";
+
 import StorytellingTerritorial from "../components/analise/StorytellingTerritorial";
 import PainelPendencias from "../components/devolutiva/PainelPendencias";
 
@@ -34,14 +34,13 @@ export default function Analise() {
                 </div>
 
                 <Tabs defaultValue="rede" className="w-full">
-                    <TabsList className="grid w-full grid-cols-8 text-xs">
+                    <TabsList className="grid w-full grid-cols-7 text-xs">
                         <TabsTrigger value="rede">Grafo</TabsTrigger>
                         <TabsTrigger value="graficos">Gráficos</TabsTrigger>
                         <TabsTrigger value="indicadores">Compromissos</TabsTrigger>
                         <TabsTrigger value="pendencias">Pendências</TabsTrigger>
                         <TabsTrigger value="predicao">Previsão</TabsTrigger>
                         <TabsTrigger value="liderancas">Lideranças</TabsTrigger>
-                        <TabsTrigger value="comparativo">Território</TabsTrigger>
                         <TabsTrigger value="storytelling">Storytelling</TabsTrigger>
                     </TabsList>
 
@@ -69,9 +68,7 @@ export default function Analise() {
                         <LiderancasEmergentes />
                     </TabsContent>
 
-                    <TabsContent value="comparativo" className="mt-6">
-                        <ComparativoTerritorial />
-                    </TabsContent>
+
 
                     <TabsContent value="storytelling" className="mt-6">
                         <StorytellingTerritorial />

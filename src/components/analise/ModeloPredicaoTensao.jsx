@@ -2,24 +2,60 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, TrendingUp, Loader2, Brain } from "lucide-react";
+import { AlertTriangle, TrendingUp, Loader2, Brain, MapPin } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import FeedbackIA from "../FeedbackIA";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const ESTADOS_BRASIL = [
+  { sigla: 'AC', nome: 'Acre' },
+  { sigla: 'AL', nome: 'Alagoas' },
+  { sigla: 'AP', nome: 'Amapá' },
+  { sigla: 'AM', nome: 'Amazonas' },
+  { sigla: 'BA', nome: 'Bahia' },
+  { sigla: 'CE', nome: 'Ceará' },
+  { sigla: 'DF', nome: 'Distrito Federal' },
+  { sigla: 'ES', nome: 'Espírito Santo' },
+  { sigla: 'GO', nome: 'Goiás' },
+  { sigla: 'MA', nome: 'Maranhão' },
+  { sigla: 'MT', nome: 'Mato Grosso' },
+  { sigla: 'MS', nome: 'Mato Grosso do Sul' },
+  { sigla: 'MG', nome: 'Minas Gerais' },
+  { sigla: 'PA', nome: 'Pará' },
+  { sigla: 'PB', nome: 'Paraíba' },
+  { sigla: 'PR', nome: 'Paraná' },
+  { sigla: 'PE', nome: 'Pernambuco' },
+  { sigla: 'PI', nome: 'Piauí' },
+  { sigla: 'RJ', nome: 'Rio de Janeiro' },
+  { sigla: 'RN', nome: 'Rio Grande do Norte' },
+  { sigla: 'RS', nome: 'Rio Grande do Sul' },
+  { sigla: 'RO', nome: 'Rondônia' },
+  { sigla: 'RR', nome: 'Roraima' },
+  { sigla: 'SC', nome: 'Santa Catarina' },
+  { sigla: 'SP', nome: 'São Paulo' },
+  { sigla: 'SE', nome: 'Sergipe' },
+  { sigla: 'TO', nome: 'Tocantins' }
+];
 
 export default function ModeloPredicaoTensao() {
     const [analisando, setAnalisando] = useState(false);
     const [predicoes, setPredicoes] = useState(null);
+    const [filterEstado, setFilterEstado] = useState('todos');
+    const [filterMunicipio, setFilterMunicipio] = useState('todos');
+    const [filterComunidade, setFilterComunidade] = useState('todos');
+    const [municipiosEstado, setMunicipiosEstado] = useState([]);
+    const [carregandoMunicipios, setCarregandoMunicipios] = useState(false);
 
     const { data: comunidades = [] } = useQuery({
         queryKey: ['comunidades-predicao'],
         queryFn: () => base44.entities.Comunidade.list()
     });
 
-    const { data: atividades = [] } = useQuery({
-        queryKey: ['atividades-predicao'],
-        queryFn: () => base44.entities.Atividade.list('-created_date', 100)
+    const { data: registros = [] } = useQuery({
+        queryKey: ['registros-predicao'],
+        queryFn: () => base44.entities.Registro.list('-created_date', 500)
     });
 
     const { data: compromissos = [] } = useQuery({
@@ -32,68 +68,88 @@ export default function ModeloPredicaoTensao() {
         queryFn: () => base44.entities.RiscoSocial.list()
     });
 
-    const { data: feedbacks = [] } = useQuery({
-        queryKey: ['feedbacks-predicao'],
-        queryFn: () => base44.entities.FeedbackIA.list()
-    });
+    // Buscar municípios do estado selecionado
+    const buscarMunicipios = async (estadoSigla) => {
+        setCarregandoMunicipios(true);
+        try {
+            const prompt = `Liste os principais municípios do estado ${ESTADOS_BRASIL.find(e => e.sigla === estadoSigla)?.nome} no Brasil. 
+Retorne uma lista com os 20 municípios mais populosos.`;
+            
+            const resultado = await base44.integrations.Core.InvokeLLM({
+                prompt,
+                add_context_from_internet: true,
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        municipios: { type: "array", items: { type: "string" } }
+                    }
+                }
+            });
+
+            setMunicipiosEstado(resultado.municipios || []);
+        } catch (error) {
+            console.error('Erro ao buscar municípios:', error);
+        } finally {
+            setCarregandoMunicipios(false);
+        }
+    };
+
+    React.useEffect(() => {
+        if (filterEstado !== 'todos') {
+            buscarMunicipios(filterEstado);
+            setFilterMunicipio('todos');
+        } else {
+            setMunicipiosEstado([]);
+        }
+    }, [filterEstado]);
+
+    // Comunidades filtradas pelos registros
+    const comunidadesFiltradas = [...new Set(registros.map(r => r.comunidade).filter(Boolean))];
 
     const calcularTensao = async () => {
         setAnalisando(true);
 
         try {
+            // Filtrar comunidades
+            let comunidadesParaAnalisar = comunidades;
+            
+            if (filterComunidade !== 'todos') {
+                comunidadesParaAnalisar = comunidades.filter(c => c.nome === filterComunidade);
+            } else if (filterMunicipio !== 'todos') {
+                comunidadesParaAnalisar = comunidades.filter(c => c.municipio === filterMunicipio);
+            } else if (filterEstado !== 'todos') {
+                comunidadesParaAnalisar = comunidades.filter(c => c.estado === filterEstado);
+            }
+
             const predicoesComunidades = [];
 
-            // Usar feedbacks históricos para melhorar previsões
-            const feedbacksPredicao = feedbacks.filter(f => f.tipo_analise === "predicao_tensao");
-            const aprendizadoHistorico = feedbacksPredicao.length > 0 
-                ? `\n\nAPRENDIZADO DE FEEDBACKS ANTERIORES:\n${feedbacksPredicao.slice(0, 10).map(f => 
-                    `- ${f.validado ? "✓ Correto" : "✗ Incorreto"}: ${f.comentario || "Sem comentário"} (Precisão: ${f.precisao_avaliada}/5)`
-                ).join('\n')}\n\nUse esse aprendizado para ajustar suas previsões.`
-                : "";
-
-            for (const comunidade of comunidades.slice(0, 10)) {
-                const atividadesCom = atividades.filter(a => a.local === comunidade.nome);
+            for (const comunidade of comunidadesParaAnalisar.slice(0, 10)) {
+                const registrosCom = registros.filter(r => r.comunidade === comunidade.nome);
                 const compromissosCom = compromissos.filter(c => c.comunidade === comunidade.nome);
                 const riscosCom = riscos.filter(r => r.comunidade === comunidade.nome && r.status === "ativo");
 
                 const compromissosAtrasados = compromissosCom.filter(c => c.status === "atrasado").length;
-                const demandasTotais = atividadesCom.flatMap(a => a.demandas || []).length;
-                const alertasEticos = atividadesCom.flatMap(a => a.alertas_eticos || []).length;
+                const demandasTotais = registrosCom.flatMap(r => r.demandas || []).length;
 
                 const contexto = `
 Comunidade: ${comunidade.nome}
-Termômetro Social Atual: ${comunidade.termometro_social || "baixo"}
+Município: ${comunidade.municipio || 'N/A'}
+Estado: ${comunidade.estado || 'N/A'}
 População: ${comunidade.populacao_estimada || "N/A"}
 
 Dados dos Últimos 90 dias:
-- Total de Atividades: ${atividadesCom.length}
+- Total de Registros: ${registrosCom.length}
 - Demandas Registradas: ${demandasTotais}
 - Compromissos Assumidos: ${compromissosCom.length}
 - Compromissos Atrasados: ${compromissosAtrasados}
-- Alertas Éticos: ${alertasEticos}
 - Riscos Sociais Ativos: ${riscosCom.length}
-- Nível de Risco mais Alto: ${riscosCom.length > 0 ? riscosCom.sort((a, b) => 
-    (b.nivel === "critico" ? 4 : b.nivel === "alto" ? 3 : b.nivel === "moderado" ? 2 : 1) -
-    (a.nivel === "critico" ? 4 : a.nivel === "alto" ? 3 : a.nivel === "moderado" ? 2 : 1)
-)[0].nivel : "nenhum"}
 
-Últimas Atividades (resumo):
-${atividadesCom.slice(0, 5).map(a => `- ${a.descricao?.substring(0, 150)}`).join('\n')}
+Últimos Registros (resumo):
+${registrosCom.slice(0, 5).map(r => `- ${r.descricao?.substring(0, 150)}`).join('\n')}
 
 TAREFA:
-Baseado nesses dados, calcule a probabilidade de tensão social ou conflito nos próximos 14 dias.
-Considere:
-1. Volume de demandas não atendidas
-2. Compromissos descumpridos
-3. Presença de riscos sociais ativos
-4. Tom das atividades recentes
-5. Histórico de alertas éticos
-6. Tendências temporais
-
-Forneça uma análise preditiva estruturada.
-
-${aprendizadoHistorico}
-`;
+Calcule a probabilidade de tensão social nos próximos 14 dias.
+Considere: demandas não atendidas, compromissos descumpridos, riscos ativos, tom das interações.`;
 
                 const resultado = await base44.integrations.Core.InvokeLLM({
                     prompt: contexto,
@@ -113,13 +169,14 @@ ${aprendizadoHistorico}
 
                 predicoesComunidades.push({
                     comunidade: comunidade.nome,
+                    municipio: comunidade.municipio,
+                    estado: comunidade.estado,
                     ...resultado
                 });
             }
 
             setPredicoes(predicoesComunidades.sort((a, b) => b.probabilidade_tensao - a.probabilidade_tensao));
         } catch (error) {
-            console.error("Erro ao calcular tensão:", error);
             alert("Erro ao gerar previsão: " + error.message);
         } finally {
             setAnalisando(false);
@@ -137,15 +194,68 @@ ${aprendizadoHistorico}
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5" />
-                            Modelo Preditivo de Tensão Social
-                        </CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5" />
+                        Modelo Preditivo de Tensão Social
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <Label>Estado</Label>
+                                <Select value={filterEstado} onValueChange={setFilterEstado}>
+                                    <SelectTrigger className="mt-2">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="todos">Todos</SelectItem>
+                                        {ESTADOS_BRASIL.map(e => (
+                                            <SelectItem key={e.sigla} value={e.sigla}>{e.nome}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div>
+                                <Label>Município</Label>
+                                <Select 
+                                    value={filterMunicipio} 
+                                    onValueChange={setFilterMunicipio}
+                                    disabled={filterEstado === 'todos'}
+                                >
+                                    <SelectTrigger className="mt-2">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="todos">Todos</SelectItem>
+                                        {municipiosEstado.map(m => (
+                                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div>
+                                <Label>Comunidade</Label>
+                                <Select value={filterComunidade} onValueChange={setFilterComunidade}>
+                                    <SelectTrigger className="mt-2">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="todos">Todas</SelectItem>
+                                        {comunidadesFiltradas.map(c => (
+                                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
                         <Button 
                             onClick={calcularTensao}
                             disabled={analisando}
-                            style={{ backgroundColor: '#F2B632' }}
+                            className="bg-[#2D6A4F] hover:bg-[#1B4332]"
                         >
                             {analisando ? (
                                 <>
@@ -160,17 +270,18 @@ ${aprendizadoHistorico}
                             )}
                         </Button>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    {!predicoes && !analisando && (
-                        <div className="text-center py-8 text-gray-500">
-                            <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                            <p>Clique no botão acima para gerar previsão de tensão social</p>
-                            <p className="text-sm mt-2">A IA analisará dados históricos e padrões para prever riscos</p>
-                        </div>
-                    )}
                 </CardContent>
             </Card>
+
+            {!predicoes && !analisando && (
+                <Card>
+                    <CardContent className="py-12 text-center text-gray-500">
+                        <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <p>Selecione filtros e clique em "Gerar Previsão"</p>
+                        <p className="text-sm mt-2">A IA analisará dados históricos e padrões para prever riscos</p>
+                    </CardContent>
+                </Card>
+            )}
 
             {predicoes && predicoes.length > 0 && (
                 <>
@@ -184,10 +295,15 @@ ${aprendizadoHistorico}
                                 <div className="flex items-start justify-between">
                                     <div>
                                         <CardTitle className="text-xl">{pred.comunidade}</CardTitle>
+                                        <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
+                                            <MapPin className="w-4 h-4" />
+                                            {pred.municipio && <span>{pred.municipio}</span>}
+                                            {pred.estado && <span>• {pred.estado}</span>}
+                                        </div>
                                         <p className="text-sm text-gray-500 mt-1">Previsão para os próximos 14 dias</p>
                                     </div>
                                     <div className="text-right">
-                                        <div className={`text-3xl font-bold ${getColorByProbabilidade(pred.probabilidade_tensao)}`}>
+                                        <div className={`text-3xl font-bold px-3 py-1 rounded ${getColorByProbabilidade(pred.probabilidade_tensao)}`}>
                                             {Math.round(pred.probabilidade_tensao)}%
                                         </div>
                                         <Badge className="mt-2" variant={
@@ -253,16 +369,6 @@ ${aprendizadoHistorico}
                                         </ul>
                                     </div>
                                 )}
-
-                                <div className="pt-3 border-t">
-                                    <FeedbackIA
-                                        tipo_analise="predicao_tensao"
-                                        analise_original={pred}
-                                        entidade_relacionada_tipo="Comunidade"
-                                        entidade_relacionada_id={pred.comunidade}
-                                        contexto={{ comunidade: pred.comunidade, periodo: "14 dias" }}
-                                    />
-                                </div>
                             </CardContent>
                         </Card>
                     ))}
