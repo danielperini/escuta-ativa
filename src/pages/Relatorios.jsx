@@ -12,6 +12,8 @@ import { ArrowLeft, FileText, Download, Loader2, Brain, TrendingUp } from "lucid
 import RelatorioNarrativoEstrategico from "../components/relatorios/RelatorioNarrativoEstrategico";
 import { exportarParaPDF } from "../components/relatorios/ExportadorPDF";
 import { exportarParaCSV, exportarParaExcel } from "../components/relatorios/ExportadorCSV";
+import { exportarParaGoogleDocs } from "../components/relatorios/ExportadorGoogleDocs";
+import { useToastSuccess } from "@/components/ui/toast-success";
 import PreviewRelatorio from "../components/relatorios/PreviewRelatorio";
 import FiltrosAvancados from "../components/relatorios/FiltrosAvancados";
 import BarraProgresso from "../components/relatorios/BarraProgresso";
@@ -19,6 +21,7 @@ import PersonalizacaoCampos from "../components/relatorios/PersonalizacaoCampos"
 
 export default function Relatorios() {
     const navigate = useNavigate();
+    const { showToast, ToastContainer } = useToastSuccess();
     const [tipoRelatorio, setTipoRelatorio] = useState("");
     const [formato, setFormato] = useState("");
     const [loading, setLoading] = useState(false);
@@ -92,7 +95,8 @@ export default function Relatorios() {
     const formatos = [
         { value: "pdf", label: "PDF - Documento Profissional" },
         { value: "xlsx", label: "XLSX - Planilha Excel" },
-        { value: "csv", label: "CSV - Dados Tabulares" }
+        { value: "csv", label: "CSV - Dados Tabulares" },
+        { value: "gdocs", label: "Google Docs - Documento de Texto" }
     ];
 
     const tiposRegistro = [
@@ -672,6 +676,8 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
                 nomeArquivo = exportarParaExcel(dados, tipoRelatorio);
             } else if (formato === 'csv') {
                 nomeArquivo = exportarParaCSV(dados, tipoRelatorio);
+            } else if (formato === 'gdocs') {
+                nomeArquivo = await exportarParaGoogleDocs(dados, tipoRelatorio);
             }
 
             // Salvar relatório gerado
@@ -690,7 +696,7 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
             });
 
             setPreview(null);
-            alert(`✅ Relatório exportado com sucesso!\n\nArquivo: ${nomeArquivo}\nRegistros: ${dados.tabela.length}\n\n📊 O download foi iniciado automaticamente.`);
+            showToast(`✓ Relatório exportado com sucesso! (${nomeArquivo})`);
         } catch (error) {
             alert("Erro ao exportar relatório: " + error.message);
         }
@@ -718,7 +724,9 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
         [];
 
     return (
-        <div className="min-h-screen p-6" style={{ backgroundColor: '#f8f9fa' }}>
+        <>
+            <ToastContainer />
+            <div className="min-h-screen p-6" style={{ backgroundColor: '#f8f9fa' }}>
             {loading && etapaAtual && (
                 <BarraProgresso 
                     etapaAtual={etapaAtual}
@@ -1591,6 +1599,7 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
                                     <li><strong>PDF:</strong> Documento profissional com gráficos e formatação completa</li>
                                     <li><strong>XLSX:</strong> Planilha Excel com múltiplas abas e dados estruturados</li>
                                     <li><strong>CSV:</strong> Dados tabulares simples para importação em outros sistemas</li>
+                                    <li><strong>Google Docs:</strong> Documento de texto formatado para Google Docs</li>
                                 </ul>
                             </div>
                         </div>
@@ -1605,5 +1614,6 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
                 </Tabs>
             </div>
         </div>
+        </>
     );
 }
