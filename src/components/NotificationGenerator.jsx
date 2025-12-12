@@ -88,25 +88,6 @@ export default function NotificationGenerator() {
                     }
                 }
 
-                // 4. Notificar sobre novos compromissos
-                if (ativ.compromissos && ativ.compromissos.length > 0) {
-                    const existentes = await base44.entities.Notificacao.list();
-                    const jaNotificado = existentes.some(n => 
-                        n.entidade_relacionada_id === ativ.id && n.tipo === "novo_compromisso"
-                    );
-
-                    if (!jaNotificado) {
-                        await base44.entities.Notificacao.create({
-                            tipo: "novo_compromisso",
-                            titulo: "Novos Compromissos Identificados",
-                            mensagem: `A IA identificou ${ativ.compromissos.length} compromisso(s) na atividade "${ativ.titulo || 'sem título'}".`,
-                            prioridade: "alta",
-                            entidade_relacionada_tipo: "Atividade",
-                            entidade_relacionada_id: ativ.id
-                        });
-                    }
-                }
-
                 // 5. Notificar sobre alertas éticos
                 if (ativ.alertas_eticos && ativ.alertas_eticos.length > 0) {
                     const existentes = await base44.entities.Notificacao.list();
