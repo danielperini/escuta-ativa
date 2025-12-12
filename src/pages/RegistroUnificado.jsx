@@ -488,63 +488,65 @@ Extraia:
                   <p className="text-sm text-slate-500">Todos os arquivos serão convertidos em texto editável</p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 max-w-3xl mx-auto pt-4">
-                  <button
-                    onClick={() => {
-                      setTranscricaoTempoReal(!transcricaoTempoReal);
-                      setEtapaAtual('texto');
-                    }}
-                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all bg-gradient-to-br from-[#40916C]/10 to-[#2D6A4F]/10"
-                  >
-                    <Mic className="w-8 h-8 text-[#40916C] mb-2" />
-                    <span className="text-sm font-medium">Transcrição</span>
-                    <span className="text-xs text-slate-400 mt-1">Tempo Real</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setMostrarGravador(!mostrarGravador);
-                      setEtapaAtual('texto');
-                    }}
-                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all"
-                  >
-                    <Mic className="w-8 h-8 text-[#40916C] mb-2" />
-                    <span className="text-sm font-medium">Gravar</span>
-                    <span className="text-xs text-slate-400 mt-1">Arquivo</span>
-                  </button>
-                  
-                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
-                    <Upload className="w-8 h-8 text-[#40916C] mb-2" />
-                    <span className="text-sm font-medium">Áudio</span>
-                    <span className="text-xs text-slate-400 mt-1">.ogg .mp3</span>
-                    <input type="file" accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a" className="hidden" onChange={(e) => handleFileUpload(e, 'audio')} disabled={processando} />
-                  </label>
-                  
-                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
-                    <Video className="w-8 h-8 text-[#40916C] mb-2" />
-                    <span className="text-sm font-medium">Vídeo</span>
-                    <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={processando} />
-                  </label>
-                  
-                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
-                    <Camera className="w-8 h-8 text-[#40916C] mb-2" />
-                    <span className="text-sm font-medium">Foto</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={processando} />
-                  </label>
-                  
-                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
-                    <FileText className="w-8 h-8 text-[#40916C] mb-2" />
-                    <span className="text-sm font-medium">PDF/Doc</span>
-                    <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => handleFileUpload(e, 'documento')} disabled={processando} />
-                  </label>
-                  
-                  <button
-                    onClick={() => setEtapaAtual('texto')}
-                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all"
-                  >
-                    <FileText className="w-8 h-8 text-[#40916C] mb-2" />
-                    <span className="text-sm font-medium">Digitar</span>
-                  </button>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">📝 Para Transcrição</h3>
+                    <div className="grid grid-cols-2 gap-3 max-w-md">
+                      <button
+                        onClick={() => {
+                          setTranscricaoTempoReal(!transcricaoTempoReal);
+                          setEtapaAtual('texto');
+                        }}
+                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all bg-gradient-to-br from-[#40916C]/10 to-[#2D6A4F]/10"
+                      >
+                        <Mic className="w-8 h-8 text-[#40916C] mb-2" />
+                        <span className="text-sm font-medium">Transcrição</span>
+                        <span className="text-xs text-slate-400 mt-1">Tempo Real</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setMostrarGravador(!mostrarGravador);
+                          setEtapaAtual('texto');
+                        }}
+                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all"
+                      >
+                        <Mic className="w-8 h-8 text-[#40916C] mb-2" />
+                        <span className="text-sm font-medium">Gravar Áudio</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">📎 Para Evidências</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl">
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                        <Video className="w-8 h-8 text-[#40916C] mb-2" />
+                        <span className="text-sm font-medium">Vídeo</span>
+                        <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={processando} />
+                      </label>
+
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                        <Camera className="w-8 h-8 text-[#40916C] mb-2" />
+                        <span className="text-sm font-medium">Foto</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={processando} />
+                      </label>
+
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                        <FileText className="w-8 h-8 text-[#40916C] mb-2" />
+                        <span className="text-sm font-medium">PDF/Doc</span>
+                        <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => handleFileUpload(e, 'documento')} disabled={processando} />
+                      </label>
+
+                      <button
+                        onClick={() => setEtapaAtual('texto')}
+                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all"
+                      >
+                        <FileText className="w-8 h-8 text-[#40916C] mb-2" />
+                        <span className="text-sm font-medium">Digitar</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 {processando && (

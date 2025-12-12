@@ -370,9 +370,17 @@ RETORNE APENAS: O texto transcrito, sem comentários ou análise.`,
                   <p className="text-xs text-slate-500">{formatarTempo(duracao)}</p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={limpar}>
-                <X className="w-4 h-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={limpar}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Deletar
+                </Button>
+              </div>
             </div>
 
             <audio 
