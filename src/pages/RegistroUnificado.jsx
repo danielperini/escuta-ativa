@@ -540,23 +540,7 @@ Extraia:
                           type="file" 
                           accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a,.aac,.webm,.mp4" 
                           className="hidden" 
-                          onChange={async (e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              setEtapaAtual('texto');
-                              setMostrarGravador(true);
-                              // Aguardar renderização do componente
-                              setTimeout(() => {
-                                // Disparar processamento através do GravadorAudioCompleto
-                                const fileInput = document.querySelector('input[type="file"][accept*="audio"]');
-                                if (fileInput) {
-                                  const event = new Event('change', { bubbles: true });
-                                  Object.defineProperty(event, 'target', { value: { files: [file] }, enumerable: true });
-                                  fileInput.dispatchEvent(event);
-                                }
-                              }, 100);
-                            }
-                          }}
+                          onChange={(e) => handleFileUpload(e, 'audio')}
                           disabled={processando}
                         />
                       </label>
