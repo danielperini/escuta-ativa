@@ -485,8 +485,6 @@ Seja conciso e objetivo.`;
               </>
             )}
           </div>
-
-        </div>
         </div>
 
         {/* Sidebar */}
