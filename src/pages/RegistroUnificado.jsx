@@ -397,6 +397,23 @@ Extraia:
       return;
     }
 
+    // Em modo edição, salvar direto sem detectores
+    if (modoEdicao) {
+      const dadosFinais = {
+        ...formData,
+        status: 'finalizado'
+      };
+      
+      try {
+        await base44.entities.Registro.update(registroIdEditar, dadosFinais);
+        queryClient.invalidateQueries({ queryKey: ['registros'] });
+        navigate(createPageUrl('Registros'));
+      } catch (error) {
+        alert('Erro ao salvar: ' + error.message);
+      }
+      return;
+    }
+
     setRegistroTemporario(formData);
     setMostrarDetectores(true);
   };
@@ -995,10 +1012,11 @@ Ou digite/cole o conteúdo diretamente..."
             <CardContent className="pt-6">
               <DetectorStakeholders
                 textoConsolidado={textoConsolidado}
-                comunidade={registroTemporario.comunidade}
-                municipio={registroTemporario.localizacao?.municipio || formData.localizacao?.municipio}
+                comunidade={registroTemporario?.comunidade}
+                municipio={registroTemporario?.localizacao?.municipio || formData.localizacao?.municipio}
                 registroId={null}
                 onStakeholdersVinculados={(stakeholders) => {
+                  console.log('Stakeholders vinculados:', stakeholders);
                   setFormData(prev => ({ ...prev, stakeholders_vinculados: stakeholders }));
                 }}
               />
@@ -1015,12 +1033,13 @@ Ou digite/cole o conteúdo diretamente..."
             <CardContent className="pt-6">
               <DetectorCasosAutomatico
                 textoConsolidado={textoConsolidado}
-                demandasExtraidas={registroTemporario.demandas}
-                comunidade={registroTemporario.comunidade}
-                municipio={registroTemporario.localizacao?.municipio || formData.localizacao?.municipio}
+                demandasExtraidas={registroTemporario?.demandas}
+                comunidade={registroTemporario?.comunidade}
+                municipio={registroTemporario?.localizacao?.municipio || formData.localizacao?.municipio}
                 stakeholdersVinculados={formData.stakeholders_vinculados}
                 registroId={null}
                 onCasosCriados={(casos) => {
+                  console.log('Casos criados:', casos);
                   setFormData(prev => ({ ...prev, casos_vinculados: casos }));
                 }}
               />
