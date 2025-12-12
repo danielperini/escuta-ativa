@@ -61,7 +61,7 @@ export default function NotificationCenter() {
 
     const marcarTodasLidasMutation = useMutation({
         mutationFn: async () => {
-            const naoLidas = notificacoes.filter(n => !n.lida);
+            const naoLidas = notificacoes.filter(n => !n.lida && n.status !== 'resolvida');
             await Promise.all(naoLidas.map(n => 
                 base44.entities.Notificacao.update(n.id, { lida: true })
             ));
@@ -69,7 +69,7 @@ export default function NotificationCenter() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
     });
 
-    const naoLidas = notificacoes.filter(n => !n.lida);
+    const naoLidas = notificacoes.filter(n => !n.lida && n.status !== 'resolvida');
 
     const getIcon = (tipo) => {
         switch(tipo) {
