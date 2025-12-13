@@ -89,9 +89,13 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas</SelectItem>
-              {comunidades.map(c => (
-                <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
-              ))}
+              {comunidades.length > 0 ? (
+                comunidades.map(c => (
+                  <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                ))
+              ) : (
+                <SelectItem value={null} disabled>Nenhuma comunidade cadastrada</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>

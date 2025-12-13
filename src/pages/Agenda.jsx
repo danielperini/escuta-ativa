@@ -74,6 +74,8 @@ export default function Agenda() {
   const [viewingAgenda, setViewingAgenda] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+  const [filterComunidade, setFilterComunidade] = useState('todas');
+  const [filterTema, setFilterTema] = useState('todos');
   const [formData, setFormData] = useState({
     titulo: '',
     data: '',
@@ -96,6 +98,31 @@ export default function Agenda() {
     queryKey: ['comunidades'],
     queryFn: () => base44.entities.Comunidade.list()
   });
+
+  const { data: temas = [] } = useQuery({
+    queryKey: ['temas'],
+    queryFn: () => base44.entities.Tema.list()
+  });
+
+  const { data: registros = [] } = useQuery({
+    queryKey: ['registros-comunidades'],
+    queryFn: () => base44.entities.Registro.list('-created_date', 200)
+  });
+
+  // Extrair comunidades únicas dos registros se não houver entidade Comunidade
+  const comunidadesUnicas = React.useMemo(() => {
+    if (comunidades.length > 0) {
+      return comunidades.map(c => c.nome);
+    }
+    const comunidadesSet = new Set();
+    registros.forEach(r => {
+      if (r.comunidade) comunidadesSet.add(r.comunidade);
+    });
+    agendas.forEach(a => {
+      if (a.comunidade) comunidadesSet.add(a.comunidade);
+    });
+    return Array.from(comunidadesSet).sort();
+  }, [comunidades, registros, agendas]);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Agenda.create(data),
@@ -156,13 +183,20 @@ export default function Agenda() {
     }
   };
 
+  // Filtrar agendas
+  const filteredAgendas = agendas.filter(a => {
+    const matchComunidade = filterComunidade === 'todas' || a.comunidade === filterComunidade;
+    const matchTema = filterTema === 'todos' || a.temas?.includes(filterTema);
+    return matchComunidade && matchTema;
+  });
+
   // Group agendas by status
   const agendasPorStatus = Object.keys(statusConfig).reduce((acc, status) => {
-    acc[status] = agendas.filter(a => a.status === status);
+    acc[status] = filteredAgendas.filter(a => a.status === status);
     return acc;
   }, {});
 
-  const allAgendas = agendas;
+  const allAgendas = filteredAgendas;
   const totalPages = Math.ceil(allAgendas.length / itemsPerPage);
   const paginatedAgendas = allAgendas.slice(
     (currentPage - 1) * itemsPerPage,
@@ -171,7 +205,7 @@ export default function Agenda() {
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [agendas.length]);
+  }, [agendas.length, filterComunidade, filterTema]);
 
   return (
     <div className="space-y-6">
@@ -201,6 +235,35 @@ export default function Agenda() {
           </Card>
         ))}
       </div>
+
+      {/* Filtros */}
+      <Card className="p-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Select value={filterComunidade} onValueChange={setFilterComunidade}>
+            <SelectTrigger className="w-full sm:w-56">
+              <MapPin className="w-4 h-4 mr-2 text-slate-400" />
+              <SelectValue placeholder="Comunidade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas comunidades</SelectItem>
+              {comunidadesUnicas.map(com => (
+                <SelectItem key={com} value={com}>{com}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterTema} onValueChange={setFilterTema}>
+            <SelectTrigger className="w-full sm:w-56">
+              <SelectValue placeholder="Tema" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos temas</SelectItem>
+              {temas.map(t => (
+                <SelectItem key={t.id} value={t.nome}>{t.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </Card>
 
       {/* Compromissos Atrasados */}
       <CompromissosAtrasados />
@@ -519,9 +582,13 @@ export default function Agenda() {
                   <SelectValue placeholder="Selecione a comunidade" />
                 </SelectTrigger>
                 <SelectContent>
-                  {comunidades.map(c => (
-                    <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
-                  ))}
+                  {comunidadesUnicas.length > 0 ? (
+                    comunidadesUnicas.map(com => (
+                      <SelectItem key={com} value={com}>{com}</SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value={null} disabled>Nenhuma comunidade encontrada</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import {
   Select,
   SelectContent,
@@ -82,6 +83,7 @@ export default function Materialidade() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [filterCategoria, setFilterCategoria] = useState('todos');
+  const [filterComunidade, setFilterComunidade] = useState('todas');
   const [showDialog, setShowDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [editingTema, setEditingTema] = useState(null);
@@ -103,6 +105,20 @@ export default function Materialidade() {
     queryFn: () => base44.entities.Tema.list('-mencoes_total', 100),
     staleTime: 3 * 60 * 1000
   });
+
+  const { data: registros = [] } = useQuery({
+    queryKey: ['registros-comunidades'],
+    queryFn: () => base44.entities.Registro.list('-created_date', 200)
+  });
+
+  // Extrair comunidades únicas dos registros
+  const comunidadesUnicas = React.useMemo(() => {
+    const comunidades = new Set();
+    registros.forEach(r => {
+      if (r.comunidade) comunidades.add(r.comunidade);
+    });
+    return Array.from(comunidades).sort();
+  }, [registros]);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Tema.create(data),
@@ -168,7 +184,8 @@ export default function Materialidade() {
   const filteredTemas = temas.filter(t => {
     const matchSearch = !search || t.nome?.toLowerCase().includes(search.toLowerCase());
     const matchCategoria = filterCategoria === 'todos' || t.categoria === filterCategoria;
-    return matchSearch && matchCategoria;
+    const matchComunidade = filterComunidade === 'todas' || t.comunidades_afetadas?.includes(filterComunidade);
+    return matchSearch && matchCategoria && matchComunidade;
   });
 
   const totalPages = Math.ceil(filteredTemas.length / itemsPerPage);
@@ -179,7 +196,7 @@ export default function Materialidade() {
 
   React.useEffect(() => {
     setCurrentPageLista(1);
-  }, [search, filterCategoria]);
+  }, [search, filterCategoria, filterComunidade]);
 
   // Calculate matrix positions
   const getMatrixPosition = (tema) => {
@@ -255,6 +272,18 @@ export default function Materialidade() {
               <SelectItem value="todos">Todas categorias</SelectItem>
               {Object.keys(categoriaColors).map(cat => (
                 <SelectItem key={cat} value={cat} className="capitalize">{cat}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterComunidade} onValueChange={setFilterComunidade}>
+            <SelectTrigger className="w-full sm:w-48">
+              <MapPin className="w-4 h-4 mr-2 text-slate-400" />
+              <SelectValue placeholder="Comunidade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas comunidades</SelectItem>
+              {comunidadesUnicas.map(com => (
+                <SelectItem key={com} value={com}>{com}</SelectItem>
               ))}
             </SelectContent>
           </Select>
