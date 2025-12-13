@@ -10,6 +10,7 @@ import DashboardKPIs from "@/components/dashboard/DashboardKPIs";
 import MonitorDemandasRecorrentes from "@/components/atores/MonitorDemandasRecorrentes";
 import MonitorDevolutivas from "@/components/devolutiva/MonitorDevolutivas";
 import BotaoPanicoAvancado from "@/components/dashboard/BotaoPanicoAvancado";
+import GraficosInterativos from "@/components/dashboard/GraficosInterativos";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
@@ -70,6 +71,10 @@ export default function Dashboard() {
                             <VozComunidade />
                         </div>
                     )}
+
+                    <div className="mt-6">
+                        <GraficosInterativos />
+                    </div>
 
                     <div className="flex justify-center">
                             <Button

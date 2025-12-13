@@ -39,6 +39,7 @@ import FormularioEquipe from '@/components/equipes/FormularioEquipe';
 import DetalhesEquipe from '@/components/equipes/DetalhesEquipe';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
+import GraficosInterativos from '@/components/dashboard/GraficosInterativos';
 
 const funcaoConfig = {
   coordenador_geral: { label: 'Coordenador Geral', icon: Crown, color: 'bg-purple-100 text-purple-700' },
@@ -238,6 +239,13 @@ export default function GerenciarEquipes() {
           />
         </div>
       </Card>
+
+      {/* Gráficos */}
+      {equipesVisiveis.length > 0 && (
+        <div className="mt-6">
+          <GraficosInterativos />
+        </div>
+      )}
 
       {/* Lista de Equipes */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
