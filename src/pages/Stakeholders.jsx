@@ -232,28 +232,28 @@ export default function Stakeholders() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <Card className="p-3 md:p-4">
           <div className="text-sm text-slate-500">Total</div>
           <div className="text-2xl font-bold text-slate-900 mt-1">{stats.total}</div>
         </Card>
-        <Card className="p-4">
+        <Card className="p-3 md:p-4">
           <div className="text-sm text-slate-500">Provisórios</div>
           <div className="text-2xl font-bold text-amber-600 mt-1">{stats.provisorios}</div>
         </Card>
-        <Card className="p-4">
+        <Card className="p-3 md:p-4">
           <div className="text-sm text-slate-500">Pessoas</div>
           <div className="text-2xl font-bold text-blue-600 mt-1">{stats.pessoas}</div>
         </Card>
-        <Card className="p-4">
+        <Card className="p-3 md:p-4">
           <div className="text-sm text-slate-500">Entidades</div>
           <div className="text-2xl font-bold text-purple-600 mt-1">{stats.entidades}</div>
         </Card>
       </div>
 
       {/* Filters */}
-      <Card className="p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+      <Card className="p-3 md:p-4">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
@@ -300,7 +300,7 @@ export default function Stakeholders() {
 
       {/* Grid / List */}
       <div className={cn(
-        viewMode === 'cards' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-3"
+        viewMode === 'cards' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4" : "space-y-3"
       )}>
         {isLoading ? (
           Array(6).fill(0).map((_, i) => (

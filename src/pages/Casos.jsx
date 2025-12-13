@@ -165,9 +165,9 @@ export default function Casos() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 pb-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Casos</h2>
           <p className="text-slate-500 mt-1">Situações que exigem devolutiva ou acompanhamento</p>
@@ -182,22 +182,22 @@ export default function Casos() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-4 cursor-pointer hover:shadow-md transition-all" onClick={() => setActiveTab('todos')}>
-          <div className="text-sm text-slate-500">Total</div>
-          <div className="text-2xl font-bold text-slate-900 mt-1">{stats.total}</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <Card className="p-3 md:p-4 cursor-pointer hover:shadow-md transition-all active:scale-95" onClick={() => setActiveTab('todos')}>
+          <div className="text-xs md:text-sm text-slate-500">Total</div>
+          <div className="text-xl md:text-2xl font-bold text-slate-900 mt-1">{stats.total}</div>
         </Card>
-        <Card className="p-4 cursor-pointer hover:shadow-md transition-all" onClick={() => setActiveTab('abertos')}>
-          <div className="text-sm text-slate-500">Abertos</div>
-          <div className="text-2xl font-bold text-blue-600 mt-1">{stats.abertos}</div>
+        <Card className="p-3 md:p-4 cursor-pointer hover:shadow-md transition-all active:scale-95" onClick={() => setActiveTab('abertos')}>
+          <div className="text-xs md:text-sm text-slate-500">Abertos</div>
+          <div className="text-xl md:text-2xl font-bold text-blue-600 mt-1">{stats.abertos}</div>
         </Card>
-        <Card className="p-4 cursor-pointer hover:shadow-md transition-all" onClick={() => setActiveTab('atrasados')}>
-          <div className="text-sm text-slate-500">Atrasados</div>
-          <div className="text-2xl font-bold text-red-600 mt-1">{stats.atrasados}</div>
+        <Card className="p-3 md:p-4 cursor-pointer hover:shadow-md transition-all active:scale-95" onClick={() => setActiveTab('atrasados')}>
+          <div className="text-xs md:text-sm text-slate-500">Atrasados</div>
+          <div className="text-xl md:text-2xl font-bold text-red-600 mt-1">{stats.atrasados}</div>
         </Card>
-        <Card className="p-4 cursor-pointer hover:shadow-md transition-all" onClick={() => setActiveTab('concluidos')}>
-          <div className="text-sm text-slate-500">Concluídos</div>
-          <div className="text-2xl font-bold text-emerald-600 mt-1">{stats.concluidos}</div>
+        <Card className="p-3 md:p-4 cursor-pointer hover:shadow-md transition-all active:scale-95" onClick={() => setActiveTab('concluidos')}>
+          <div className="text-xs md:text-sm text-slate-500">Concluídos</div>
+          <div className="text-xl md:text-2xl font-bold text-emerald-600 mt-1">{stats.concluidos}</div>
         </Card>
       </div>
 
@@ -212,8 +212,8 @@ export default function Casos() {
       </Tabs>
 
       {/* Filters */}
-      <Card className="p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+      <Card className="p-3 md:p-4">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
@@ -262,12 +262,12 @@ export default function Casos() {
               <Card 
                 key={caso.id}
                 className={cn(
-                  "p-4 hover:shadow-md transition-all",
+                  "p-3 md:p-4 hover:shadow-md transition-all",
                   caso.isAtrasado && "border-red-200 bg-red-50/30"
                 )}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-4 flex-1">
+                <div className="flex flex-col md:flex-row items-start justify-between gap-3 md:gap-4">
+                  <div className="flex items-start gap-3 md:gap-4 flex-1">
                     <div className={cn(
                       "p-2 rounded-lg",
                       caso.isAtrasado ? "bg-red-100" : "bg-slate-100"
