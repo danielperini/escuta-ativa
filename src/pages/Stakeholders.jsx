@@ -64,6 +64,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import Pagination from '@/components/shared/Pagination';
+import SegmentacaoAvancada from '@/components/stakeholders/SegmentacaoAvancada';
 
 const tipoConfig = {
   pessoa: { label: 'Pessoa', color: 'bg-blue-100 text-blue-700' },
@@ -109,6 +110,7 @@ export default function Stakeholders() {
   const [detalhesStakeholder, setDetalhesStakeholder] = useState(null);
   const [filterTags, setFilterTags] = useState('todas');
   const [formData, setFormData] = useState({});
+  const [stakeholdersFiltradosSegmentacao, setStakeholdersFiltradosSegmentacao] = useState(null);
 
   const { data: stakeholders = [], isLoading, refetch } = useQuery({
     queryKey: ['stakeholders'],
@@ -172,7 +174,10 @@ export default function Stakeholders() {
     return Array.from(tags).sort();
   }, [stakeholders]);
 
-  const filteredStakeholders = stakeholders.filter(s => {
+  // Primeiro aplicar segmentação avançada, depois filtros básicos
+  const stakeholdersBase = stakeholdersFiltradosSegmentacao || stakeholders;
+
+  const filteredStakeholders = stakeholdersBase.filter(s => {
     const matchSearch = !search || 
       s.nome?.toLowerCase().includes(search.toLowerCase()) ||
       s.organizacao?.toLowerCase().includes(search.toLowerCase()) ||
@@ -263,6 +268,12 @@ export default function Stakeholders() {
           <div className="text-2xl font-bold text-purple-600 mt-1">{stats.entidades}</div>
         </Card>
       </div>
+
+      {/* Segmentação Avançada */}
+      <SegmentacaoAvancada 
+        stakeholders={stakeholders}
+        onSegmentacaoChange={setStakeholdersFiltradosSegmentacao}
+      />
 
       {/* Filters */}
       <Card className="p-3 md:p-4">
