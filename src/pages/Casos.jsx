@@ -64,6 +64,7 @@ import {
 import { cn } from "@/lib/utils";
 import Pagination from '@/components/shared/Pagination';
 import ConsolidadorCasos from '@/components/casos/ConsolidadorCasos';
+import FormularioCasoInteligente from '@/components/casos/FormularioCasoInteligente';
 
 const statusConfig = {
   em_aberto: { label: 'Em Aberto', color: 'bg-amber-100 text-amber-700', icon: Clock },
@@ -101,6 +102,7 @@ export default function Casos() {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const { data: casos = [], isLoading, refetch } = useQuery({
     queryKey: ['casos'],
@@ -223,13 +225,22 @@ export default function Casos() {
           <h2 className="text-2xl font-bold text-slate-900">Casos</h2>
           <p className="text-slate-500 mt-1">Situações que exigem devolutiva ou acompanhamento</p>
         </div>
-        <Button 
-          variant="outline"
-          onClick={() => refetch()}
-          disabled={isLoading}
-        >
-          <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setShowCreateDialog(true)}
+            className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Caso
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+          </Button>
+        </div>
       </div>
 
       {/* Consolidador de Casos */}
@@ -581,6 +592,16 @@ export default function Casos() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Create Dialog */}
+      <FormularioCasoInteligente
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onSuccess={() => {
+          refetch();
+          setShowCreateDialog(false);
+        }}
+      />
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
