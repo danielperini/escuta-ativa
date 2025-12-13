@@ -142,10 +142,10 @@ export default function GraficosTendencias() {
         {/* Evolução temporal */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Evolução de Registros</CardTitle>
+            <CardTitle className="text-base md:text-lg">Evolução de Registros</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="p-3 md:p-6">
+            <ResponsiveContainer width="100%" height={250}>
               <LineChart data={dadosEvolucao}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
@@ -168,10 +168,10 @@ export default function GraficosTendencias() {
         {/* Registros por tipo */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Distribuição por Tipo</CardTitle>
+            <CardTitle className="text-base md:text-lg">Distribuição por Tipo</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="p-3 md:p-6">
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
                   data={dadosTipo}
@@ -196,10 +196,10 @@ export default function GraficosTendencias() {
         {/* Top 10 temas */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Top 10 Temas</CardTitle>
+            <CardTitle className="text-base md:text-lg">Top 10 Temas</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="p-3 md:p-6">
+            <ResponsiveContainer width="100%" height={250}>
               <BarChart data={top10Temas} layout="horizontal">
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis type="number" tick={{ fontSize: 12 }} />
@@ -214,10 +214,10 @@ export default function GraficosTendencias() {
         {/* Evolução Materialidade */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Evolução Materialidade</CardTitle>
+            <CardTitle className="text-base md:text-lg">Evolução Materialidade</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="p-3 md:p-6">
+            <ResponsiveContainer width="100%" height={250}>
               <LineChart data={evolucaoMaterialidade}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="mes" tick={{ fontSize: 12 }} />

@@ -552,8 +552,8 @@ Extraia:
 
   if (etapaAtual === 'upload' || etapaAtual === 'texto') {
       return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-          <div className="flex items-center gap-4">
+        <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
             <Link to={createPageUrl('Dashboard')}>
               <Button variant="ghost" size="icon">
                 <ArrowLeft className="w-5 h-5" />
@@ -1004,8 +1004,8 @@ Ou digite/cole o conteúdo diretamente..."
 
   if (mostrarDetectores) {
       return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-          <div className="flex items-center gap-4">
+        <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 md:gap-4">
             <Button variant="ghost" size="icon" onClick={() => setMostrarDetectores(false)}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
