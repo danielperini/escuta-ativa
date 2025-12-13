@@ -12,6 +12,7 @@ import LiderancasEmergentes from "../components/analise/LiderancasEmergentes";
 
 import StorytellingTerritorial from "../components/analise/StorytellingTerritorial";
 import PainelPendencias from "../components/devolutiva/PainelPendencias";
+import IntegradorTextoIA from "../components/analise/IntegradorTextoIA";
 
 export default function Analise() {
     const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function Analise() {
                 </div>
 
                 <Tabs defaultValue="rede" className="w-full">
-                    <TabsList className="grid w-full grid-cols-7 text-xs">
+                    <TabsList className="grid w-full grid-cols-8 text-xs">
                         <TabsTrigger value="rede">Grafo</TabsTrigger>
                         <TabsTrigger value="graficos">Gráficos</TabsTrigger>
                         <TabsTrigger value="indicadores">Compromissos</TabsTrigger>
@@ -42,6 +43,7 @@ export default function Analise() {
                         <TabsTrigger value="predicao">Previsão</TabsTrigger>
                         <TabsTrigger value="liderancas">Lideranças</TabsTrigger>
                         <TabsTrigger value="storytelling">Storytelling</TabsTrigger>
+                        <TabsTrigger value="integrador">Integrador IA</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="rede" className="mt-6">
@@ -72,6 +74,10 @@ export default function Analise() {
 
                     <TabsContent value="storytelling" className="mt-6">
                         <StorytellingTerritorial />
+                    </TabsContent>
+
+                    <TabsContent value="integrador" className="mt-6">
+                        <IntegradorTextoIA />
                     </TabsContent>
                 </Tabs>
             </div>
