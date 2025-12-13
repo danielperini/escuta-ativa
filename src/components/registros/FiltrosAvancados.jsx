@@ -30,6 +30,7 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
       status: 'todos',
       temperatura: 'todos',
       tema: 'todos',
+      municipio: 'todas',
       dataInicio: '',
       dataFim: ''
     });
@@ -43,6 +44,7 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
     if (filtros.status !== 'todos') count++;
     if (filtros.temperatura !== 'todos') count++;
     if (filtros.tema !== 'todos') count++;
+    if (filtros.municipio !== 'todas') count++;
     if (filtros.dataInicio || filtros.dataFim) count++;
     return count;
   };
@@ -152,6 +154,21 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
               <SelectItem value="todos">Todos</SelectItem>
               {temas.map(t => (
                 <SelectItem key={t.id} value={t.nome}>{t.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label className="text-xs">Município</Label>
+          <Select value={filtros.municipio || 'todas'} onValueChange={(v) => setFiltros({ ...filtros, municipio: v })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todos</SelectItem>
+              {municipiosBrasil.filter(m => m !== "Todas").map(m => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
               ))}
             </SelectContent>
           </Select>
