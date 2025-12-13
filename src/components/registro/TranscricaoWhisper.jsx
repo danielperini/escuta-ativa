@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mic, Square, Upload, Loader2, CheckCircle, AlertCircle, FileAudio } from 'lucide-react';
+import { Mic, Square, Upload, Loader2, CheckCircle, AlertCircle, FileAudio, X } from 'lucide-react';
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from 'sonner';
 
 /**
@@ -15,23 +16,35 @@ export default function TranscricaoWhisper({ onTranscricaoCompleta }) {
   const [gravando, setGravando] = useState(false);
   const [processando, setProcessando] = useState(false);
   const [transcricao, setTranscricao] = useState('');
+  const [transcricaoEditavel, setTranscricaoEditavel] = useState('');
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioURL, setAudioURL] = useState(null);
   const [duracao, setDuracao] = useState(0);
+  const [tocando, setTocando] = useState(false);
+  const [modoEdicao, setModoEdicao] = useState(false);
   
   const mediaRecorderRef = React.useRef(null);
   const audioChunksRef = React.useRef([]);
   const intervaloRef = React.useRef(null);
   const streamRef = React.useRef(null);
+  const audioElementRef = React.useRef(null);
 
   const iniciarGravacao = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
       streamRef.current = stream;
       
-      // Tentar MP4 primeiro, depois MP3, WAV, WEBM
+      // Tentar formatos em ordem de qualidade
       let mimeType = 'audio/webm';
-      if (MediaRecorder.isTypeSupported('audio/mp4')) {
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
         mimeType = 'audio/mp4';
       } else if (MediaRecorder.isTypeSupported('audio/mpeg')) {
         mimeType = 'audio/mpeg';
@@ -39,7 +52,10 @@ export default function TranscricaoWhisper({ onTranscricaoCompleta }) {
         mimeType = 'audio/wav';
       }
       
-      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      const mediaRecorder = new MediaRecorder(stream, { 
+        mimeType,
+        audioBitsPerSecond: 128000
+      });
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -128,12 +144,10 @@ Transcreva:`;
       }
       
       setTranscricao(resultado);
+      setTranscricaoEditavel(resultado);
+      setModoEdicao(true);
       
-      if (onTranscricaoCompleta) {
-        onTranscricaoCompleta(resultado, file_url);
-      }
-      
-      toast.success('Áudio transcrito com sucesso!');
+      toast.success('Áudio transcrito! Revise e confirme.');
       
     } catch (error) {
       console.error('Erro na transcrição:', error);
@@ -161,11 +175,33 @@ Transcreva:`;
     toast.info('Arquivo carregado. Clique em "Transcrever" para processar.');
   };
 
+  const togglePlayPause = () => {
+    if (!audioElementRef.current) return;
+    
+    if (tocando) {
+      audioElementRef.current.pause();
+      setTocando(false);
+    } else {
+      audioElementRef.current.play();
+      setTocando(true);
+    }
+  };
+
+  const confirmarTranscricao = () => {
+    if (onTranscricaoCompleta && transcricaoEditavel) {
+      onTranscricaoCompleta(transcricaoEditavel, audioURL);
+    }
+    limpar();
+  };
+
   const limpar = () => {
     setAudioBlob(null);
     setAudioURL(null);
     setTranscricao('');
+    setTranscricaoEditavel('');
     setDuracao(0);
+    setModoEdicao(false);
+    setTocando(false);
   };
 
   const formatarTempo = (segundos) => {
@@ -255,31 +291,41 @@ Transcreva:`;
         )}
 
         {/* Player e Botão de Transcrição */}
-        {audioBlob && !transcricao && (
+        {audioBlob && !modoEdicao && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <FileAudio className="w-8 h-8 text-blue-600" />
-                <div>
-                  <p className="text-sm font-medium">Áudio pronto</p>
-                  <p className="text-xs text-slate-500">
-                    {duracao > 0 ? formatarTempo(duracao) : 'Arquivo externo'}
-                  </p>
+            <div className="p-4 bg-slate-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <FileAudio className="w-8 h-8 text-blue-600" />
+                  <div>
+                    <p className="text-sm font-medium">Áudio pronto para transcrição</p>
+                    <p className="text-xs text-slate-500">
+                      {duracao > 0 ? formatarTempo(duracao) : 'Arquivo externo'}
+                    </p>
+                  </div>
                 </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={limpar}
+                  className="text-red-600"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={limpar}
-                className="text-red-600"
-              >
-                Cancelar
-              </Button>
-            </div>
 
-            {audioURL && (
-              <audio controls src={audioURL} className="w-full" />
-            )}
+              {audioURL && (
+                <audio 
+                  ref={audioElementRef}
+                  controls 
+                  src={audioURL} 
+                  className="w-full"
+                  onPlay={() => setTocando(true)}
+                  onPause={() => setTocando(false)}
+                  onEnded={() => setTocando(false)}
+                />
+              )}
+            </div>
 
             <Button 
               onClick={() => transcreverAudio(audioBlob)}
@@ -302,21 +348,50 @@ Transcreva:`;
           </div>
         )}
 
-        {/* Resultado da Transcrição */}
-        {transcricao && (
+        {/* Edição e Confirmação da Transcrição */}
+        {modoEdicao && (
           <div className="space-y-4">
             <div className="p-4 bg-emerald-50 border-2 border-emerald-500 rounded-lg">
-              <div className="flex items-center gap-2 mb-3">
-                <CheckCircle className="w-5 h-5 text-emerald-600" />
-                <h4 className="font-semibold text-emerald-900">
-                  Transcrição Completa
-                </h4>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-emerald-600" />
+                  <h4 className="font-semibold text-emerald-900">
+                    Transcrição Completa - Revise e Edite
+                  </h4>
+                </div>
+                {audioURL && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={togglePlayPause}
+                    className="text-blue-600"
+                  >
+                    {tocando ? 'Pausar' : 'Ouvir'}
+                  </Button>
+                )}
               </div>
-              <div className="p-3 bg-white rounded border border-emerald-200 max-h-64 overflow-y-auto">
-                <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
-                  {transcricao}
-                </p>
-              </div>
+              
+              {audioURL && (
+                <audio 
+                  ref={audioElementRef}
+                  src={audioURL} 
+                  className="hidden"
+                  onPlay={() => setTocando(true)}
+                  onPause={() => setTocando(false)}
+                  onEnded={() => setTocando(false)}
+                />
+              )}
+              
+              <Textarea
+                value={transcricaoEditavel}
+                onChange={(e) => setTranscricaoEditavel(e.target.value)}
+                className="min-h-[200px] bg-white font-mono text-sm"
+                placeholder="Edite a transcrição se necessário..."
+              />
+              
+              <p className="text-xs text-slate-500 mt-2">
+                💡 Você pode editar o texto antes de confirmar
+              </p>
             </div>
 
             <div className="flex justify-end gap-2">
@@ -324,7 +399,14 @@ Transcreva:`;
                 variant="outline" 
                 onClick={limpar}
               >
-                Nova Transcrição
+                Cancelar
+              </Button>
+              <Button 
+                onClick={confirmarTranscricao}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Confirmar e Usar Transcrição
               </Button>
             </div>
           </div>
