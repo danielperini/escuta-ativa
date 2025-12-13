@@ -39,6 +39,7 @@ import VerCaso from './pages/VerCaso';
 import DetalhesComunidade from './pages/DetalhesComunidade';
 import GerenciarEquipes from './pages/GerenciarEquipes';
 import ConfiguracoesSistema from './pages/ConfiguracoesSistema';
+import GerenciarEquipesSimples from './pages/GerenciarEquipesSimples';
 import __Layout from './Layout.jsx';
 
 
@@ -84,6 +85,7 @@ export const PAGES = {
     "DetalhesComunidade": DetalhesComunidade,
     "GerenciarEquipes": GerenciarEquipes,
     "ConfiguracoesSistema": ConfiguracoesSistema,
+    "GerenciarEquipesSimples": GerenciarEquipesSimples,
 }
 
 export const pagesConfig = {
