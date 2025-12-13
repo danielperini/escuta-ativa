@@ -111,6 +111,7 @@ export default function Agenda() {
 
   // Extrair comunidades únicas dos registros se não houver entidade Comunidade
   const comunidadesUnicas = React.useMemo(() => {
+    if (!comunidades || !registros || !agendas) return [];
     if (comunidades.length > 0) {
       return comunidades.map(c => c.nome);
     }
