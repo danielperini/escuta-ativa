@@ -42,6 +42,7 @@ export default function IntegradorTextoIA() {
 
   // Extrair comunidades únicas
   const comunidadesUnicas = React.useMemo(() => {
+    if (!registros) return [];
     const comunidades = new Set();
     registros.forEach(r => {
       if (r.comunidade) comunidades.add(r.comunidade);
