@@ -75,7 +75,8 @@ export default function TabelaRegistros({ registros, onExcluir }) {
           <thead className="bg-slate-50 border-b">
             <tr>
               <ColunaSortable campo="titulo">Título</ColunaSortable>
-              <ColunaSortable campo="comunidade">Comunidade</ColunaSortable>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Município</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Comunidade</th>
               <ColunaSortable campo="created_date">Data</ColunaSortable>
               <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Tipo</th>
               <ColunaSortable campo="temperatura_territorio">Temperatura</ColunaSortable>
@@ -87,7 +88,7 @@ export default function TabelaRegistros({ registros, onExcluir }) {
           <tbody>
             {registrosPaginados.length === 0 ? (
               <tr>
-                <td colSpan="8" className="px-4 py-12 text-center text-slate-500">
+                <td colSpan="9" className="px-4 py-12 text-center text-slate-500">
                   Nenhum registro encontrado
                 </td>
               </tr>
@@ -112,7 +113,12 @@ export default function TabelaRegistros({ registros, onExcluir }) {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 text-sm text-slate-700">
                       <MapPin className="w-3 h-3 text-slate-400" />
-                      {registro.comunidade}
+                      {registro.localizacao?.municipio || registro.comunidade?.split(',')[0] || '-'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-slate-700">
+                      {registro.comunidade?.includes(',') ? registro.comunidade.split(',')[1]?.trim() : registro.local || '-'}
                     </div>
                   </td>
                   <td className="px-4 py-3">
