@@ -595,7 +595,7 @@ Extraia:
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-sm font-medium text-slate-700 mb-3">📝 Para Transcrição</h3>
-                    <div className="grid grid-cols-3 gap-3 max-w-2xl">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
                       <button
                         onClick={() => {
                           setTranscricaoTempoReal(!transcricaoTempoReal);
@@ -636,7 +636,7 @@ Extraia:
 
                   <div>
                     <h3 className="text-sm font-medium text-slate-700 mb-3">📎 Para Evidências</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl">
                       <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
                         <Video className="w-8 h-8 text-[#40916C] mb-2" />
                         <span className="text-sm font-medium">Vídeo</span>

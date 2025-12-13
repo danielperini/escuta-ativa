@@ -69,9 +69,128 @@ export default function TabelaRegistros({ registros, onExcluir }) {
   );
 
   return (
-    <Card>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+    <>
+      {/* Mobile Cards View */}
+      <div className="lg:hidden space-y-3">
+        {registrosPaginados.length === 0 ? (
+          <Card className="p-8 text-center text-slate-500">
+            Nenhum registro encontrado
+          </Card>
+        ) : (
+          registrosPaginados.map(registro => (
+            <Card key={registro.id} className="p-4">
+              <Link to={createPageUrl('VerRegistro') + `?id=${registro.id}`}>
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-slate-900 mb-1">{registro.titulo}</h3>
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(registro.created_date || registro.data_registro).toLocaleDateString('pt-BR')}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Município</p>
+                      <p className="font-medium text-slate-700">
+                        {registro.localizacao?.municipio || registro.comunidade?.split(',')[0] || '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Comunidade</p>
+                      <p className="font-medium text-slate-700">
+                        {registro.comunidade?.includes(',') ? registro.comunidade.split(',')[1]?.trim() : registro.local || '-'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      {registro.tipo?.replace('_', ' ')}
+                    </Badge>
+                    {registro.temperatura_territorio && (
+                      <Badge className={cn("text-xs", termometroColors[registro.temperatura_territorio])}>
+                        {registro.temperatura_territorio}
+                      </Badge>
+                    )}
+                    <Badge className={cn("text-xs",
+                      registro.status === 'finalizado' ? 'bg-emerald-100 text-emerald-700' :
+                      registro.status === 'rascunho' ? 'bg-amber-100 text-amber-700' :
+                      'bg-slate-100 text-slate-700'
+                    )}>
+                      {registro.status}
+                    </Badge>
+                  </div>
+                  
+                  {registro.temas_identificados?.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {registro.temas_identificados.slice(0, 3).map((tema, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {tema}
+                        </Badge>
+                      ))}
+                      {registro.temas_identificados.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{registro.temas_identificados.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <Link 
+                      to={createPageUrl('RegistroUnificado') + `?editar=${registro.id}`}
+                      className="text-sm text-blue-600 hover:text-blue-700"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Editar
+                    </Link>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onExcluir(registro.id);
+                      }}
+                      className="text-sm text-red-600 hover:text-red-700"
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                </div>
+              </Link>
+            </Card>
+          ))
+        )}
+        
+        {totalPaginas > 1 && (
+          <div className="flex items-center justify-between pt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
+              disabled={paginaAtual === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm text-slate-600">
+              {paginaAtual} / {totalPaginas}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
+              disabled={paginaAtual === totalPaginas}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+      
+      {/* Desktop Table View */}
+      <Card className="hidden lg:block">
+        <div className="overflow-x-auto">
+          <table className="w-full">
           <thead className="bg-slate-50 border-b">
             <tr>
               <ColunaSortable campo="titulo">Título</ColunaSortable>
@@ -230,6 +349,7 @@ export default function TabelaRegistros({ registros, onExcluir }) {
           </div>
         </div>
       )}
-    </Card>
+      </Card>
+    </>
   );
 }

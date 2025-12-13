@@ -26,6 +26,7 @@ import NotificationGenerator from "@/components/NotificationGenerator";
 import MonitorAgendaAtraso from "@/components/agenda/MonitorAgendaAtraso";
 import DetectorRiscos from "@/components/mapa/DetectorRiscos";
 import MonitorDevolutivas from "@/components/notificacoes/MonitorDevolutivas";
+import MobileNavigation from "@/components/MobileNavigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -198,9 +199,9 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-64 pb-safe">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 h-16 border-b px-4 lg:px-8" style={{
+        <header className="sticky top-0 z-30 h-16 border-b px-4 lg:px-8 bg-white" style={{
           backgroundColor: estiloTema.backgroundAlt,
           borderColor: estiloTema.border
         }}>
@@ -249,10 +250,13 @@ export default function Layout({ children, currentPageName }) {
         </header>
 
         {/* Page content */}
-        <main className="p-4 lg:p-8">
+        <main className="p-4 lg:p-8 pb-20 lg:pb-8">
           {children}
         </main>
-      </div>
-    </div>
-  );
-}
+
+        {/* Mobile Navigation */}
+        <MobileNavigation currentPageName={currentPageName} />
+        </div>
+        </div>
+        );
+        }

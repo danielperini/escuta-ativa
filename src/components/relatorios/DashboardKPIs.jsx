@@ -140,7 +140,7 @@ export default function DashboardKPIs() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
       {kpis.map((kpi, index) => {
         const Icon = kpi.icone;
         
@@ -152,12 +152,12 @@ export default function DashboardKPIs() {
               kpi.alerta && "border-2 border-red-300 bg-red-50/30"
             )}
           >
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-sm text-slate-500 mb-1">{kpi.titulo}</p>
-                  <div className="flex items-center gap-3">
-                    <p className="text-3xl font-bold text-slate-900">{kpi.valor}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs md:text-sm text-slate-500 mb-1 truncate">{kpi.titulo}</p>
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <p className="text-2xl md:text-3xl font-bold text-slate-900">{kpi.valor}</p>
                     {kpi.tendencia && (
                       <div className={cn(
                         "flex items-center gap-1 text-sm",

@@ -118,15 +118,15 @@ export default function GraficosTendencias() {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Filtro de Período */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-[#2D6A4F]" />
           Tendências e Visualizações
         </h3>
         <Select value={periodo} onValueChange={setPeriodo}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-full sm:w-40">
             <Calendar className="w-4 h-4 mr-2" />
             <SelectValue />
           </SelectTrigger>
