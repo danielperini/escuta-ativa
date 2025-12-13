@@ -18,6 +18,8 @@ import PreviewRelatorio from "../components/relatorios/PreviewRelatorio";
 import FiltrosAvancados from "../components/relatorios/FiltrosAvancados";
 import BarraProgresso from "../components/relatorios/BarraProgresso";
 import PersonalizacaoCampos from "../components/relatorios/PersonalizacaoCampos";
+import DashboardKPIs from "../components/relatorios/DashboardKPIs";
+import GraficosTendencias from "../components/relatorios/GraficosTendencias";
 
 export default function Relatorios() {
     const navigate = useNavigate();
@@ -1067,7 +1069,7 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
             </Card>
             )}
 
-            <div className="max-w-5xl mx-auto space-y-6">
+            <div className="max-w-7xl mx-auto space-y-6">
                 <div className="flex items-center gap-4">
                     <Button
                         variant="outline"
@@ -1082,11 +1084,17 @@ Gere o conteúdo completo do relatório de forma profissional e acionável.
                     </h1>
                 </div>
 
-                <Tabs defaultValue="padrao" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="padrao">Relatórios Padrão</TabsTrigger>
-                        <TabsTrigger value="narrativo">Relatório Narrativo Estratégico</TabsTrigger>
+                <Tabs defaultValue="dashboard" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+                        <TabsTrigger value="padrao">Relatórios Customizados</TabsTrigger>
+                        <TabsTrigger value="narrativo">Relatório Narrativo</TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="dashboard" className="mt-6 space-y-6">
+                        <DashboardKPIs />
+                        <GraficosTendencias />
+                    </TabsContent>
 
                     <TabsContent value="padrao" className="mt-6">
                         <div className="space-y-6">
