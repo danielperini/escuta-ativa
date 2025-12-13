@@ -133,7 +133,20 @@ export default function BotaoPanicoAvancado() {
         lida: false
       });
 
-      alert('✓ Mensagem de emergência enviada!');
+      // Mostrar mensagem de confirmação visual
+      const mensagemConfirmacao = document.createElement('div');
+      mensagemConfirmacao.className = 'fixed top-4 right-4 z-50 bg-green-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 animate-in slide-in-from-top';
+      mensagemConfirmacao.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <div>
+          <p class="font-bold text-lg">✓ Pânico Enviado!</p>
+          <p class="text-sm">Mensagem de emergência enviada com sucesso</p>
+        </div>
+      `;
+      document.body.appendChild(mensagemConfirmacao);
+      setTimeout(() => mensagemConfirmacao.remove(), 5000);
     } catch (error) {
       alert('Erro ao enviar mensagem: ' + error.message);
     } finally {

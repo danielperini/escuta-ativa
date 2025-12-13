@@ -35,6 +35,8 @@ import Casos from './pages/Casos';
 import MapaStakeholders from './pages/MapaStakeholders';
 import PerfilStakeholder from './pages/PerfilStakeholder';
 import DetalheTema from './pages/DetalheTema';
+import VerCaso from './pages/VerCaso';
+import DetalhesComunidade from './pages/DetalhesComunidade';
 import __Layout from './Layout.jsx';
 
 
@@ -76,6 +78,8 @@ export const PAGES = {
     "MapaStakeholders": MapaStakeholders,
     "PerfilStakeholder": PerfilStakeholder,
     "DetalheTema": DetalheTema,
+    "VerCaso": VerCaso,
+    "DetalhesComunidade": DetalhesComunidade,
 }
 
 export const pagesConfig = {

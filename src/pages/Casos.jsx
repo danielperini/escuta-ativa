@@ -259,15 +259,15 @@ export default function Casos() {
             const diasRestantes = caso.prazo ? differenceInDays(new Date(caso.prazo), new Date()) : null;
 
             return (
-              <Card 
-                key={caso.id}
-                className={cn(
-                  "p-3 md:p-4 hover:shadow-md transition-all",
-                  caso.isAtrasado && "border-red-200 bg-red-50/30"
-                )}
-              >
-                <div className="flex flex-col md:flex-row items-start justify-between gap-3 md:gap-4">
-                  <div className="flex items-start gap-3 md:gap-4 flex-1">
+              <Link to={createPageUrl('VerCaso') + `?id=${caso.id}`} key={caso.id}>
+                <Card 
+                  className={cn(
+                    "p-3 md:p-4 hover:shadow-md transition-all cursor-pointer",
+                    caso.isAtrasado && "border-red-200 bg-red-50/30"
+                  )}
+                >
+                  <div className="flex flex-col md:flex-row items-start justify-between gap-3 md:gap-4">
+                    <div className="flex items-start gap-3 md:gap-4 flex-1">
                     <div className={cn(
                       "p-2 rounded-lg",
                       caso.isAtrasado ? "bg-red-100" : "bg-slate-100"
