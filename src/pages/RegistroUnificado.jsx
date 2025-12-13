@@ -420,28 +420,48 @@ Extraia:
   };
 
   const finalizarComVinculacoes = async (stakeholdersVinculados = [], continuidades = [], casosVinculados = []) => {
-    // Obter coordenadas se tiver local mas não tiver localização
-    let localizacao = formData.localizacao;
-    if (formData.local && !localizacao?.lat) {
-      const coords = await obterCoordenadas(formData.local, formData.comunidade);
-      if (coords) {
-        localizacao = {
-          lat: coords.lat,
-          lng: coords.lng,
-          endereco: formData.local
-        };
+      // Obter coordenadas se tiver local mas não tiver localização
+      let localizacao = formData.localizacao;
+      if (formData.local && !localizacao?.lat) {
+        const coords = await obterCoordenadas(formData.local, formData.comunidade);
+        if (coords) {
+          localizacao = {
+            lat: coords.lat,
+            lng: coords.lng,
+            endereco: formData.local
+          };
+        }
       }
-    }
 
-    const dadosFinais = {
-      ...formData,
-      localizacao,
-      status: 'finalizado',
-      stakeholders_vinculados: stakeholdersVinculados,
-      liderancas_vinculadas: stakeholdersVinculados,
-      registros_continuidade: continuidades,
-      casos_vinculados: casosVinculados
-    };
+      // Limpar dados inválidos antes de salvar
+      const demandas = (formData.demandas || []).map(d => ({
+        ...d,
+        prazo_devolutiva: d.prazo_devolutiva && !isNaN(new Date(d.prazo_devolutiva).getTime()) 
+          ? d.prazo_devolutiva 
+          : calcularPrazoDevolutiva(d.urgencia || 'media'),
+        data_devolutiva: d.data_devolutiva && !isNaN(new Date(d.data_devolutiva).getTime())
+          ? d.data_devolutiva
+          : null
+      }));
+
+      const compromissos = (formData.compromissos || []).map(c => ({
+        ...c,
+        prazo: c.prazo && !isNaN(new Date(c.prazo).getTime())
+          ? c.prazo
+          : calcularPrazoDevolutiva('media')
+      }));
+
+      const dadosFinais = {
+        ...formData,
+        demandas,
+        compromissos,
+        localizacao,
+        status: 'finalizado',
+        stakeholders_vinculados: stakeholdersVinculados,
+        liderancas_vinculadas: stakeholdersVinculados,
+        registros_continuidade: continuidades,
+        casos_vinculados: casosVinculados
+      };
 
     try {
       const registroCriado = modoEdicao 
@@ -552,7 +572,7 @@ Extraia:
                   setEtapaAtual('texto');
                 }}
                 size="lg"
-                className="bg-red-600 hover:bg-red-700 text-white shadow-xl"
+                className="bg-red-600 hover:bg-red-700 active:bg-red-800 transition-all text-white shadow-xl"
               >
                 <Mic className="w-5 h-5 mr-2 animate-pulse" />
                 Gravar e Analisar Tudo
@@ -886,7 +906,7 @@ Ou digite/cole o conteúdo diretamente..."
               <Button
                 onClick={analisarTextoConsolidado}
                 disabled={!textoConsolidado.trim() || analisando}
-                className="flex-1 bg-[#2D6A4F]"
+                className="flex-1 bg-[#2D6A4F] hover:bg-[#1B4332] active:bg-[#0F2419] transition-all"
                 size="lg"
               >
                 {analisando ? (
@@ -1056,7 +1076,7 @@ Ou digite/cole o conteúdo diretamente..."
                 formData.casos_vinculados || []
               )}
               size="lg"
-              className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+              className="bg-[#2D6A4F] hover:bg-[#1B4332] active:bg-[#0F2419] transition-all"
             >
               <Save className="w-5 h-5 mr-2" />
               Finalizar Registro
@@ -1078,7 +1098,7 @@ Ou digite/cole o conteúdo diretamente..."
             <p className="text-sm text-slate-500">Revise e complete as informações</p>
           </div>
         </div>
-        <Button onClick={handleFinalizar} disabled={createMutation.isPending || carregandoRegistro} className="bg-[#2D6A4F]">
+        <Button onClick={handleFinalizar} disabled={createMutation.isPending || carregandoRegistro} className="bg-[#2D6A4F] hover:bg-[#1B4332] active:bg-[#0F2419] transition-all">
           {(createMutation.isPending || carregandoRegistro) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
           {modoEdicao ? 'Salvar Alterações' : 'Finalizar'}
         </Button>
