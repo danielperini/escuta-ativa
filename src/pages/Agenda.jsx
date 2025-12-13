@@ -13,7 +13,10 @@ import {
   Trash2,
   Edit,
   CheckCircle2,
-  CalendarDays
+  CalendarDays,
+  Eye,
+  FileText,
+  User
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +68,9 @@ const tipoOptions = [
 export default function Agenda() {
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [editingAgenda, setEditingAgenda] = useState(null);
+  const [viewingAgenda, setViewingAgenda] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
   const [formData, setFormData] = useState({
@@ -135,6 +140,11 @@ export default function Agenda() {
     setEditingAgenda(agenda);
     setFormData(agenda);
     setShowDialog(true);
+  };
+
+  const handleViewDetails = (agenda) => {
+    setViewingAgenda(agenda);
+    setShowDetailsDialog(true);
   };
 
   const handleSubmit = () => {
@@ -243,6 +253,10 @@ export default function Agenda() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewDetails(agenda); }}>
+                                <Eye className="w-4 h-4 mr-2" />
+                                Ver Detalhes
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(agenda); }}>
                                 <Edit className="w-4 h-4 mr-2" />
                                 Editar
@@ -321,7 +335,123 @@ export default function Agenda() {
         </Card>
       )}
 
-      {/* Dialog */}
+      {/* Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Agenda</DialogTitle>
+          </DialogHeader>
+          {viewingAgenda && (
+            <div className="space-y-4 py-4">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">{viewingAgenda.titulo}</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="secondary" className={statusConfig[viewingAgenda.status]?.color}>
+                    {statusConfig[viewingAgenda.status]?.label}
+                  </Badge>
+                  <span className="text-sm text-slate-500 capitalize">{viewingAgenda.tipo}</span>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                  <Calendar className="w-5 h-5 text-slate-500 mt-0.5" />
+                  <div>
+                    <div className="text-sm font-medium text-slate-700">Data</div>
+                    <div className="text-sm text-slate-600">
+                      {viewingAgenda.data && format(new Date(viewingAgenda.data), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                    </div>
+                  </div>
+                </div>
+
+                {viewingAgenda.comunidade && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <MapPin className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Comunidade</div>
+                      <div className="text-sm text-slate-600">{viewingAgenda.comunidade}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingAgenda.local && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <MapPin className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Local</div>
+                      <div className="text-sm text-slate-600">{viewingAgenda.local}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingAgenda.responsaveis?.length > 0 && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <Users className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Responsáveis</div>
+                      <div className="text-sm text-slate-600">{viewingAgenda.responsaveis.join(', ')}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingAgenda.participantes?.length > 0 && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <Users className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Participantes</div>
+                      <div className="text-sm text-slate-600">{viewingAgenda.participantes.join(', ')}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingAgenda.descricao && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <FileText className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Descrição</div>
+                      <div className="text-sm text-slate-600 whitespace-pre-wrap">{viewingAgenda.descricao}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingAgenda.registro_origem_id && (
+                  <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-blue-700">Origem</div>
+                      <div className="text-sm text-blue-600">Criada automaticamente a partir de um registro</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingAgenda.created_by && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <User className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Cadastrado por</div>
+                      <div className="text-sm text-slate-600">{viewingAgenda.created_by}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingAgenda.created_date && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <Clock className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Data de Cadastro</div>
+                      <div className="text-sm text-slate-600">
+                        {format(new Date(viewingAgenda.created_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={(open) => { setShowDialog(open); if (!open) resetForm(); }}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
