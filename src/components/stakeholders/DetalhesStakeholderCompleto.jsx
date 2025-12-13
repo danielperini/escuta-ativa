@@ -157,6 +157,7 @@ export default function DetalhesStakeholderCompleto({ stakeholder, open, onOpenC
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
           <TabsList>
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="interacoes">Interações</TabsTrigger>
             <TabsTrigger value="timeline">Timeline ({timeline.length})</TabsTrigger>
             <TabsTrigger value="casos">Casos ({casos.length})</TabsTrigger>
             <TabsTrigger value="registros">Registros ({registros.length})</TabsTrigger>
@@ -347,6 +348,14 @@ export default function DetalhesStakeholderCompleto({ stakeholder, open, onOpenC
                   </CardContent>
                 </Card>
               )}
+            </TabsContent>
+
+            {/* Interações Detalhadas - Nova */}
+            <TabsContent value="interacoes" className="mt-0">
+              <TimelineInteracoes 
+                stakeholderId={stakeholder.id} 
+                stakeholderNome={stakeholder.nome}
+              />
             </TabsContent>
 
             {/* Timeline de Interações */}
