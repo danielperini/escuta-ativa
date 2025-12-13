@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { gerarQRCodeDataURL } from '@/components/codigos/QRCodeGenerator';
 
 export default function GeradorRelatorioCompleto({ registro, open, onOpenChange }) {
   const [etapa, setEtapa] = useState('selecao'); // selecao, edicao, preview
@@ -179,11 +180,34 @@ export default function GeradorRelatorioCompleto({ registro, open, onOpenChange 
       pdf.setFont('helvetica', 'normal');
       pdf.text('Sistema Escutativa - Gestão Territorial', pageWidth / 2, 25, { align: 'center' });
 
+      // QR Code no canto superior direito
+      if (registro.codigo_unico) {
+        try {
+          const qrDataUrl = await gerarQRCodeDataURL(registro.codigo_unico);
+          if (qrDataUrl) {
+            const qrSize = 25;
+            pdf.addImage(qrDataUrl, 'PNG', pageWidth - margin - qrSize, 5, qrSize, qrSize);
+          }
+        } catch (error) {
+          console.error('Erro ao adicionar QR Code:', error);
+        }
+      }
+
       yPosition = 50;
 
       // Informações do relatório
       pdf.setTextColor(0, 0, 0);
       pdf.setFontSize(10);
+      
+      // Código único
+      if (registro.codigo_unico) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Código:', margin, yPosition);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(registro.codigo_unico, margin + 25, yPosition);
+        yPosition += 6;
+      }
+      
       pdf.setFont('helvetica', 'bold');
       pdf.text('Título:', margin, yPosition);
       pdf.setFont('helvetica', 'normal');

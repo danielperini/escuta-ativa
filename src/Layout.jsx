@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
 import NotificationGenerator from "@/components/NotificationGenerator";
+import BuscaInteligenteCodigo from "@/components/codigos/BuscaInteligenteCodigo";
 import MonitorAgendaAtraso from "@/components/agenda/MonitorAgendaAtraso";
 import DetectorRiscos from "@/components/mapa/DetectorRiscos";
 import MonitorDevolutivas from "@/components/notificacoes/MonitorDevolutivas";
@@ -219,7 +220,11 @@ export default function Layout({ children, currentPageName }) {
               </h1>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              <div className="hidden lg:block w-80">
+                <BuscaInteligenteCodigo />
+              </div>
+
               <NotificationCenter />
 
               <DropdownMenu>

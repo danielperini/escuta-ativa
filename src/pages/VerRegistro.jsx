@@ -32,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { BotoesExportacao } from "@/components/registro/ExportadorPDF";
 import GeradorRelatorioCompleto from "@/components/registro/GeradorRelatorioCompleto";
+import { gerarCodigoUnico } from "@/components/codigos/GeradorCodigoUnico";
 
 const tipoConfig = {
   reuniao: { label: 'Reunião', color: 'bg-purple-100 text-purple-700' },
@@ -66,7 +67,16 @@ export default function VerRegistro() {
     queryKey: ['registro', registroId],
     queryFn: async () => {
       const registros = await base44.entities.Registro.filter({ id: registroId });
-      return registros[0];
+      const reg = registros[0];
+      
+      // Gerar código único se não existir
+      if (reg && !reg.codigo_unico) {
+        const codigo = await gerarCodigoUnico('RE', reg.comunidade);
+        await base44.entities.Registro.update(reg.id, { codigo_unico: codigo });
+        reg.codigo_unico = codigo;
+      }
+      
+      return reg;
     },
     enabled: !!registroId
   });
@@ -157,7 +167,14 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
             </Button>
           </Link>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-slate-900">{registro.titulo}</h2>
+            <div className="flex items-center gap-3 mb-2">
+              <h2 className="text-2xl font-bold text-slate-900">{registro.titulo}</h2>
+              {registro.codigo_unico && (
+                <Badge variant="outline" className="text-sm font-mono bg-slate-100">
+                  {registro.codigo_unico}
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <Badge variant="secondary" className={cn(tipo.color)}>
                 {tipo.label}
