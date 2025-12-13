@@ -37,6 +37,7 @@ import PerfilStakeholder from './pages/PerfilStakeholder';
 import DetalheTema from './pages/DetalheTema';
 import VerCaso from './pages/VerCaso';
 import DetalhesComunidade from './pages/DetalhesComunidade';
+import GerenciarEquipes from './pages/GerenciarEquipes';
 import __Layout from './Layout.jsx';
 
 
@@ -80,6 +81,7 @@ export const PAGES = {
     "DetalheTema": DetalheTema,
     "VerCaso": VerCaso,
     "DetalhesComunidade": DetalhesComunidade,
+    "GerenciarEquipes": GerenciarEquipes,
 }
 
 export const pagesConfig = {
