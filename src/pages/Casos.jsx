@@ -63,6 +63,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import Pagination from '@/components/shared/Pagination';
+import ConsolidadorCasos from '@/components/casos/ConsolidadorCasos';
 
 const statusConfig = {
   em_aberto: { label: 'Em Aberto', color: 'bg-amber-100 text-amber-700', icon: Clock },
@@ -103,7 +104,25 @@ export default function Casos() {
 
   const { data: casos = [], isLoading, refetch } = useQuery({
     queryKey: ['casos'],
-    queryFn: () => base44.entities.Caso.list('-created_date'),
+    queryFn: async () => {
+      const lista = await base44.entities.Caso.list('-created_date');
+      // Remover duplicatas e consolidar casos similares
+      const seen = new Map();
+      return lista.filter(caso => {
+        const key = `${caso.titulo?.toLowerCase().trim()}-${caso.comunidade?.toLowerCase().trim()}-${caso.tema?.toLowerCase().trim()}`;
+        if (seen.has(key)) {
+          const existente = seen.get(key);
+          // Se houver duplicata, manter apenas o mais recente
+          if (new Date(caso.created_date) > new Date(existente.created_date)) {
+            seen.set(key, caso);
+            return true;
+          }
+          return false;
+        }
+        seen.set(key, caso);
+        return true;
+      });
+    },
     staleTime: 30000,
     refetchInterval: 60000
   });
@@ -122,20 +141,50 @@ export default function Casos() {
   });
 
   const quickStatusMutation = useMutation({
-    mutationFn: ({ id, status }) => base44.entities.Caso.update(id, { 
-      status,
-      data_conclusao: status === 'concluido' ? new Date().toISOString().split('T')[0] : null
-    }),
+    mutationFn: async ({ id, status, prioridade }) => {
+      const caso = casos.find(c => c.id === id);
+      const updates = { status };
+      
+      if (status === 'concluido') {
+        updates.data_conclusao = new Date().toISOString().split('T')[0];
+        // Adicionar ao histórico
+        updates.historico_atualizacoes = [
+          ...(caso?.historico_atualizacoes || []),
+          {
+            data: new Date().toISOString(),
+            usuario: (await base44.auth.me()).email,
+            acao: 'Caso concluído',
+            observacao: 'Status atualizado para concluído'
+          }
+        ];
+      }
+      
+      if (prioridade) {
+        updates.prioridade = prioridade;
+      }
+      
+      return base44.entities.Caso.update(id, updates);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['casos'] });
     }
   });
 
-  // Process casos with overdue status
-  const processedCasos = casos.map(c => {
-    const isAtrasado = c.prazo && isPast(new Date(c.prazo)) && !['concluido', 'cancelado'].includes(c.status);
-    return { ...c, isAtrasado };
-  });
+  // Process casos with overdue status and auto-update
+  const processedCasos = React.useMemo(() => {
+    return casos.map(c => {
+      const isAtrasado = c.prazo && isPast(new Date(c.prazo)) && !['concluido', 'cancelado'].includes(c.status);
+      
+      // Auto-atualizar prioridade se atrasado
+      if (isAtrasado && c.prioridade !== 'urgente') {
+        quickStatusMutation.mutate({ id: c.id, status: c.status, prioridade: 'urgente' }, { 
+          onSuccess: () => {} 
+        });
+      }
+      
+      return { ...c, isAtrasado };
+    });
+  }, [casos]);
 
   const filteredCasos = processedCasos.filter(c => {
     const matchSearch = !search || 
@@ -182,6 +231,9 @@ export default function Casos() {
           <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
         </Button>
       </div>
+
+      {/* Consolidador de Casos */}
+      <ConsolidadorCasos casos={casos} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">

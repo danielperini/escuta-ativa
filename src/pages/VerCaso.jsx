@@ -57,13 +57,19 @@ export default function VerCaso() {
   });
 
   const { data: registros = [] } = useQuery({
-    queryKey: ['registros-caso', caso?.registro_origem_id],
+    queryKey: ['registros-caso', casoId],
     queryFn: async () => {
-      if (!caso?.registro_origem_id) return [];
+      if (!casoId) return [];
       const allRegistros = await base44.entities.Registro.list();
-      return allRegistros.filter(r => r.id === caso.registro_origem_id || r.casos_vinculados?.includes(casoId));
+      // Buscar registros vinculados ao caso + registro de origem
+      const vinculados = allRegistros.filter(r => 
+        r.casos_vinculados?.includes(casoId) || 
+        r.id === caso?.registro_origem_id
+      );
+      // Ordenar por data decrescente
+      return vinculados.sort((a, b) => new Date(b.data_registro) - new Date(a.data_registro));
     },
-    enabled: !!caso
+    enabled: !!caso && !!casoId
   });
 
   const gerarAnaliseIA = async () => {
