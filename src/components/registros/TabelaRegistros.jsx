@@ -95,8 +95,11 @@ export default function TabelaRegistros({ registros, onExcluir }) {
               registrosPaginados.map(registro => (
                 <tr key={registro.id} className="border-b hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-3">
-                    <div>
-                      <p className="font-medium text-sm text-slate-900">{registro.titulo}</p>
+                    <Link 
+                      to={createPageUrl('VerRegistro') + `?id=${registro.id}`}
+                      className="block hover:text-blue-600 transition-colors"
+                    >
+                      <p className="font-medium text-sm text-slate-900 hover:text-blue-600">{registro.titulo}</p>
                       {registro.participantes?.length > 0 && (
                         <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
                           <Users className="w-3 h-3" />
@@ -104,7 +107,7 @@ export default function TabelaRegistros({ registros, onExcluir }) {
                           {registro.participantes.length > 2 && ` +${registro.participantes.length - 2}`}
                         </p>
                       )}
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 text-sm text-slate-700">
