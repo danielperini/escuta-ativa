@@ -33,20 +33,14 @@ export default function Analise() {
                     </h1>
                 </div>
 
-                <Tabs defaultValue="rede" className="w-full">
-                    <TabsList className="grid w-full grid-cols-7 text-xs">
-                        <TabsTrigger value="rede">Grafo</TabsTrigger>
+                <Tabs defaultValue="graficos" className="w-full">
+                    <TabsList className="grid w-full grid-cols-5">
                         <TabsTrigger value="graficos">Gráficos</TabsTrigger>
                         <TabsTrigger value="indicadores">Compromissos</TabsTrigger>
                         <TabsTrigger value="pendencias">Pendências</TabsTrigger>
-                        <TabsTrigger value="predicao">Previsão</TabsTrigger>
                         <TabsTrigger value="liderancas">Lideranças</TabsTrigger>
                         <TabsTrigger value="integrador">Integrador IA</TabsTrigger>
                     </TabsList>
-
-                    <TabsContent value="rede" className="mt-6">
-                        <GrafoRede />
-                    </TabsContent>
 
                     <TabsContent value="graficos" className="mt-6">
                         <GraficosAnalise />
@@ -58,10 +52,6 @@ export default function Analise() {
 
                     <TabsContent value="pendencias" className="mt-6">
                         <PainelPendencias />
-                    </TabsContent>
-
-                    <TabsContent value="predicao" className="mt-6">
-                        <ModeloPredicaoTensao />
                     </TabsContent>
 
                     <TabsContent value="liderancas" className="mt-6">
