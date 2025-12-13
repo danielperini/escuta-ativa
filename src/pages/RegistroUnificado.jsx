@@ -53,6 +53,7 @@ import { gerarResumoExecutivo, gerarAtaReuniao } from '@/components/analise/Gera
 import GravadorAudioCompleto from '@/components/registro/GravadorAudioCompleto';
 import { processarRegistroCompleto, alimentarModulos } from '@/components/registro/ProcessadorIALote';
 import TranscricaoNativa from '@/components/registro/TranscricaoNativa';
+import SugestoesIARegistro from '@/components/registro/SugestoesIARegistro';
 
 const tipoOptions = [
   { value: 'reuniao', label: 'Reunião' },
@@ -1013,6 +1014,16 @@ Ou digite/cole o conteúdo diretamente..."
             </p>
           </CardContent>
         </Card>
+
+        {/* Sugestões Inteligentes de IA */}
+        <SugestoesIARegistro
+          textoConsolidado={textoConsolidado}
+          comunidades={comunidades}
+          formData={formData}
+          onAplicarSugestao={(campo, valor) => {
+            setFormData(prev => ({ ...prev, [campo]: valor }));
+          }}
+        />
 
         {/* Analisador em Tempo Real */}
         <AnalisadorTempoReal
