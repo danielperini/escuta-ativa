@@ -102,7 +102,9 @@ export default function Stakeholders() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [editingStakeholder, setEditingStakeholder] = useState(null);
+  const [viewingStakeholder, setViewingStakeholder] = useState(null);
   const [formData, setFormData] = useState({});
 
   const { data: stakeholders = [], isLoading, refetch } = useQuery({
@@ -328,7 +330,15 @@ export default function Stakeholders() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-slate-900">{stakeholder.nome}</h3>
+                          <h3 
+                            className="font-semibold text-slate-900 hover:text-blue-600 cursor-pointer"
+                            onClick={() => {
+                              setViewingStakeholder(stakeholder);
+                              setShowDetailsDialog(true);
+                            }}
+                          >
+                            {stakeholder.nome}
+                          </h3>
                           {stakeholder.id_sequencial && (
                             <span className="text-xs text-slate-400">#{stakeholder.id_sequencial}</span>
                           )}
@@ -374,13 +384,16 @@ export default function Stakeholders() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            setViewingStakeholder(stakeholder);
+                            setShowDetailsDialog(true);
+                          }}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Perfil
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(stakeholder)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => alert('Visualização em desenvolvimento')}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver Perfil
                           </DropdownMenuItem>
                           <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(stakeholder.id)}>
                             <Trash2 className="w-4 h-4 mr-2" />
@@ -403,7 +416,15 @@ export default function Stakeholders() {
                         {stakeholder.tipo === 'pessoa' ? '👤' : '🏢'}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-slate-900 truncate">{stakeholder.nome}</h3>
+                        <h3 
+                          className="font-semibold text-slate-900 truncate hover:text-blue-600 cursor-pointer"
+                          onClick={() => {
+                            setViewingStakeholder(stakeholder);
+                            setShowDetailsDialog(true);
+                          }}
+                        >
+                          {stakeholder.nome}
+                        </h3>
                         {stakeholder.id_sequencial && (
                           <p className="text-xs text-slate-400">ID: #{stakeholder.id_sequencial}</p>
                         )}
@@ -425,13 +446,16 @@ export default function Stakeholders() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => {
+                          setViewingStakeholder(stakeholder);
+                          setShowDetailsDialog(true);
+                        }}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Perfil
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(stakeholder)}>
                           <Edit className="w-4 h-4 mr-2" />
                           Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => alert('Visualização em desenvolvimento')}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver Perfil
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(stakeholder.id)}>
                           <Trash2 className="w-4 h-4 mr-2" />
@@ -511,6 +535,105 @@ export default function Stakeholders() {
           />
         </Card>
       )}
+
+      {/* Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Perfil do Stakeholder</DialogTitle>
+          </DialogHeader>
+          {viewingStakeholder && (
+            <div className="space-y-4 py-4">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-2xl font-semibold">
+                  {viewingStakeholder.tipo === 'pessoa' ? '👤' : '🏢'}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">{viewingStakeholder.nome}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary" className={tipoConfig[viewingStakeholder.tipo]?.color}>
+                      {tipoConfig[viewingStakeholder.tipo]?.label}
+                    </Badge>
+                    {viewingStakeholder.subtipo && (
+                      <Badge variant="secondary" className={subtipoConfig[viewingStakeholder.subtipo]?.color}>
+                        {subtipoConfig[viewingStakeholder.subtipo]?.label}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                {viewingStakeholder.papel_social && (
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-sm font-medium text-slate-700">Papel Social</div>
+                    <div className="text-sm text-slate-600">{viewingStakeholder.papel_social}</div>
+                  </div>
+                )}
+
+                {viewingStakeholder.comunidade && (
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-sm font-medium text-slate-700">Comunidade</div>
+                    <div className="text-sm text-slate-600">{viewingStakeholder.comunidade}</div>
+                  </div>
+                )}
+
+                {viewingStakeholder.municipio && (
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-sm font-medium text-slate-700">Município</div>
+                    <div className="text-sm text-slate-600">{viewingStakeholder.municipio}</div>
+                  </div>
+                )}
+
+                {viewingStakeholder.organizacao && (
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-sm font-medium text-slate-700">Organização</div>
+                    <div className="text-sm text-slate-600">{viewingStakeholder.organizacao}</div>
+                  </div>
+                )}
+
+                {viewingStakeholder.contato && (
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-sm font-medium text-slate-700 mb-2">Contato</div>
+                    <div className="space-y-1 text-sm text-slate-600">
+                      {viewingStakeholder.contato.telefone && <div>📞 {viewingStakeholder.contato.telefone}</div>}
+                      {viewingStakeholder.contato.whatsapp && <div>💬 {viewingStakeholder.contato.whatsapp}</div>}
+                      {viewingStakeholder.contato.email && <div>✉️ {viewingStakeholder.contato.email}</div>}
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-sm font-medium text-slate-700">Influência</div>
+                    <Badge variant="secondary" className={influenciaConfig[viewingStakeholder.nivel_influencia]?.color}>
+                      {influenciaConfig[viewingStakeholder.nivel_influencia]?.label}
+                    </Badge>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-sm font-medium text-slate-700">Interações</div>
+                    <div className="text-sm text-slate-600">{viewingStakeholder.historico_interacoes || 0}</div>
+                  </div>
+                </div>
+
+                {viewingStakeholder.casos_vinculados?.length > 0 && (
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-sm font-medium text-slate-700">Casos Vinculados</div>
+                    <div className="text-sm text-slate-600">{viewingStakeholder.casos_vinculados.length} caso(s)</div>
+                  </div>
+                )}
+
+                {viewingStakeholder.notas && (
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-sm font-medium text-slate-700">Notas</div>
+                    <div className="text-sm text-slate-600 whitespace-pre-wrap">{viewingStakeholder.notas}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={(open) => {

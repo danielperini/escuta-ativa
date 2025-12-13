@@ -20,7 +20,9 @@ import {
   User,
   Users,
   RefreshCw,
-  Target
+  Target,
+  Eye,
+  FileText
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +53,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import Pagination from '@/components/shared/Pagination';
 
@@ -86,6 +94,8 @@ export default function Casos() {
   const [filterComunidade, setFilterComunidade] = useState('todos');
   const [activeTab, setActiveTab] = useState('todos');
   const [deleteId, setDeleteId] = useState(null);
+  const [viewingCaso, setViewingCaso] = useState(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -269,7 +279,15 @@ export default function Casos() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900">{caso.titulo}</h3>
+                      <h3 
+                        className="font-semibold text-slate-900 hover:text-blue-600 cursor-pointer"
+                        onClick={() => {
+                          setViewingCaso(caso);
+                          setShowDetailsDialog(true);
+                        }}
+                      >
+                        {caso.titulo}
+                      </h3>
                       {caso.descricao && (
                         <p className="text-sm text-slate-600 mt-1 line-clamp-2">{caso.descricao}</p>
                       )}
@@ -338,6 +356,13 @@ export default function Casos() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => {
+                          setViewingCaso(caso);
+                          setShowDetailsDialog(true);
+                        }}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Detalhes
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => alert('Edição em desenvolvimento')}>
                           <Edit className="w-4 h-4 mr-2" />
                           Editar
@@ -371,6 +396,139 @@ export default function Casos() {
           />
         </Card>
       )}
+
+      {/* Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Caso</DialogTitle>
+          </DialogHeader>
+          {viewingCaso && (
+            <div className="space-y-4 py-4">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">{viewingCaso.titulo}</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="secondary" className={statusConfig[viewingCaso.status]?.color}>
+                    {statusConfig[viewingCaso.status]?.label}
+                  </Badge>
+                  <Badge variant="secondary" className={prioridadeConfig[viewingCaso.prioridade]?.color}>
+                    {prioridadeConfig[viewingCaso.prioridade]?.label}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {tipoConfig[viewingCaso.tipo]}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                {viewingCaso.descricao && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <FileText className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Descrição</div>
+                      <div className="text-sm text-slate-600 whitespace-pre-wrap">{viewingCaso.descricao}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingCaso.comunidade && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <MapPin className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Comunidade</div>
+                      <div className="text-sm text-slate-600">{viewingCaso.comunidade}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingCaso.municipio && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <MapPin className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Município</div>
+                      <div className="text-sm text-slate-600">{viewingCaso.municipio}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingCaso.tema && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <Target className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Tema</div>
+                      <div className="text-sm text-slate-600">{viewingCaso.tema}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingCaso.stakeholders_envolvidos?.length > 0 && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <Users className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Stakeholders Envolvidos</div>
+                      <div className="text-sm text-slate-600">{viewingCaso.stakeholders_envolvidos.length} stakeholder(s)</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingCaso.prazo && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <Calendar className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Prazo</div>
+                      <div className="text-sm text-slate-600">
+                        {format(new Date(viewingCaso.prazo), "dd/MM/yyyy", { locale: ptBR })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingCaso.responsavel_empresa && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <User className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Responsável</div>
+                      <div className="text-sm text-slate-600">{viewingCaso.responsavel_empresa}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingCaso.registro_origem_id && (
+                  <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-blue-700">Registro de Origem</div>
+                      <div className="text-sm text-blue-600">ID: {viewingCaso.registro_origem_id}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingCaso.created_by && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <User className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Criado por</div>
+                      <div className="text-sm text-slate-600">{viewingCaso.created_by}</div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingCaso.created_date && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <Clock className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Data de Criação</div>
+                      <div className="text-sm text-slate-600">
+                        {format(new Date(viewingCaso.created_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

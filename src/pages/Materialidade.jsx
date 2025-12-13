@@ -15,7 +15,8 @@ import {
   X,
   AlertTriangle,
   MapPin,
-  Loader2
+  Loader2,
+  Eye
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +50,7 @@ import ComparadorPeriodos from "../components/analise/ComparadorPeriodos";
 import ResumoTemas from "@/components/analise/ResumoTemas";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Pagination from '@/components/shared/Pagination';
+import DetalhesTemaMaterialidade from '@/components/materialidade/DetalhesTemaMaterialidade';
 
 const categoriaColors = {
   ambiental: 'bg-emerald-100 text-emerald-700',
@@ -80,7 +82,9 @@ export default function Materialidade() {
   const [search, setSearch] = useState('');
   const [filterCategoria, setFilterCategoria] = useState('todos');
   const [showDialog, setShowDialog] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [editingTema, setEditingTema] = useState(null);
+  const [viewingTema, setViewingTema] = useState(null);
   const [modoAdicaoInterativa, setModoAdicaoInterativa] = useState(false);
   const [currentPageLista, setCurrentPageLista] = useState(1);
   const itemsPerPage = 15;
@@ -422,6 +426,13 @@ export default function Materialidade() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            setViewingTema(tema);
+                            setShowDetailsDialog(true);
+                          }}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Detalhes
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(tema)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
@@ -492,6 +503,13 @@ export default function Materialidade() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            setViewingTema(tema);
+                            setShowDetailsDialog(true);
+                          }}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Detalhes
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(tema)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
@@ -522,7 +540,58 @@ export default function Materialidade() {
                 </TabsContent>
                 </Tabs>
 
-      {/* Dialog */}
+      {/* Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Tema</DialogTitle>
+          </DialogHeader>
+          {viewingTema && (
+            <div className="space-y-4 py-4">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">{viewingTema.nome}</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="secondary" className={categoriaColors[viewingTema.categoria]}>
+                    {viewingTema.categoria}
+                  </Badge>
+                  {viewingTema.prioritario && (
+                    <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+                      Prioritário
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <div className="text-xs text-slate-500">Relevância Comunidade</div>
+                  <div className="text-2xl font-bold text-slate-900">{viewingTema.relevancia_comunidade || 5}/10</div>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <div className="text-xs text-slate-500">Relevância Empresa</div>
+                  <div className="text-2xl font-bold text-slate-900">{viewingTema.relevancia_empresa || 5}/10</div>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <div className="text-xs text-slate-500">Divergência</div>
+                  <div className={cn(
+                    "text-2xl font-bold",
+                    viewingTema.divergencia > 3 ? "text-red-600" : 
+                    viewingTema.divergencia > 1 ? "text-amber-600" : "text-emerald-600"
+                  )}>
+                    {viewingTema.divergencia || 0}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <DetalhesTemaMaterialidade tema={viewingTema} />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={(open) => { setShowDialog(open); if (!open) resetForm(); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
