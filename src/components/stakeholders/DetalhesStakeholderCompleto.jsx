@@ -181,15 +181,13 @@ export default function DetalhesStakeholderCompleto({ stakeholder, open, onOpenC
                         </div>
                       </div>
                     )}
-                    {stakeholder.municipio && (
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-4 h-4 text-slate-500 mt-0.5" />
-                        <div>
-                          <div className="font-medium">Município</div>
-                          <div className="text-slate-600">{stakeholder.municipio}</div>
-                        </div>
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-slate-500 mt-0.5" />
+                      <div>
+                        <div className="font-medium">Município</div>
+                        <div className="text-slate-600">{stakeholder.municipio || 'Desconhecido'}</div>
                       </div>
-                    )}
+                    </div>
                     {stakeholder.papel_social && (
                       <div className="flex items-start gap-2">
                         <User className="w-4 h-4 text-slate-500 mt-0.5" />

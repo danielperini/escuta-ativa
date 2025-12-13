@@ -387,11 +387,22 @@ Extraia e sugira:
             <div>
               <Label>Município *</Label>
               <Input
-                value={formData.municipio}
-                onChange={(e) => setFormData(prev => ({ ...prev, municipio: e.target.value }))}
+                value={formData.municipio || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, municipio: e.target.value || 'Desconhecido' }))}
                 placeholder="Digite o município"
-                required
               />
+              {sugestoes?.municipio_detectado && formData.municipio !== sugestoes.municipio_detectado && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-purple-600 mt-1"
+                  onClick={() => aplicarSugestao('municipio', sugestoes.municipio_detectado)}
+                >
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Usar: "{sugestoes.municipio_detectado}"
+                </Button>
+              )}
             </div>
           </div>
 

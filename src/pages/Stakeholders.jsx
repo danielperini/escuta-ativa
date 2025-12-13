@@ -513,11 +513,9 @@ export default function Stakeholders() {
                       <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
                       <span className="truncate">{stakeholder.comunidade}</span>
                     </div>
-                    {stakeholder.municipio && (
-                      <div className="text-xs text-slate-500 pl-6">
-                        📍 {stakeholder.municipio}
-                      </div>
-                    )}
+                    <div className="text-xs text-slate-500 pl-6">
+                      📍 {stakeholder.municipio || 'Município: Desconhecido'}
+                    </div>
                     {stakeholder.contato?.telefone && (
                       <div className="flex items-center gap-2 text-slate-600">
                         <Phone className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -613,12 +611,10 @@ export default function Stakeholders() {
                   </div>
                 )}
 
-                {viewingStakeholder.municipio && (
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <div className="text-sm font-medium text-slate-700">Município</div>
-                    <div className="text-sm text-slate-600">{viewingStakeholder.municipio}</div>
-                  </div>
-                )}
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <div className="text-sm font-medium text-slate-700">Município</div>
+                  <div className="text-sm text-slate-600">{viewingStakeholder.municipio || 'Desconhecido'}</div>
+                </div>
 
                 {viewingStakeholder.organizacao && (
                   <div className="p-3 bg-slate-50 rounded-lg">
