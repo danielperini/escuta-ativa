@@ -792,70 +792,22 @@ Extraia:
         {mostrarGravador && (
           <TranscricaoWhisper
             onTranscricaoCompleta={async (transcricao, file_url) => {
+              // Adicionar transcrição ao texto consolidado
               const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
-              setTextoConsolidado(blocoTranscricao);
+              setTextoConsolidado(prev => prev + blocoTranscricao);
               setMostrarGravador(false);
-
-              // Processar automaticamente e alimentar todos os módulos
-              setAnalisando(true);
-              try {
-                const analiseCompleta = await processarRegistroCompleto(transcricao, formData.comunidade);
-
-                const demandasProcessadas = (analiseCompleta.demandas || []).map(d => ({
-                  descricao: d.descricao,
-                  urgencia: d.urgencia || 'media',
-                  status: 'pendente',
-                  requer_devolutiva: d.requer_devolutiva !== false,
-                  prazo_devolutiva: d.prazo_sugerido || calcularPrazoDevolutiva(d.urgencia),
-                  devolutiva_realizada: false
-                }));
-
-                const compromissosProcessados = (analiseCompleta.compromissos || []).map(c => ({
-                  descricao: c.descricao,
-                  responsavel: c.responsavel || 'A definir',
-                  status: 'pendente',
-                  prioridade: c.prioridade || 'media',
-                  prazo: c.prazo || calcularPrazoDevolutiva('media')
-                }));
-
-                setFormData(prev => ({
-                  ...prev,
-                  titulo: analiseCompleta.identificacao?.titulo || 'Registro via Áudio',
-                  tipo: analiseCompleta.identificacao?.tipo || prev.tipo,
-                  descricao: analiseCompleta.identificacao?.resumo || transcricao.substring(0, 500),
-                  transcricao: transcricao,
-                  participantes: analiseCompleta.analise?.participantes || [],
-                  comunidade: analiseCompleta.identificacao?.comunidade || prev.comunidade,
-                  local: analiseCompleta.identificacao?.local || prev.local,
-                  temas_identificados: analiseCompleta.analise?.temas || [],
-                  sentimento: analiseCompleta.analise?.sentimento || '',
-                  temperatura_territorio: analiseCompleta.analise?.temperatura || '',
-                  demandas: demandasProcessadas,
-                  compromissos: compromissosProcessados,
-                  proximos_passos: analiseCompleta.proximos_passos || [],
-                  resumo_automatico: analiseCompleta.identificacao?.resumo || '',
-                  localizacao: analiseCompleta.localizacao || null,
-                  auditoria: {
-                    ...prev.auditoria,
-                    analise_lote_unico: analiseCompleta
-                  }
-                }));
-
-                setSugestoesIA({
-                  analise_basica: analiseCompleta,
-                  riscos: { riscos_identificados: analiseCompleta.riscos || [], temperatura_geral: analiseCompleta.analise?.temperatura },
-                  atores: analiseCompleta.atores,
-                  materialidade: analiseCompleta.materialidade,
-                  agenda_futura: analiseCompleta.agenda_futura
-                });
-
-                setEtapaAtual('formulario');
-                setSecaoExpandida('basico');
-              } catch (error) {
-                alert('Erro ao processar gravação: ' + error.message);
-              } finally {
-                setAnalisando(false);
-              }
+              
+              // Adicionar arquivo à lista
+              const arquivoInfo = { 
+                url: file_url, 
+                tipo: 'audio', 
+                nome: 'Gravação de áudio.mp3' 
+              };
+              setArquivosProcessados(prev => [...prev, arquivoInfo]);
+              setFormData(prev => ({
+                ...prev,
+                arquivos: [...prev.arquivos, arquivoInfo]
+              }));
             }}
           />
         )}
