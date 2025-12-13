@@ -31,6 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { BotoesExportacao } from "@/components/registro/ExportadorPDF";
+import GeradorRelatorioCompleto from "@/components/registro/GeradorRelatorioCompleto";
 
 const tipoConfig = {
   reuniao: { label: 'Reunião', color: 'bg-purple-100 text-purple-700' },
@@ -59,6 +60,7 @@ export default function VerRegistro() {
   const registroId = urlParams.get('id');
   const queryClient = useQueryClient();
   const [isGeneratingAta, setIsGeneratingAta] = useState(false);
+  const [mostrarGerador, setMostrarGerador] = useState(false);
 
   const { data: registro, isLoading } = useQuery({
     queryKey: ['registro', registroId],
@@ -179,6 +181,14 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <Button 
+            onClick={() => setMostrarGerador(true)}
+            className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
+            size="sm"
+          >
+            <FileText className="w-4 h-4" />
+            Gerar Relatório
+          </Button>
           <BotoesExportacao registro={registro} />
           <Link to={createPageUrl(`AuditoriaRegistro?id=${registro.id}`)}>
             <Button variant="outline" size="sm" className="gap-2">
@@ -422,6 +432,13 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
           )}
         </div>
       </div>
+
+      {/* Gerador de Relatório */}
+      <GeradorRelatorioCompleto 
+        registro={registro}
+        open={mostrarGerador}
+        onOpenChange={setMostrarGerador}
+      />
     </div>
   );
 }
