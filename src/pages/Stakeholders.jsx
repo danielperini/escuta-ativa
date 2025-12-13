@@ -330,15 +330,11 @@ export default function Stakeholders() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 
-                            className="font-semibold text-slate-900 hover:text-blue-600 cursor-pointer"
-                            onClick={() => {
-                              setViewingStakeholder(stakeholder);
-                              setShowDetailsDialog(true);
-                            }}
-                          >
-                            {stakeholder.nome}
-                          </h3>
+                          <Link to={createPageUrl('PerfilStakeholder') + `?id=${stakeholder.id}`}>
+                            <h3 className="font-semibold text-slate-900 hover:text-blue-600 cursor-pointer">
+                              {stakeholder.nome}
+                            </h3>
+                          </Link>
                           {stakeholder.id_sequencial && (
                             <span className="text-xs text-slate-400">#{stakeholder.id_sequencial}</span>
                           )}
@@ -384,12 +380,11 @@ export default function Stakeholders() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => {
-                            setViewingStakeholder(stakeholder);
-                            setShowDetailsDialog(true);
-                          }}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver Perfil
+                          <DropdownMenuItem asChild>
+                            <Link to={createPageUrl('PerfilStakeholder') + `?id=${stakeholder.id}`}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Ver Perfil
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(stakeholder)}>
                             <Edit className="w-4 h-4 mr-2" />
@@ -416,15 +411,11 @@ export default function Stakeholders() {
                         {stakeholder.tipo === 'pessoa' ? '👤' : '🏢'}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 
-                          className="font-semibold text-slate-900 truncate hover:text-blue-600 cursor-pointer"
-                          onClick={() => {
-                            setViewingStakeholder(stakeholder);
-                            setShowDetailsDialog(true);
-                          }}
-                        >
-                          {stakeholder.nome}
-                        </h3>
+                        <Link to={createPageUrl('PerfilStakeholder') + `?id=${stakeholder.id}`}>
+                          <h3 className="font-semibold text-slate-900 truncate hover:text-blue-600 cursor-pointer">
+                            {stakeholder.nome}
+                          </h3>
+                        </Link>
                         {stakeholder.id_sequencial && (
                           <p className="text-xs text-slate-400">ID: #{stakeholder.id_sequencial}</p>
                         )}
@@ -446,12 +437,11 @@ export default function Stakeholders() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => {
-                          setViewingStakeholder(stakeholder);
-                          setShowDetailsDialog(true);
-                        }}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver Perfil
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl('PerfilStakeholder') + `?id=${stakeholder.id}`}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Perfil
+                          </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(stakeholder)}>
                           <Edit className="w-4 h-4 mr-2" />

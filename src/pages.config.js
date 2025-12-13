@@ -33,6 +33,8 @@ import MapaAtores from './pages/MapaAtores';
 import Stakeholders from './pages/Stakeholders';
 import Casos from './pages/Casos';
 import MapaStakeholders from './pages/MapaStakeholders';
+import PerfilStakeholder from './pages/PerfilStakeholder';
+import DetalheTema from './pages/DetalheTema';
 import __Layout from './Layout.jsx';
 
 
@@ -72,6 +74,8 @@ export const PAGES = {
     "Stakeholders": Stakeholders,
     "Casos": Casos,
     "MapaStakeholders": MapaStakeholders,
+    "PerfilStakeholder": PerfilStakeholder,
+    "DetalheTema": DetalheTema,
 }
 
 export const pagesConfig = {
