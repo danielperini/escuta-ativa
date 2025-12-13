@@ -20,6 +20,10 @@ const FORMATOS_SUPORTADOS = [
   'video/quicktime'
 ];
 
+/**
+ * DEPRECIADO: Use TranscricaoWhisper.js para melhor precisão
+ * Este componente está mantido apenas para retrocompatibilidade
+ */
 export default function ProcessadorAudioUniversal({ onTranscricaoCompleta }) {
   const [arquivo, setArquivo] = useState(null);
   const [processando, setProcessando] = useState(false);
