@@ -10,7 +10,6 @@ import IndicadoresCompromissos from "../components/analise/IndicadoresCompromiss
 import ModeloPredicaoTensao from "../components/analise/ModeloPredicaoTensao";
 import LiderancasEmergentes from "../components/analise/LiderancasEmergentes";
 
-import StorytellingTerritorial from "../components/analise/StorytellingTerritorial";
 import PainelPendencias from "../components/devolutiva/PainelPendencias";
 import IntegradorTextoIA from "../components/analise/IntegradorTextoIA";
 
@@ -35,14 +34,13 @@ export default function Analise() {
                 </div>
 
                 <Tabs defaultValue="rede" className="w-full">
-                    <TabsList className="grid w-full grid-cols-8 text-xs">
+                    <TabsList className="grid w-full grid-cols-7 text-xs">
                         <TabsTrigger value="rede">Grafo</TabsTrigger>
                         <TabsTrigger value="graficos">Gráficos</TabsTrigger>
                         <TabsTrigger value="indicadores">Compromissos</TabsTrigger>
                         <TabsTrigger value="pendencias">Pendências</TabsTrigger>
                         <TabsTrigger value="predicao">Previsão</TabsTrigger>
                         <TabsTrigger value="liderancas">Lideranças</TabsTrigger>
-                        <TabsTrigger value="storytelling">Storytelling</TabsTrigger>
                         <TabsTrigger value="integrador">Integrador IA</TabsTrigger>
                     </TabsList>
 
@@ -68,12 +66,6 @@ export default function Analise() {
 
                     <TabsContent value="liderancas" className="mt-6">
                         <LiderancasEmergentes />
-                    </TabsContent>
-
-
-
-                    <TabsContent value="storytelling" className="mt-6">
-                        <StorytellingTerritorial />
                     </TabsContent>
 
                     <TabsContent value="integrador" className="mt-6">

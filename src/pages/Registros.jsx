@@ -32,6 +32,7 @@ export default function Registros() {
     tipo: 'todos',
     status: 'todos',
     temperatura: 'todos',
+    sentimento: 'todos',
     tema: 'todos',
     municipio: 'todas',
     dataInicio: '',

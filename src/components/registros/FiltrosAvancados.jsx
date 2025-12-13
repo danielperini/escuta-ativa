@@ -29,6 +29,7 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
       tipo: 'todos',
       status: 'todos',
       temperatura: 'todos',
+      sentimento: 'todos',
       tema: 'todos',
       municipio: 'todas',
       dataInicio: '',
@@ -43,6 +44,7 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
     if (filtros.tipo !== 'todos') count++;
     if (filtros.status !== 'todos') count++;
     if (filtros.temperatura !== 'todos') count++;
+    if (filtros.sentimento !== 'todos') count++;
     if (filtros.tema !== 'todos') count++;
     if (filtros.municipio !== 'todas') count++;
     if (filtros.dataInicio || filtros.dataFim) count++;
@@ -144,6 +146,22 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
               <SelectItem value="medio">🟡 Médio</SelectItem>
               <SelectItem value="alto">🟠 Alto</SelectItem>
               <SelectItem value="critico">🔴 Crítico</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label className="text-xs">Sentimento</Label>
+          <Select value={filtros.sentimento || 'todos'} onValueChange={(v) => setFiltros({ ...filtros, sentimento: v })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="positivo">😊 Positivo</SelectItem>
+              <SelectItem value="neutro">😐 Neutro</SelectItem>
+              <SelectItem value="negativo">😟 Negativo</SelectItem>
+              <SelectItem value="misto">🤔 Misto</SelectItem>
             </SelectContent>
           </Select>
         </div>
