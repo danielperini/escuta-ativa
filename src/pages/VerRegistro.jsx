@@ -84,7 +84,7 @@ export default function VerRegistro() {
 
 Título: ${registro.titulo}
 Tipo: ${registro.tipo}
-Data: ${format(new Date(registro.created_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+Data: ${registro.created_date ? format(new Date(registro.created_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : 'Não especificada'}
 Comunidade: ${registro.comunidade || 'Não especificada'}
 Participantes: ${registro.participantes?.join(', ') || 'Não especificados'}
 
@@ -167,7 +167,7 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
               )}
               <span className="flex items-center gap-1 text-sm text-slate-500">
                 <Calendar className="w-4 h-4" />
-                {format(new Date(registro.created_date), "dd MMM yyyy 'às' HH:mm", { locale: ptBR })}
+                {registro.created_date ? format(new Date(registro.created_date), "dd MMM yyyy 'às' HH:mm", { locale: ptBR }) : 'Data não disponível'}
               </span>
               {registro.comunidade && (
                 <span className="flex items-center gap-1 text-sm text-slate-500">
@@ -274,7 +274,7 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
                         <Users className="w-4 h-4" />
                         {compromisso.responsavel}
                       </span>
-                      {compromisso.prazo && (
+                      {compromisso.prazo && new Date(compromisso.prazo).getTime() && (
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           {format(new Date(compromisso.prazo), "dd/MM/yyyy")}
