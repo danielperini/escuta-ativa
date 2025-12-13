@@ -51,6 +51,7 @@ import { gerarCompromissosInteligentes, criarCompromissos } from '@/components/a
 import { detectarContinuidadeInteligente } from '@/components/analise/DetectorContinuidadeAvancado';
 import { gerarResumoExecutivo, gerarAtaReuniao } from '@/components/analise/GeradorResumoExecutivo';
 import GravadorAudioCompleto from '@/components/registro/GravadorAudioCompleto';
+import TranscricaoWhisper from '@/components/registro/TranscricaoWhisper';
 import { processarRegistroCompleto, alimentarModulos } from '@/components/registro/ProcessadorIALote';
 import TranscricaoNativa from '@/components/registro/TranscricaoNativa';
 import SugestoesIARegistro from '@/components/registro/SugestoesIARegistro';
@@ -789,8 +790,8 @@ Extraia:
         )}
 
         {mostrarGravador && (
-          <GravadorAudioCompleto
-            onTranscricao={async (transcricao) => {
+          <TranscricaoWhisper
+            onTranscricaoCompleta={async (transcricao, file_url) => {
               const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
               setTextoConsolidado(blocoTranscricao);
               setMostrarGravador(false);
@@ -855,13 +856,6 @@ Extraia:
               } finally {
                 setAnalisando(false);
               }
-            }}
-            onArquivoProcessado={(arquivo) => {
-              setArquivosProcessados(prev => [...prev, arquivo]);
-              setFormData(prev => ({
-                ...prev,
-                arquivos: [...prev.arquivos, arquivo]
-              }));
             }}
           />
         )}
