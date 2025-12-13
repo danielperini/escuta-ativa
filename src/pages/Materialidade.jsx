@@ -426,12 +426,11 @@ export default function Materialidade() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => {
-                            setViewingTema(tema);
-                            setShowDetailsDialog(true);
-                          }}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver Detalhes
+                          <DropdownMenuItem asChild>
+                            <Link to={createPageUrl('DetalheTema') + `?id=${tema.id}`}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Ver Detalhes
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(tema)}>
                             <Edit className="w-4 h-4 mr-2" />
@@ -503,12 +502,11 @@ export default function Materialidade() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => {
-                            setViewingTema(tema);
-                            setShowDetailsDialog(true);
-                          }}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver Detalhes
+                          <DropdownMenuItem asChild>
+                            <Link to={createPageUrl('DetalheTema') + `?id=${tema.id}`}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Ver Detalhes
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(tema)}>
                             <Edit className="w-4 h-4 mr-2" />
