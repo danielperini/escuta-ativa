@@ -33,6 +33,7 @@ export default function Registros() {
     status: 'todos',
     temperatura: 'todos',
     tema: 'todos',
+    municipio: 'todas',
     dataInicio: '',
     dataFim: ''
   });
@@ -96,6 +97,12 @@ export default function Registros() {
       if (!r.temas_identificados?.includes(filtros.tema)) return false;
     }
 
+    // Filtro município
+    if (filtros.municipio !== 'todas') {
+      const municipioRegistro = r.localizacao?.municipio || r.comunidade?.split(',')[0];
+      if (municipioRegistro !== filtros.municipio) return false;
+    }
+
     // Filtro data
     if (filtros.dataInicio && r.data_registro < filtros.dataInicio) return false;
     if (filtros.dataFim && r.data_registro > filtros.dataFim) return false;
@@ -110,8 +117,8 @@ export default function Registros() {
     );
 
     React.useEffect(() => {
-    setCurrentPage(1);
-    }, [filtros.busca, filtros.comunidade, filtros.tipo, filtros.status, filtros.temperatura, filtros.tema, filtros.dataInicio, filtros.dataFim]);
+      setCurrentPage(1);
+    }, [filtros.busca, filtros.comunidade, filtros.tipo, filtros.status, filtros.temperatura, filtros.tema, filtros.municipio, filtros.dataInicio, filtros.dataFim]);
 
     return (
       <div className="space-y-4 md:space-y-6 pb-4">
@@ -123,12 +130,20 @@ export default function Registros() {
             {filteredRegistros.length} de {registros.length} registro(s)
           </p>
         </div>
-        <Link to={createPageUrl('RegistroUnificado')}>
-          <Button className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2">
-            <Plus className="w-4 h-4" />
-            Novo Registro
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link to={createPageUrl('RegistroUnificado')}>
+            <Button className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2">
+              <Plus className="w-4 h-4" />
+              Novo Registro
+            </Button>
+          </Link>
+          <Link to={createPageUrl('RegistroUnificado') + '?manual=true'}>
+            <Button variant="outline" className="gap-2">
+              <FileText className="w-4 h-4" />
+              Registro Manual
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <FiltrosAvancados

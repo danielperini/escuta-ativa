@@ -7,6 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Search, Filter, X, Calendar } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 
+const municipiosBrasil = [
+  "Todas",
+  "Açailândia", "Afonso Cláudio", "Água Branca", "Águia Branca", "Alagoinhas", "Alegre",
+  "Altamira", "Alto Araguaia", "Alto Paraíso", "Anchieta", "Apiacás", "Apucarana",
+  "Aracaju", "Araguaína", "Belém", "Belo Horizonte", "Betim", "Boa Vista",
+  "Brasília", "Campinas", "Campo Grande", "Contagem", "Cuiabá", "Curitiba",
+  "Florianópolis", "Fortaleza", "Goiânia", "João Pessoa", "Joinville", "Juiz de Fora",
+  "Londrina", "Macapá", "Maceió", "Manaus", "Marabá", "Mariana", "Natal",
+  "Niterói", "Nova Lima", "Palmas", "Parauapebas", "Porto Alegre", "Porto Velho",
+  "Recife", "Ribeirão Preto", "Rio Branco", "Rio de Janeiro", "Salvador",
+  "Santa Luzia", "Santarém", "Santo André", "Santos", "São Gonçalo", "São José dos Campos",
+  "São Luís", "São Paulo", "Sorocaba", "Teresina", "Uberlândia", "Vitória"
+];
+
 export default function FiltrosAvancados({ filtros, setFiltros, comunidades, temas }) {
   const limparFiltros = () => {
     setFiltros({

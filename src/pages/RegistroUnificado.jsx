@@ -68,9 +68,14 @@ export default function RegistroUnificado() {
   
   const urlParams = new URLSearchParams(window.location.search);
   const registroIdEditar = urlParams.get('editar');
+  const modoManual = urlParams.get('manual') === 'true';
   const modoEdicao = !!registroIdEditar;
   
-  const [etapaAtual, setEtapaAtual] = useState(modoEdicao ? 'formulario' : 'upload');
+  const [etapaAtual, setEtapaAtual] = useState(
+    modoEdicao ? 'formulario' : 
+    modoManual ? 'formulario' : 
+    'upload'
+  );
   const [secaoExpandida, setSecaoExpandida] = useState('basico');
   const [formData, setFormData] = useState({
     titulo: '',
@@ -104,6 +109,8 @@ export default function RegistroUnificado() {
   const [sugestoesIA, setSugestoesIA] = useState(null);
   const [mostrarGravador, setMostrarGravador] = useState(false);
   const [transcricaoTempoReal, setTranscricaoTempoReal] = useState(false);
+  const [duplicatasDetectadas, setDuplicatasDetectadas] = useState([]);
+  const [mostrarAlertaDuplicatas, setMostrarAlertaDuplicatas] = useState(false);
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
@@ -113,6 +120,11 @@ export default function RegistroUnificado() {
   const { data: user } = useQuery({
     queryKey: ['currentUser-registro'],
     queryFn: () => base44.auth.me()
+  });
+
+  const { data: todosRegistros = [] } = useQuery({
+    queryKey: ['todos-registros'],
+    queryFn: () => base44.entities.Registro.list('-created_date', 100)
   });
 
   const { data: registroExistente, isLoading: carregandoRegistro } = useQuery({
@@ -154,9 +166,11 @@ export default function RegistroUnificado() {
     mutationFn: (data) => modoEdicao 
       ? base44.entities.Registro.update(registroIdEditar, data)
       : base44.entities.Registro.create(data),
-    onSuccess: () => {
+    onSuccess: (novoRegistro) => {
       queryClient.invalidateQueries({ queryKey: ['registros'] });
-      navigate(createPageUrl('Registros'));
+      // Redirecionar para revisão do registro criado
+      const registroId = modoEdicao ? registroIdEditar : novoRegistro.id;
+      navigate(createPageUrl('VerRegistro') + `?id=${registroId}`);
     }
   });
 
@@ -392,9 +406,42 @@ Extraia:
     }
   };
 
+  const detectarDuplicatas = async () => {
+    const duplicatas = todosRegistros.filter(r => {
+      if (modoEdicao && r.id === registroIdEditar) return false;
+      
+      // Verificar similaridade de título
+      const tituloSimilar = r.titulo?.toLowerCase().includes(formData.titulo?.toLowerCase().substring(0, 20)) ||
+                           formData.titulo?.toLowerCase().includes(r.titulo?.toLowerCase().substring(0, 20));
+      
+      // Verificar mesma data, comunidade e tipo
+      const mesmaData = r.data_registro === formData.data_registro;
+      const mesmaComunidade = r.comunidade === formData.comunidade;
+      const mesmoTipo = r.tipo === formData.tipo;
+      
+      // Participantes em comum
+      const participantesComuns = formData.participantes?.some(p => 
+        r.participantes?.some(rp => rp.toLowerCase() === p.toLowerCase())
+      );
+      
+      return (tituloSimilar && mesmaComunidade) || 
+             (mesmaData && mesmaComunidade && mesmoTipo && participantesComuns);
+    });
+    
+    return duplicatas;
+  };
+
   const handleFinalizar = async () => {
     if (!formData.titulo || !formData.comunidade) {
       alert('Preencha título e comunidade');
+      return;
+    }
+    
+    // Detectar duplicatas
+    const duplicatas = await detectarDuplicatas();
+    if (duplicatas.length > 0 && !modoEdicao) {
+      setDuplicatasDetectadas(duplicatas);
+      setMostrarAlertaDuplicatas(true);
       return;
     }
 
@@ -1160,7 +1207,7 @@ Ou digite/cole o conteúdo diretamente..."
               <Label>Título *</Label>
               <Input value={formData.titulo} onChange={(e) => setFormData(p => ({ ...p, titulo: e.target.value }))} placeholder="Ex: Reunião com Associação" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Tipo *</Label>
                 <Select value={formData.tipo} onValueChange={(v) => setFormData(p => ({ ...p, tipo: v }))}>
@@ -1178,6 +1225,17 @@ Ou digite/cole o conteúdo diretamente..."
                     {comunidades.map(c => <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Município</Label>
+                <Input 
+                  value={formData.localizacao?.municipio || ''} 
+                  onChange={(e) => setFormData(p => ({ 
+                    ...p, 
+                    localizacao: { ...p.localizacao, municipio: e.target.value } 
+                  }))}
+                  placeholder="Digite o município"
+                />
               </div>
             </div>
             <div>
