@@ -50,11 +50,12 @@ import CompromissosAtrasados from '@/components/agenda/CompromissosAtrasados';
 import Pagination from '@/components/shared/Pagination';
 
 const statusConfig = {
-  futura: { label: 'Futura', color: 'bg-purple-100 text-purple-700' },
   confirmada: { label: 'Confirmada', color: 'bg-emerald-100 text-emerald-700' },
   prevista: { label: 'Prevista', color: 'bg-blue-100 text-blue-700' },
   solicitada: { label: 'Solicitada', color: 'bg-amber-100 text-amber-700' },
-  acordada: { label: 'Acordada', color: 'bg-cyan-100 text-cyan-700' }
+  acordada: { label: 'Acordada', color: 'bg-cyan-100 text-cyan-700' },
+  realizada: { label: 'Realizada', color: 'bg-slate-100 text-slate-700' },
+  nao_realizada: { label: 'Não Realizada', color: 'bg-red-100 text-red-700' }
 };
 
 const tipoOptions = [
@@ -156,15 +157,12 @@ export default function Agenda() {
   };
 
   // Group agendas by status
-  const agendasPorStatus = {
-    futura: agendas.filter(a => a.status === 'futura'),
-    confirmada: agendas.filter(a => a.status === 'confirmada'),
-    prevista: agendas.filter(a => a.status === 'prevista'),
-    solicitada: agendas.filter(a => a.status === 'solicitada'),
-    acordada: agendas.filter(a => a.status === 'acordada')
-  };
+  const agendasPorStatus = Object.keys(statusConfig).reduce((acc, status) => {
+    acc[status] = agendas.filter(a => a.status === status);
+    return acc;
+  }, {});
 
-  const allAgendas = Object.values(agendasPorStatus).flat();
+  const allAgendas = agendas;
   const totalPages = Math.ceil(allAgendas.length / itemsPerPage);
   const paginatedAgendas = allAgendas.slice(
     (currentPage - 1) * itemsPerPage,
@@ -193,12 +191,12 @@ export default function Agenda() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {Object.entries(statusConfig).map(([key, config]) => (
           <Card key={key} className="p-4">
             <div className="text-sm text-slate-500">{config.label}</div>
             <div className="text-2xl font-bold text-slate-900 mt-1">
-              {agendasPorStatus[key].length}
+              {agendasPorStatus[key]?.length || 0}
             </div>
           </Card>
         ))}
