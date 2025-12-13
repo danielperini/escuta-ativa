@@ -198,17 +198,49 @@ export default function RegistroUnificado() {
         arquivos: [...prev.arquivos, arquivoInfo]
       }));
 
-      // Extrair texto do arquivo
-      const promptExtracao = `Extraia TODO o texto deste ${tipo}:
+      // Extrair texto do arquivo com prompts específicos por tipo
+      let promptExtracao = '';
 
-Para ${tipo === 'audio' ? 'áudio, faça transcrição completa' : tipo === 'video' ? 'vídeo, extraia o áudio e transcreva' : tipo === 'foto' ? 'foto/imagem, extraia todo texto visível (OCR)' : tipo === 'documento' ? 'PDF/DOC, extraia todo o texto preservando estrutura' : 'arquivo, extraia todo o conteúdo textual'}
+      if (tipo === 'audio') {
+        promptExtracao = `Transcreva COMPLETAMENTE este áudio em português:
 
-IMPORTANTE: 
-- Retorne APENAS o texto extraído/transcrito
-- Não faça análise nem interpretação
-- Mantenha ordem e formatação quando possível
-- Se for conversa, mantenha falas identificadas
-- Se for documento, preserve títulos e parágrafos`;
+      INSTRUÇÕES:
+      - Transcreva todas as falas e sons audíveis
+      - Identifique falantes diferentes quando possível (Pessoa 1, Pessoa 2, etc)
+      - Preserve pausas significativas com [pausa]
+      - Indique sons de fundo relevantes entre colchetes [aplausos], [risadas]
+      - Mantenha a ordem cronológica
+      - NÃO resuma, transcreva TUDO`;
+      } else if (tipo === 'video') {
+        promptExtracao = `Extraia TODO o conteúdo deste vídeo:
+
+      ÁUDIO: Transcreva todas as falas e sons
+      VISUAL: Descreva cenas importantes, textos visíveis na tela
+      OCR: Extraia qualquer texto escrito que apareça no vídeo
+
+      Retorne no formato:
+      [TRANSCRIÇÃO ÁUDIO]
+      ...
+      [TEXTO VISUAL/OCR]
+      ...`;
+      } else if (tipo === 'foto') {
+        promptExtracao = `Execute OCR COMPLETO nesta imagem:
+
+      EXTRAIA:
+      - Todo texto visível (placas, cartazes, documentos, anotações)
+      - Números, datas, nomes
+      - Legendas, títulos
+      - Textos manuscritos (descreva se ilegível)
+
+      IMPORTANTE: Preserve formatação, quebras de linha e disposição espacial dos textos`;
+      } else {
+        promptExtracao = `Extraia TODO o texto deste documento:
+
+      - Preserve estrutura (títulos, parágrafos, listas)
+      - Mantenha formatação de tabelas quando possível
+      - Inclua notas de rodapé
+      - Não omita nenhuma seção`;
+      }
 
       const extracao = await base44.integrations.Core.InvokeLLM({
         prompt: promptExtracao,
@@ -218,7 +250,16 @@ IMPORTANTE:
           properties: {
             texto_extraido: { type: "string" },
             tipo_conteudo: { type: "string" },
-            qualidade_extracao: { type: "string" }
+            qualidade_extracao: { type: "string" },
+            metadados: { 
+              type: "object",
+              properties: {
+                duracao_estimada: { type: "string" },
+                numero_falantes: { type: "number" },
+                idioma_detectado: { type: "string" },
+                confianca_ocr: { type: "string" }
+              }
+            }
           }
         }
       });
@@ -227,8 +268,10 @@ IMPORTANTE:
         throw new Error('Não foi possível extrair texto do arquivo');
       }
 
-      // Adicionar texto extraído à caixa consolidada
-      const blocoTexto = `\n\n[${tipo.toUpperCase()} - ${file.name}]\n${extracao.texto_extraido}\n`;
+      // Adicionar texto extraído à caixa consolidada com metadados
+      const metaInfo = extracao.metadados ? 
+        `\n[Metadados: ${Object.entries(extracao.metadados).filter(([k,v]) => v).map(([k,v]) => `${k}: ${v}`).join(', ')}]` : '';
+      const blocoTexto = `\n\n[${tipo.toUpperCase()} - ${file.name}]${metaInfo}\n${extracao.texto_extraido}\n`;
       setTextoConsolidado(prev => prev + blocoTexto);
       
       setEtapaAtual('texto');
@@ -614,15 +657,13 @@ Extraia:
             </div>
             {etapaAtual === 'upload' && (
               <Button
-                onClick={() => {
-                  setMostrarGravador(true);
-                  setEtapaAtual('texto');
-                }}
+                onClick={() => setEtapaAtual('texto')}
                 size="lg"
-                className="bg-red-600 hover:bg-red-700 active:bg-red-800 transition-all text-white shadow-xl"
+                variant="outline"
+                className="border-slate-300"
               >
-                <Mic className="w-5 h-5 mr-2 animate-pulse" />
-                Gravar e Analisar Tudo
+                <FileText className="w-5 h-5 mr-2" />
+                Pular e Digitar
               </Button>
             )}
           </div>
@@ -641,35 +682,24 @@ Extraia:
 
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">📝 Para Transcrição</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">🎙️ Transcrição de Áudio</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
                       <button
                         onClick={() => {
-                          setTranscricaoTempoReal(!transcricaoTempoReal);
+                          setMostrarGravador(true);
                           setEtapaAtual('texto');
                         }}
-                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all bg-gradient-to-br from-[#40916C]/10 to-[#2D6A4F]/10"
+                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all bg-gradient-to-br from-red-50 to-red-100"
                       >
-                        <Mic className="w-8 h-8 text-[#40916C] mb-2" />
-                        <span className="text-sm font-medium">Transcrição</span>
-                        <span className="text-xs text-slate-400 mt-1">Tempo Real</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setMostrarGravador(!mostrarGravador);
-                          setEtapaAtual('texto');
-                        }}
-                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all"
-                      >
-                        <Mic className="w-8 h-8 text-[#40916C] mb-2" />
-                        <span className="text-sm font-medium">Gravar Áudio</span>
+                        <Mic className="w-8 h-8 text-red-600 mb-2 animate-pulse" />
+                        <span className="text-sm font-medium">Gravar e Transcrever</span>
+                        <span className="text-xs text-slate-400 mt-1">Automático</span>
                       </button>
 
                       <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95">
                         <Upload className="w-8 h-8 text-[#40916C] mb-2" />
                         <span className="text-sm font-medium">Upload Áudio</span>
-                        <span className="text-xs text-slate-400 mt-1">WhatsApp/MP3</span>
+                        <span className="text-xs text-slate-400 mt-1">MP3/WhatsApp/M4A</span>
                         <input 
                           type="file" 
                           accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a,.aac,.webm,.mp4" 
@@ -683,33 +713,28 @@ Extraia:
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">📎 Para Evidências</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl">
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95">
-                        <Video className="w-8 h-8 text-[#40916C] mb-2" />
-                        <span className="text-sm font-medium">Vídeo</span>
-                        <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={processando} capture="environment" />
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">📷 Evidências com OCR</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl">
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95 bg-blue-50">
+                        <Camera className="w-8 h-8 text-blue-600 mb-2" />
+                        <span className="text-sm font-medium">Foto/OCR</span>
+                        <span className="text-xs text-slate-400 mt-1">Extrai texto</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={processando} capture="environment" />
                       </label>
 
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95">
-                        <Camera className="w-8 h-8 text-[#40916C] mb-2" />
-                        <span className="text-sm font-medium">Foto</span>
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={processando} capture="environment" />
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95 bg-purple-50">
+                        <Video className="w-8 h-8 text-purple-600 mb-2" />
+                        <span className="text-sm font-medium">Vídeo</span>
+                        <span className="text-xs text-slate-400 mt-1">Transcreve áudio</span>
+                        <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={processando} capture="environment" />
                       </label>
 
                       <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
                         <FileText className="w-8 h-8 text-[#40916C] mb-2" />
                         <span className="text-sm font-medium">PDF/Doc</span>
+                        <span className="text-xs text-slate-400 mt-1">Extrai texto</span>
                         <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => handleFileUpload(e, 'documento')} disabled={processando} />
                       </label>
-
-                      <button
-                        onClick={() => setEtapaAtual('texto')}
-                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all"
-                      >
-                        <FileText className="w-8 h-8 text-[#40916C] mb-2" />
-                        <span className="text-sm font-medium">Digitar</span>
-                      </button>
                     </div>
                   </div>
                 </div>
