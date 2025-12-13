@@ -62,11 +62,49 @@ export default function FormularioCasoInteligente({ open, onOpenChange, onSucces
     queryFn: () => base44.entities.Stakeholder.list()
   });
 
-  // Mutation para criar caso
+  // Buscar casos existentes
+  const { data: casosExistentes = [] } = useQuery({
+    queryKey: ['casos-existentes'],
+    queryFn: () => base44.entities.Caso.filter({
+      status: { $in: ['em_aberto', 'pendente', 'em_andamento'] }
+    }),
+    enabled: open
+  });
+
+  // Mutation para criar ou atualizar caso
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Caso.create(data),
+    mutationFn: async (data) => {
+      // Verificar duplicata
+      const casoExistente = casosExistentes.find(c => 
+        c.titulo?.toLowerCase().trim() === data.titulo?.toLowerCase().trim() &&
+        c.comunidade === data.comunidade &&
+        c.tema === data.tema
+      );
+
+      if (casoExistente) {
+        // Atualizar caso existente
+        const historico = casoExistente.historico_atualizacoes || [];
+        historico.push({
+          data: new Date().toISOString(),
+          usuario: 'Sistema',
+          acao: 'Informação complementar',
+          observacao: `Informação adicional incluída: ${data.descricao}`
+        });
+
+        return base44.entities.Caso.update(casoExistente.id, {
+          descricao: casoExistente.descricao + `\n\n[Complemento ${new Date().toLocaleDateString()}]: ${data.descricao}`,
+          prioridade: data.prioridade,
+          stakeholders_envolvidos: [...new Set([...(casoExistente.stakeholders_envolvidos || []), ...data.stakeholders_envolvidos])],
+          historico_atualizacoes: historico
+        });
+      } else {
+        // Criar novo caso
+        return base44.entities.Caso.create(data);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['casos'] });
+      queryClient.invalidateQueries({ queryKey: ['casos-existentes'] });
       onSuccess?.();
       onOpenChange(false);
       resetForm();
@@ -235,6 +273,19 @@ Extraia e sugira:
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Verificar se há caso similar
+    const casoSimilar = casosExistentes.find(c => 
+      c.titulo?.toLowerCase().trim() === formData.titulo?.toLowerCase().trim() &&
+      c.comunidade === formData.comunidade &&
+      c.tema === formData.tema
+    );
+
+    if (casoSimilar && !window.confirm(
+      `Já existe um caso similar em aberto: "${casoSimilar.titulo}".\n\nDeseja atualizar o caso existente com estas novas informações?`
+    )) {
+      return;
+    }
     
     // Calcular prazo padrão se não definido (15 dias)
     const prazoFinal = formData.prazo || new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];

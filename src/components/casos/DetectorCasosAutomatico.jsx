@@ -126,36 +126,74 @@ Para cada caso que deve ser aberto:
     }
 
     const casosCriados = [];
+    
+    // Buscar casos existentes para detectar duplicatas
+    const casosExistentes = await base44.entities.Caso.filter({
+      comunidade,
+      status: { $in: ['em_aberto', 'pendente', 'em_andamento'] }
+    });
 
     for (const index of selecionados) {
       const caso = casosDetectados[index];
 
-      const prazo = new Date();
-      prazo.setDate(prazo.getDate() + (caso.prazo_dias || 15));
+      // Verificar se já existe um caso similar
+      const casoExistente = casosExistentes.find(c => 
+        c.titulo?.toLowerCase().trim() === caso.titulo?.toLowerCase().trim() &&
+        c.comunidade === comunidade &&
+        c.tema === caso.tema
+      );
 
-      const novoCaso = await base44.entities.Caso.create({
-        titulo: caso.titulo,
-        descricao: caso.descricao,
-        tipo: caso.tipo,
-        stakeholders_envolvidos: stakeholdersVinculados || [],
-        comunidade,
-        municipio: municipio || 'A definir',
-        tema: caso.tema,
-        registro_origem_id: registroId,
-        status: 'em_aberto',
-        prioridade: caso.prioridade,
-        prazo: prazo.toISOString().split('T')[0],
-        impacto_comunidade: caso.impacto_comunidade,
-        data_abertura: new Date().toISOString(),
-        historico_atualizacoes: [{
+      if (casoExistente) {
+        // Atualizar caso existente ao invés de criar duplicata
+        const historico = casoExistente.historico_atualizacoes || [];
+        historico.push({
           data: new Date().toISOString(),
           usuario: 'Sistema IA',
-          acao: 'Abertura automática',
-          observacao: caso.justificativa
-        }]
-      });
+          acao: 'Registro vinculado',
+          observacao: `Novo registro relacionado: ${caso.justificativa}`
+        });
 
-      casosCriados.push(novoCaso.id);
+        // Manter a maior prioridade
+        const novaPrioridade = ['urgente', 'alta', 'media', 'baixa'].indexOf(caso.prioridade) < 
+                               ['urgente', 'alta', 'media', 'baixa'].indexOf(casoExistente.prioridade)
+                               ? caso.prioridade : casoExistente.prioridade;
+
+        await base44.entities.Caso.update(casoExistente.id, {
+          descricao: casoExistente.descricao + `\n\n[Atualização ${new Date().toLocaleDateString()}]: ${caso.descricao}`,
+          prioridade: novaPrioridade,
+          historico_atualizacoes: historico
+        });
+
+        casosCriados.push(casoExistente.id);
+      } else {
+        // Criar novo caso
+        const prazo = new Date();
+        prazo.setDate(prazo.getDate() + (caso.prazo_dias || 15));
+
+        const novoCaso = await base44.entities.Caso.create({
+          titulo: caso.titulo,
+          descricao: caso.descricao,
+          tipo: caso.tipo,
+          stakeholders_envolvidos: stakeholdersVinculados || [],
+          comunidade,
+          municipio: municipio || 'Desconhecido',
+          tema: caso.tema,
+          registro_origem_id: registroId,
+          status: 'em_aberto',
+          prioridade: caso.prioridade,
+          prazo: prazo.toISOString().split('T')[0],
+          impacto_comunidade: caso.impacto_comunidade,
+          data_abertura: new Date().toISOString(),
+          historico_atualizacoes: [{
+            data: new Date().toISOString(),
+            usuario: 'Sistema IA',
+            acao: 'Abertura automática',
+            observacao: caso.justificativa
+          }]
+        });
+
+        casosCriados.push(novoCaso.id);
+      }
     }
 
     if (onCasosCriados) {
