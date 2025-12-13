@@ -48,7 +48,8 @@ const navigation = [
   { name: 'Mapa de Stakeholders', href: 'MapaStakeholders', icon: Users },
   { name: 'Casos', href: 'Casos', icon: CheckSquare },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
-];
+  { name: 'Equipes', href: 'GerenciarEquipes', icon: Users }
+  ];
 
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
