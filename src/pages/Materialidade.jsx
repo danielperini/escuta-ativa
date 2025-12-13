@@ -111,8 +111,9 @@ export default function Materialidade() {
     queryFn: () => base44.entities.Registro.list('-created_date', 200)
   });
 
-  // Extrair comunidades únicas dos registros
+  // Extrair comunidades únicas dos registros - após a declaração de registros
   const comunidadesUnicas = React.useMemo(() => {
+    if (!registros) return [];
     const comunidades = new Set();
     registros.forEach(r => {
       if (r.comunidade) comunidades.add(r.comunidade);
