@@ -41,6 +41,7 @@ import DetectorContinuidade from '@/components/continuidade/DetectorContinuidade
 import DetectorAtores from '@/components/atores/DetectorAtores';
 import DetectorStakeholders from '@/components/stakeholders/DetectorStakeholders';
 import DetectorCasosAutomatico from '@/components/casos/DetectorCasosAutomatico';
+import SeletorRegistrosVinculados from '@/components/continuidade/SeletorRegistrosVinculados';
 import ProcessadorMidia from '@/components/registro/ProcessadorMidia';
 import AnalisadorTempoReal from '@/components/registro/AnalisadorTempoReal';
 import { criarAgendasAutomaticas, atualizarHistoricoAtor, registrarAuditoria } from '@/components/registro/AutomacaoAgenda';
@@ -994,14 +995,12 @@ Ou digite/cole o conteúdo diretamente..."
             </div>
           </div>
 
-          <DetectorContinuidade
-            atividadeNova={registroTemporario}
-            onVincular={(continuidades) => {
-              console.log('Continuidades vinculadas:', continuidades);
-              setFormData(prev => ({ ...prev, registros_continuidade: continuidades }));
-            }}
-            onIgnorar={() => {
-              console.log('Prosseguir sem continuidade');
+          <SeletorRegistrosVinculados
+            textoAtual={textoConsolidado}
+            comunidade={registroTemporario?.comunidade}
+            participantes={registroTemporario?.participantes || []}
+            onRegistrosSelecionados={(registrosIds) => {
+              setFormData(prev => ({ ...prev, registros_continuidade: registrosIds }));
             }}
           />
 
