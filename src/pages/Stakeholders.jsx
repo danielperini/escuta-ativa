@@ -189,9 +189,9 @@ export default function Stakeholders() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 pb-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Stakeholders</h2>
           <p className="text-slate-500 mt-1">{stakeholders.length} stakeholders mapeados</p>

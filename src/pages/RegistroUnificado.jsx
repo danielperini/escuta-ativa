@@ -619,7 +619,7 @@ Extraia:
                         <span className="text-sm font-medium">Gravar Áudio</span>
                       </button>
 
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95">
                         <Upload className="w-8 h-8 text-[#40916C] mb-2" />
                         <span className="text-sm font-medium">Upload Áudio</span>
                         <span className="text-xs text-slate-400 mt-1">WhatsApp/MP3</span>
@@ -629,6 +629,7 @@ Extraia:
                           className="hidden" 
                           onChange={(e) => handleFileUpload(e, 'audio')}
                           disabled={processando}
+                          capture="environment"
                         />
                       </label>
                     </div>
@@ -637,16 +638,16 @@ Extraia:
                   <div>
                     <h3 className="text-sm font-medium text-slate-700 mb-3">📎 Para Evidências</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl">
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95">
                         <Video className="w-8 h-8 text-[#40916C] mb-2" />
                         <span className="text-sm font-medium">Vídeo</span>
-                        <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={processando} />
+                        <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={processando} capture="environment" />
                       </label>
 
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95">
                         <Camera className="w-8 h-8 text-[#40916C] mb-2" />
                         <span className="text-sm font-medium">Foto</span>
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={processando} />
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={processando} capture="environment" />
                       </label>
 
                       <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">

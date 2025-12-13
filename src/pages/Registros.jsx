@@ -114,9 +114,9 @@ export default function Registros() {
     }, [filtros.busca, filtros.comunidade, filtros.tipo, filtros.status, filtros.temperatura, filtros.tema, filtros.dataInicio, filtros.dataFim]);
 
     return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="space-y-4 md:space-y-6 pb-4">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Registros de Campo</h2>
           <p className="text-slate-500 mt-1">
