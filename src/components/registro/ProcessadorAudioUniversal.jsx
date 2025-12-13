@@ -53,48 +53,51 @@ export default function ProcessadorAudioUniversal({ onTranscricaoCompleta }) {
     setProgresso('Enviando arquivo...');
     
     try {
-      // 1. Upload do arquivo
+      // 1. Upload do arquivo direto (sem conversão)
       const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo });
-      setProgresso('Arquivo enviado. Processando transcrição...');
+      setProgresso('Arquivo enviado. Iniciando transcrição...');
       
-      // 2. Transcrição via LLM com instruções robustas para PT-BR
-      const prompt = `Você é um transcritor profissional especializado em PORTUGUÊS BRASILEIRO.
-
-TAREFA: Transcreva o áudio anexado seguindo estas instruções:
-
-1. Transcreva TODO o conteúdo de forma LITERAL e PRECISA
-2. Use pontuação correta (vírgulas, pontos, exclamações)
-3. Identifique falantes diferentes (Pessoa 1:, Pessoa 2:, etc.)
-4. Mantenha expressões coloquiais brasileiras
-5. Organize em parágrafos para facilitar leitura
-6. Use [inaudível] para trechos incompreensíveis
-7. Corrija erros óbvios sem mudar o sentido
-
-IMPORTANTE: Retorne APENAS a transcrição em português, sem comentários ou explicações.`;
+      // 2. Prompt simplificado e direto
+      const prompt = `Transcreva este áudio em português brasileiro. Retorne apenas a transcrição literal do que foi dito.`;
       
+      // Tentar transcrever com retry inteligente
       let resultado;
       let tentativas = 0;
-      const maxTentativas = 3;
+      const maxTentativas = 2;
       
       while (tentativas < maxTentativas) {
         try {
+          setProgresso(`Tentativa ${tentativas + 1} de ${maxTentativas}...`);
+          
           resultado = await base44.integrations.Core.InvokeLLM({
             prompt,
-            file_urls: [file_url]
+            file_urls: [file_url],
+            add_context_from_internet: false
           });
-          break; // Sucesso, sair do loop
-        } catch (error) {
-          tentativas++;
-          if (tentativas >= maxTentativas) {
-            throw new Error(`Falha após ${maxTentativas} tentativas: ${error.message}`);
+          
+          if (resultado && resultado.length > 5) {
+            break; // Sucesso com conteúdo válido
           }
-          // Aguardar antes de tentar novamente
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          tentativas++;
+        } catch (error) {
+          console.error(`Tentativa ${tentativas + 1} falhou:`, error);
+          tentativas++;
+          
+          if (tentativas >= maxTentativas) {
+            throw new Error('O arquivo de áudio não pôde ser processado. Tente gravar novamente com melhor qualidade de áudio.');
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 3000));
         }
       }
       
+      if (!resultado || resultado.length < 5) {
+        throw new Error('Não foi possível extrair texto do áudio. Grave novamente falando mais próximo do microfone.');
+      }
+      
       setTranscricao(resultado);
-      setProgresso('Transcrição concluída!');
+      setProgresso('✓ Transcrição concluída!');
       
       if (onTranscricaoCompleta) {
         onTranscricaoCompleta(resultado, file_url);
@@ -105,7 +108,8 @@ IMPORTANTE: Retorne APENAS a transcrição em português, sem comentários ou ex
     } catch (error) {
       console.error('Erro ao processar áudio:', error);
       setProgresso('');
-      toast.error('Erro ao processar áudio. Verifique o arquivo e tente novamente.');
+      setTranscricao('');
+      toast.error(error.message || 'Erro ao processar áudio. Tente gravar novamente.');
     } finally {
       setProcessando(false);
     }
