@@ -333,8 +333,9 @@ export default function Casos() {
                         )}
                       </div>
                     </div>
+                  </div>
 
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     {!['concluido', 'cancelado'].includes(caso.status) && (
                       <Button
                         variant="outline"
@@ -373,13 +374,13 @@ export default function Casos() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    </div>
-                    </div>
-                    </Card>
-                    );
-                    })
-                    )}
-                    </div>
+                  </div>
+                </div>
+              </Card>
+            );
+          })
+        )}
+      </div>
 
       {/* Pagination */}
       {!isLoading && filteredCasos.length > 0 && (
