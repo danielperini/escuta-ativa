@@ -279,10 +279,12 @@ export default function Casos() {
           </div>
           <Select value={filterComunidade} onValueChange={setFilterComunidade}>
             <SelectTrigger className="w-full sm:w-48">
-              <SelectValue />
+              <SelectValue>
+                {filterComunidade === 'todos' ? 'Todas Comunidades' : filterComunidade}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todas comunidades</SelectItem>
+              <SelectItem value="todos">Todas Comunidades</SelectItem>
               {comunidades.map(c => (
                 <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
               ))}
