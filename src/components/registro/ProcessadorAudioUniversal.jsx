@@ -58,28 +58,40 @@ export default function ProcessadorAudioUniversal({ onTranscricaoCompleta }) {
       setProgresso('Arquivo enviado. Processando transcrição...');
       
       // 2. Transcrição via LLM com instruções robustas para PT-BR
-      const prompt = `Você é um sistema profissional de transcrição de áudio em PORTUGUÊS BRASILEIRO.
+      const prompt = `Você é um transcritor profissional especializado em PORTUGUÊS BRASILEIRO.
 
-INSTRUÇÕES CRÍTICAS:
-- Transcreva TODO o conteúdo do áudio com MÁXIMA PRECISÃO
-- Use pontuação adequada e correta (vírgulas, pontos, exclamações, interrogações)
-- Identifique e separe diferentes falantes quando possível (use "Pessoa 1:", "Pessoa 2:", etc.)
-- Mantenha expressões coloquiais e regionalismos brasileiros
-- Corrija erros gramaticais óbvios MAS mantenha o sentido original
-- Use parágrafos para organizar ideias diferentes
-- Formate diálogos de forma clara e legível
-- Se houver palavras difíceis de entender, indique [inaudível]
-- Se o áudio estiver em outro idioma, transcreva no idioma original e indique qual é
+TAREFA: Transcreva o áudio anexado seguindo estas instruções:
 
-FORMATO DE SAÍDA:
-Retorne a transcrição formatada em texto limpo, organizado em parágrafos, sem comentários adicionais, sem meta-informações.
+1. Transcreva TODO o conteúdo de forma LITERAL e PRECISA
+2. Use pontuação correta (vírgulas, pontos, exclamações)
+3. Identifique falantes diferentes (Pessoa 1:, Pessoa 2:, etc.)
+4. Mantenha expressões coloquiais brasileiras
+5. Organize em parágrafos para facilitar leitura
+6. Use [inaudível] para trechos incompreensíveis
+7. Corrija erros óbvios sem mudar o sentido
 
-Comece a transcrição agora:`;
+IMPORTANTE: Retorne APENAS a transcrição em português, sem comentários ou explicações.`;
       
-      const resultado = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        file_urls: [file_url]
-      });
+      let resultado;
+      let tentativas = 0;
+      const maxTentativas = 3;
+      
+      while (tentativas < maxTentativas) {
+        try {
+          resultado = await base44.integrations.Core.InvokeLLM({
+            prompt,
+            file_urls: [file_url]
+          });
+          break; // Sucesso, sair do loop
+        } catch (error) {
+          tentativas++;
+          if (tentativas >= maxTentativas) {
+            throw new Error(`Falha após ${maxTentativas} tentativas: ${error.message}`);
+          }
+          // Aguardar antes de tentar novamente
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
       
       setTranscricao(resultado);
       setProgresso('Transcrição concluída!');
