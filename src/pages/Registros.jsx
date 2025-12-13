@@ -106,6 +106,9 @@ export default function Registros() {
     // Filtro temperatura
     if (filtros.temperatura !== 'todos' && r.temperatura_territorio !== filtros.temperatura) return false;
 
+    // Filtro sentimento
+    if (filtros.sentimento !== 'todos' && r.sentimento !== filtros.sentimento) return false;
+
     // Filtro tema
     if (filtros.tema !== 'todos') {
       if (!r.temas_identificados?.includes(filtros.tema)) return false;
@@ -132,7 +135,7 @@ export default function Registros() {
 
     React.useEffect(() => {
       setCurrentPage(1);
-    }, [filtros.busca, filtros.comunidade, filtros.tipo, filtros.status, filtros.temperatura, filtros.tema, filtros.municipio, filtros.dataInicio, filtros.dataFim]);
+    }, [filtros.busca, filtros.comunidade, filtros.tipo, filtros.status, filtros.temperatura, filtros.sentimento, filtros.tema, filtros.municipio, filtros.dataInicio, filtros.dataFim]);
 
     return (
       <div className="space-y-4 md:space-y-6 pb-4">
