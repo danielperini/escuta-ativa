@@ -23,7 +23,28 @@ export default function GravadorAudioCompleto({ onTranscricao, onArquivoProcessa
   const iniciarGravacao = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      
+      // Tentar formatos em ordem de preferência: MP4, WAV, MP3, WEBM
+      let mimeType = 'audio/webm';
+      let extensao = 'webm';
+      
+      const formatosPreferidos = [
+        { type: 'audio/mp4', ext: 'mp4' },
+        { type: 'audio/wav', ext: 'wav' },
+        { type: 'audio/mpeg', ext: 'mp3' },
+        { type: 'audio/webm;codecs=opus', ext: 'webm' }
+      ];
+      
+      for (const formato of formatosPreferidos) {
+        if (MediaRecorder.isTypeSupported(formato.type)) {
+          mimeType = formato.type;
+          extensao = formato.ext;
+          console.log(`✓ Usando formato: ${mimeType}`);
+          break;
+        }
+      }
+      
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -34,7 +55,7 @@ export default function GravadorAudioCompleto({ onTranscricao, onArquivoProcessa
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
         setAudioBlob(blob);
         setAudioURL(URL.createObjectURL(blob));
         stream.getTracks().forEach(track => track.stop());
@@ -80,8 +101,16 @@ export default function GravadorAudioCompleto({ onTranscricao, onArquivoProcessa
     setTranscrevendo(true);
 
     try {
-      // 1. Upload do arquivo
-      const file = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+      // Detectar tipo do blob e criar arquivo correspondente
+      const tipo = audioBlob.type || 'audio/webm';
+      let extensao = 'webm';
+      
+      if (tipo.includes('mp4')) extensao = 'mp4';
+      else if (tipo.includes('wav')) extensao = 'wav';
+      else if (tipo.includes('mpeg') || tipo.includes('mp3')) extensao = 'mp3';
+      
+      // 1. Upload do arquivo com tipo correto
+      const file = new File([audioBlob], `audio-${Date.now()}.${extensao}`, { type: audioBlob.type });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
       if (onArquivoProcessado) {
