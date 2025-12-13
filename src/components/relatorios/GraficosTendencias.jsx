@@ -77,7 +77,7 @@ export default function GraficosTendencias() {
     .map(([tema, mencoes]) => ({ tema, mencoes }));
 
   // 4. Evolução da matriz de materialidade
-  const evol ucaoMaterialidade = [];
+  const evolucaoMaterialidade = [];
   for (let i = mesesAtras - 1; i >= 0; i--) {
     const dataRef = new Date();
     dataRef.setMonth(dataRef.getMonth() - i);
