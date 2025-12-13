@@ -40,7 +40,20 @@ export default function Registros() {
 
   const { data: registros = [], isLoading } = useQuery({
     queryKey: ['registros'],
-    queryFn: () => base44.entities.Registro.list('-created_date', 300),
+    queryFn: async () => {
+      const lista = await base44.entities.Registro.list('-created_date', 300);
+      // Remover duplicatas baseado em título, comunidade e data
+      const seen = new Map();
+      const unicos = lista.filter(registro => {
+        const key = `${registro.titulo?.toLowerCase().trim()}-${registro.comunidade?.toLowerCase().trim()}-${registro.data_registro}`;
+        if (seen.has(key)) {
+          return false;
+        }
+        seen.set(key, true);
+        return true;
+      });
+      return unicos;
+    },
     staleTime: 30 * 1000,
     refetchInterval: 2 * 60 * 1000
   });
