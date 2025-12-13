@@ -106,6 +106,8 @@ export default function Stakeholders() {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [editingStakeholder, setEditingStakeholder] = useState(null);
   const [viewingStakeholder, setViewingStakeholder] = useState(null);
+  const [detalhesStakeholder, setDetalhesStakeholder] = useState(null);
+  const [filterTags, setFilterTags] = useState('todas');
   const [formData, setFormData] = useState({});
 
   const { data: stakeholders = [], isLoading, refetch } = useQuery({
@@ -161,6 +163,15 @@ export default function Stakeholders() {
     updateMutation.mutate({ id: editingStakeholder.id, data: formData });
   };
 
+  // Extrair todas as tags únicas
+  const todasTags = React.useMemo(() => {
+    const tags = new Set();
+    stakeholders.forEach(s => {
+      s.segmentos?.forEach(tag => tags.add(tag));
+    });
+    return Array.from(tags).sort();
+  }, [stakeholders]);
+
   const filteredStakeholders = stakeholders.filter(s => {
     const matchSearch = !search || 
       s.nome?.toLowerCase().includes(search.toLowerCase()) ||
@@ -169,7 +180,8 @@ export default function Stakeholders() {
     const matchTipo = filterTipo === 'todos' || s.tipo === filterTipo;
     const matchComunidade = filterComunidade === 'todos' || s.comunidade === filterComunidade;
     const matchStatus = filterStatus === 'todos' || s.status_cadastro === filterStatus;
-    return matchSearch && matchTipo && matchComunidade && matchStatus;
+    const matchTags = filterTags === 'todas' || s.segmentos?.includes(filterTags);
+    return matchSearch && matchTipo && matchComunidade && matchStatus && matchTags;
   });
 
   const totalPages = Math.ceil(filteredStakeholders.length / itemsPerPage);
@@ -180,7 +192,7 @@ export default function Stakeholders() {
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [search, filterTipo, filterComunidade, filterStatus]);
+  }, [search, filterTipo, filterComunidade, filterStatus, filterTags]);
 
   const stats = {
     total: stakeholders.length,
@@ -298,6 +310,21 @@ export default function Stakeholders() {
               ))}
             </SelectContent>
           </Select>
+          {todasTags.length > 0 && (
+            <Select value={filterTags} onValueChange={setFilterTags}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue>
+                  {filterTags === 'todas' ? 'Todas Tags' : filterTags}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas Tags</SelectItem>
+                {todasTags.map(tag => (
+                  <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </Card>
 
@@ -383,6 +410,10 @@ export default function Stakeholders() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setDetalhesStakeholder(stakeholder)}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Detalhes Completos
+                          </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link to={createPageUrl('PerfilStakeholder') + `?id=${stakeholder.id}`}>
                               <Eye className="w-4 h-4 mr-2" />
@@ -440,6 +471,10 @@ export default function Stakeholders() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setDetalhesStakeholder(stakeholder)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Detalhes Completos
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to={createPageUrl('PerfilStakeholder') + `?id=${stakeholder.id}`}>
                             <Eye className="w-4 h-4 mr-2" />
@@ -528,6 +563,13 @@ export default function Stakeholders() {
           />
         </Card>
       )}
+
+      {/* Detalhes Completos Dialog */}
+      <DetalhesStakeholderCompleto
+        stakeholder={detalhesStakeholder}
+        open={!!detalhesStakeholder}
+        onOpenChange={(open) => !open && setDetalhesStakeholder(null)}
+      />
 
       {/* Details Dialog */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
