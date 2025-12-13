@@ -271,35 +271,60 @@ Seja objetivo, estratégico e prático. Máximo 400 palavras.`
             </TabsContent>
 
             <TabsContent value="historico" className="space-y-3 mt-4">
-              {!caso.historico_atualizacoes?.length ? (
-                <Card className="p-12 text-center">
-                  <Clock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                  <p className="text-slate-500">Sem histórico de atualizações</p>
-                </Card>
-              ) : (
-                <Card>
-                  <CardContent className="p-0">
-                    <div className="divide-y">
-                      {caso.historico_atualizacoes.map((item, idx) => (
-                        <div key={idx} className="p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="w-2 h-2 rounded-full bg-[#2D6A4F] mt-2" />
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-slate-900">{item.acao}</p>
-                              {item.observacao && (
-                                <p className="text-sm text-slate-600 mt-1">{item.observacao}</p>
-                              )}
-                              <p className="text-xs text-slate-500 mt-1">
-                                {item.usuario} • {new Date(item.data).toLocaleString('pt-BR')}
-                              </p>
-                            </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Linha do Tempo</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="divide-y">
+                    {/* Criação do caso */}
+                    <div className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-900">Caso criado</p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {caso.created_by} • {new Date(caso.created_date || caso.data_abertura).toLocaleString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Histórico de atualizações */}
+                    {caso.historico_atualizacoes?.map((item, idx) => (
+                      <div key={idx} className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-[#2D6A4F] mt-2" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-slate-900">{item.acao}</p>
+                            {item.observacao && (
+                              <p className="text-sm text-slate-600 mt-1">{item.observacao}</p>
+                            )}
+                            <p className="text-xs text-slate-500 mt-1">
+                              {item.usuario} • {new Date(item.data).toLocaleString('pt-BR')}
+                            </p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                      </div>
+                    ))}
+
+                    {/* Conclusão se aplicável */}
+                    {caso.status === 'concluido' && caso.data_conclusao && (
+                      <div className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 mt-2" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-slate-900">Caso concluído</p>
+                            <p className="text-xs text-slate-500 mt-1">
+                              {new Date(caso.data_conclusao).toLocaleString('pt-BR')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="analise" className="space-y-4 mt-4">
