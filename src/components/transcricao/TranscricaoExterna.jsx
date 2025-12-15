@@ -52,9 +52,9 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de arquivo
-    const tipoValido = file.type.startsWith('audio/') || file.type.startsWith('video/');
-    const extensaoValida = /\.(mp3|wav|m4a|mp4|mov|avi|webm|ogg|flac|opus)$/i.test(file.name);
+    // Validar tipo de arquivo - aceitar qualquer áudio/vídeo ou extensões conhecidas
+    const extensaoValida = /\.(mp3|wav|m4a|mp4|mov|avi|webm|ogg|flac|opus|mpeg|aac|wma)$/i.test(file.name);
+    const tipoValido = file.type.startsWith('audio/') || file.type.startsWith('video/') || file.type.includes('ogg');
 
     if (!tipoValido && !extensaoValida) {
       toast.error('Tipo de arquivo não suportado. Use áudio ou vídeo.');
@@ -263,7 +263,7 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
                     Selecione áudio ou vídeo
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
-                    MP3, WAV, MP4, MOV, AVI, WEBM (até 500MB)
+                    MP3, WAV, M4A, OGG, OPUS, MP4, MOV, WEBM (até 500MB)
                   </p>
                 </div>
               </div>
