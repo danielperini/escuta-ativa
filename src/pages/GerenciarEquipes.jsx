@@ -689,7 +689,22 @@ export default function GerenciarEquipes() {
       <Dialog open={showMembersDialog} onOpenChange={setShowMembersDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Membros: {selectedEquipe?.nome}</DialogTitle>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Membros: {selectedEquipe?.nome}</span>
+              {isAdmin(selectedEquipe) && (
+                <Button 
+                  size="sm" 
+                  className="bg-[#2D6A4F]"
+                  onClick={() => {
+                    setShowMembersDialog(false);
+                    setShowInviteDialog(true);
+                  }}
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Convidar Membro
+                </Button>
+              )}
+            </DialogTitle>
             <DialogDescription>
               Gerencie permissões e status dos membros da equipe
             </DialogDescription>
@@ -722,43 +737,65 @@ export default function GerenciarEquipes() {
                       {statusConfig.label}
                     </Badge>
                     {isAdmin(selectedEquipe) && membro.email !== user?.email ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-1">
-                            <PermIcon className="w-4 h-4" />
-                            {permConfig.label}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleChangePermissao(selectedEquipe, membro.email, 'administrador')}>
-                            <Shield className="w-4 h-4 mr-2" />
-                            Administrador
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleChangePermissao(selectedEquipe, membro.email, 'editor')}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editor
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleChangePermissao(selectedEquipe, membro.email, 'visualizador')}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Visualizador
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleToggleStatusMembro(selectedEquipe, membro.email)}>
-                            {membro.status_usuario === 'ativo' ? (
-                              <><UserX className="w-4 h-4 mr-2" /> Desativar</>
-                            ) : (
-                              <><UserCheck className="w-4 h-4 mr-2" /> Ativar</>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-red-600"
-                            onClick={() => handleRemoveMember(selectedEquipe, membro.email)}
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Remover da Equipe
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <>
+                        <Select
+                          value={membro.permissao}
+                          onValueChange={(value) => handleChangePermissao(selectedEquipe, membro.email, value)}
+                        >
+                          <SelectTrigger className="w-40">
+                            <SelectValue>
+                              <div className="flex items-center gap-2">
+                                <PermIcon className="w-4 h-4" />
+                                {permConfig.label}
+                              </div>
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="administrador">
+                              <div className="flex items-center gap-2">
+                                <Shield className="w-4 h-4" />
+                                Administrador
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="editor">
+                              <div className="flex items-center gap-2">
+                                <Edit className="w-4 h-4" />
+                                Editor
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="visualizador">
+                              <div className="flex items-center gap-2">
+                                <Eye className="w-4 h-4" />
+                                Visualizador
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleToggleStatusMembro(selectedEquipe, membro.email)}>
+                              {membro.status_usuario === 'ativo' ? (
+                                <><UserX className="w-4 h-4 mr-2" /> Desativar Acesso</>
+                              ) : (
+                                <><UserCheck className="w-4 h-4 mr-2" /> Ativar Acesso</>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => handleRemoveMember(selectedEquipe, membro.email)}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Remover da Equipe
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </>
                     ) : (
                       <Badge className={permConfig.color}>
                         <PermIcon className="w-3 h-3 mr-1" />
