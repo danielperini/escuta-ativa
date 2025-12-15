@@ -217,6 +217,12 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
                     AssemblyAI (Recomendado)
                   </div>
                 </SelectItem>
+                <SelectItem value="openai">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-green-600" />
+                    OpenAI Whisper
+                  </div>
+                </SelectItem>
                 <SelectItem value="google">
                   <div className="flex items-center gap-2">
                     <Globe className="w-4 h-4 text-blue-600" />
@@ -475,7 +481,9 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
                 </p>
                 <ul className="text-xs text-blue-700 space-y-1 mb-3 ml-4">
                   <li>• <strong>AssemblyAI</strong> - Melhor qualidade, múltiplos idiomas</li>
+                  <li>• <strong>OpenAI Whisper</strong> - Excelente precisão, 99+ idiomas</li>
                   <li>• <strong>Google Speech-to-Text</strong> - Alternativa confiável</li>
+                  <li>• <strong>tldv.io</strong> - Importa reuniões de URLs públicas</li>
                 </ul>
                 <Button
                   onClick={() => window.location.href = createPageUrl('ConfiguracaoTranscricao')}

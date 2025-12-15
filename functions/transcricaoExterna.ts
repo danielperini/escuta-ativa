@@ -32,6 +32,7 @@ Deno.serve(async (req) => {
     const ASSEMBLYAI_API_KEY = userConfig.assemblyai_key || Deno.env.get('ASSEMBLYAI_API_KEY');
     const GOOGLE_SPEECH_API_KEY = userConfig.google_key || Deno.env.get('GOOGLE_SPEECH_API_KEY');
     const TLDV_API_KEY = userConfig.tldv_key || Deno.env.get('TLDV_API_KEY');
+    const OPENAI_API_KEY = userConfig.openai_key || Deno.env.get('OPENAI_API_KEY');
 
     let transcricao = '';
     let metadata = {};
@@ -305,8 +306,63 @@ Deno.serve(async (req) => {
       if (!done) {
         throw new Error('Timeout: transcrição demorou mais de 5 minutos');
       }
+
+    } else if (servico === 'openai') {
+      if (!OPENAI_API_KEY) {
+        return Response.json({ 
+          error: 'OpenAI API Key não configurada. Configure em Configurações > Transcrição Externa.' 
+        }, { status: 400 });
+      }
+
+      // OpenAI Whisper API
+      const audioBlob = await fetch(file_url).then(res => res.blob());
+      
+      // Criar FormData para upload
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'audio.mp3');
+      formData.append('model', 'whisper-1');
+      formData.append('language', idioma === 'pt' ? 'pt' : idioma);
+      if (opcoes.response_format) {
+        formData.append('response_format', opcoes.response_format);
+      } else {
+        formData.append('response_format', 'verbose_json');
+      }
+
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenAI Whisper erro: ${errorData.error?.message || response.statusText}`);
+      }
+
+      const whisperData = await response.json();
+      
+      // Extrair transcrição baseado no formato
+      if (whisperData.text) {
+        transcricao = whisperData.text;
+      } else if (whisperData.segments) {
+        transcricao = whisperData.segments.map(s => s.text).join(' ');
+      }
+
+      metadata = {
+        duracao_audio: whisperData.duration,
+        palavras_count: transcricao.split(/\s+/).length,
+        idioma_detectado: whisperData.language,
+        servico: 'OpenAI Whisper'
+      };
+
+      if (whisperData.segments) {
+        metadata.segmentos = whisperData.segments.length;
+      }
+
     } else {
-      return Response.json({ error: 'Serviço não suportado. Use "assemblyai", "google" ou "tldv"' }, { status: 400 });
+      return Response.json({ error: 'Serviço não suportado. Use "assemblyai", "openai", "google" ou "tldv"' }, { status: 400 });
     }
 
     if (!transcricao || transcricao.trim().length < 3) {
