@@ -124,8 +124,19 @@ export default function TranscricaoWhisper({ onTranscricaoCompleta, onTranscrica
     setProgressoTranscricao('Preparando arquivo...');
 
     try {
-      // Upload direto sem converter - InvokeLLM com Whisper aceita múltiplos formatos
-      const arquivo = blob instanceof File ? blob : new File([blob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+      // Converter .ogg para nome mais compatível
+      let arquivo;
+      if (blob instanceof File) {
+        const nomeOriginal = blob.name;
+        if (nomeOriginal.toLowerCase().endsWith('.ogg')) {
+          const novoNome = nomeOriginal.replace(/\.ogg$/i, '.mp3');
+          arquivo = new File([blob], novoNome, { type: 'audio/mpeg' });
+        } else {
+          arquivo = blob;
+        }
+      } else {
+        arquivo = new File([blob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+      }
       
       // 2. Upload do arquivo
       setProgressoTranscricao('Enviando áudio...');
