@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
-import ProcessadorCaderno from './ProcessadorCaderno';
+import ProcessadorCaderno from './ProcessadorCaderno.jsx';
 
 export default function EditorCadernoNota({ nota, onVoltar }) {
   const queryClient = useQueryClient();
