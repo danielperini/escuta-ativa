@@ -888,68 +888,35 @@ Extraia:
           </Card>
         )}
 
-        {mostrarGravador && (
-          <Card className="border-2 border-[#E31E24] bg-gradient-to-br from-red-50 to-pink-50">
-            <CardHeader className="bg-red-100 border-b border-red-200">
-              <CardTitle className="flex items-center justify-between text-[#E31E24]">
-                <div className="flex items-center gap-2">
-                  <Mic className="w-5 h-5" />
-                  Transcrição de Áudio Whisper
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setMostrarGravador(false)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <TranscricaoWhisper
-                arquivoExterno={arquivosProcessados.find(a => a.processando)?.arquivo}
-                onTranscricaoTempoReal={(transcricaoParcial, file_url) => {
-                  // Atualizar texto consolidado em tempo real
-                  const blocoTemp = `\n\n--- 🎙️ Transcrevendo Áudio... ---\n${transcricaoParcial}\n`;
-                  setTextoConsolidado(prev => {
-                    // Remover bloco anterior de transcrição em andamento
-                    const textoLimpo = prev.replace(/\n\n--- 🎙️ Transcrevendo Áudio\.\.\. ---\n[\s\S]*?(?=\n\n---|$)/g, '');
-                    return textoLimpo + blocoTemp;
-                  });
-                }}
-                onTranscricaoCompleta={async (transcricao, file_url) => {
-                  // Substituir transcrição temporária pela final
-                  const blocoTranscricao = `\n\n--- ✅ Transcrição do Áudio ---\n${transcricao}\n`;
-                  setTextoConsolidado(prev => {
-                    const textoLimpo = prev.replace(/\n\n--- 🎙️ Transcrevendo Áudio\.\.\. ---\n[\s\S]*?(?=\n\n---|$)/g, '');
-                    return textoLimpo + blocoTranscricao;
-                  });
-                  setMostrarGravador(false);
+        {/* Processador Multimídia em Lote */}
+        <ProcessadorMultimidia
+          onTextoExtraido={(blocoTexto, file_url, nome, tipo) => {
+            setTextoConsolidado(prev => prev + blocoTexto);
+            setFormData(prev => ({
+              ...prev,
+              arquivos: [...prev.arquivos, { url: file_url, tipo, nome }]
+            }));
+          }}
+          onTranscricaoTempoReal={(texto) => {
+            // Atualizar em tempo real sem duplicar
+            setTextoConsolidado(prev => {
+              const textoLimpo = prev.replace(/\n\n--- ⏳ Processando.*?\n/g, '');
+              return textoLimpo + texto;
+            });
+          }}
+        />
 
-                  // Atualizar arquivo processado
-                  setArquivosProcessados(prev => prev.map(a => 
-                    a.processando ? { 
-                      ...a, 
-                      url: file_url, 
-                      processando: false,
-                      transcricao: transcricao
-                    } : a
-                  ));
-
-                  setFormData(prev => ({
-                    ...prev,
-                    arquivos: [...prev.arquivos.filter(a => a.url), { 
-                      url: file_url, 
-                      tipo: 'audio', 
-                      nome: arquivosProcessados.find(a => a.processando)?.nome || 'Áudio.mp3' 
-                    }]
-                  }));
-                }}
-              />
-            </CardContent>
-          </Card>
-        )}
+        {/* Analisador IA de Conteúdo */}
+        <AnalisadorIAConteudo
+          conteudo={textoConsolidado}
+          onAnaliseCompleta={(dadosAnalise) => {
+            setFormData(prev => ({
+              ...prev,
+              ...dadosAnalise
+            }));
+            toast.success('Campos preenchidos automaticamente pela IA!');
+          }}
+        />
 
         {/* Lista de Arquivos Anexados */}
         {arquivosProcessados.length > 0 && (
