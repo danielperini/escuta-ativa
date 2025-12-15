@@ -76,9 +76,16 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
         onTranscricaoTempoReal(`⏳ Processando ${arquivo.tipo}: ${arquivo.file.name}...`);
       }
 
+      // Converter .ogg para formato mais compatível se necessário
+      let fileToUpload = arquivo.file;
+      if (arquivo.file.name.toLowerCase().endsWith('.ogg')) {
+        const newName = arquivo.file.name.replace(/\.ogg$/i, '.webm');
+        fileToUpload = new File([arquivo.file], newName, { type: 'audio/webm' });
+      }
+
       // Upload
       atualizarArquivo(arquivo.id, { progresso: 30 });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo.file });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
       
       // Transcrever/extrair
       atualizarArquivo(arquivo.id, { progresso: 60 });
