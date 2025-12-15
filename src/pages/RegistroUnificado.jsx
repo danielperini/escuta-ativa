@@ -212,46 +212,8 @@ export default function RegistroUnificado() {
       const blocoProcessando = `\n\n--- ⏳ Processando ${tipo}: ${file.name} ---\n`;
       setTextoConsolidado(prev => prev + blocoProcessando);
 
-      // Preparar arquivo com detecção robusta de formato
-      let extensao = 'mp3';
-      let mimeType = 'audio/mpeg';
-
-      if (tipo === 'audio') {
-        const nomeArquivo = file.name.toLowerCase();
-        if (nomeArquivo.endsWith('.ogg')) {
-          extensao = 'ogg';
-          mimeType = 'audio/ogg';
-        } else if (nomeArquivo.endsWith('.mp4') || nomeArquivo.endsWith('.m4a')) {
-          extensao = 'm4a';
-          mimeType = 'audio/mp4';
-        } else if (nomeArquivo.endsWith('.wav')) {
-          extensao = 'wav';
-          mimeType = 'audio/wav';
-        } else if (nomeArquivo.endsWith('.mp3')) {
-          extensao = 'mp3';
-          mimeType = 'audio/mpeg';
-        } else if (file.type) {
-          const tipo = file.type;
-          if (tipo.includes('ogg')) {
-            extensao = 'ogg';
-            mimeType = 'audio/ogg';
-          } else if (tipo.includes('mp4') || tipo.includes('m4a')) {
-            extensao = 'm4a';
-            mimeType = 'audio/mp4';
-          } else if (tipo.includes('wav')) {
-            extensao = 'wav';
-            mimeType = 'audio/wav';
-          } else if (tipo.includes('webm')) {
-            extensao = 'webm';
-            mimeType = 'audio/webm';
-          }
-        }
-      }
-
-      // Criar arquivo com formato correto
-      const arquivoParaUpload = tipo === 'audio' 
-        ? new File([file], `audio-${Date.now()}.${extensao}`, { type: mimeType })
-        : file;
+      // Upload direto sem renomear - InvokeLLM aceita qualquer formato
+      const arquivoParaUpload = file;
 
       const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivoParaUpload });
 
@@ -769,79 +731,45 @@ Extraia:
                   <p className="text-sm text-slate-500">Todos os arquivos serão convertidos em texto editável</p>
                 </div>
 
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">🎙️ Transcrição de Áudio</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
-                      <button
-                        onClick={() => {
-                          setMostrarGravador(true);
-                          setEtapaAtual('texto');
-                        }}
-                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#E31E24] transition-all bg-gradient-to-br from-red-50 to-red-100"
-                      >
-                        <Mic className="w-8 h-8 text-red-600 mb-2 animate-pulse" />
-                        <span className="text-sm font-medium">Gravar e Transcrever</span>
-                        <span className="text-xs text-slate-400 mt-1">Automático</span>
-                      </button>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-3xl mx-auto">
+                  <button
+                    onClick={() => {
+                      setMostrarGravador(true);
+                      setEtapaAtual('texto');
+                    }}
+                    disabled={processando}
+                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#E31E24] transition-all bg-gradient-to-br from-red-50 to-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Mic className="w-8 h-8 text-red-600 mb-2 animate-pulse" />
+                    <span className="text-sm font-medium">Gravar Áudio</span>
+                    <span className="text-xs text-slate-400 mt-1">Transcrição automática</span>
+                  </button>
 
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all active:scale-95">
-                        <Upload className="w-8 h-8 text-[#E31E24] mb-2" />
-                        <span className="text-sm font-medium">Upload Áudio</span>
-                        <span className="text-xs text-slate-400 mt-1">MP3/WhatsApp/M4A</span>
-                        <input 
-                          type="file" 
-                          accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a,.aac,.webm,.mp4" 
-                          className="hidden" 
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              // Adicionar arquivo à lista imediatamente
-                              const arquivoInfo = { 
-                                url: null, 
-                                tipo: 'audio', 
-                                nome: file.name,
-                                arquivo: file,
-                                processando: true
-                              };
-                              setArquivosProcessados(prev => [...prev, arquivoInfo]);
-                              setMostrarGravador(true);
-                              setEtapaAtual('texto');
-                            }
-                          }}
-                          disabled={processando}
-                          capture="environment"
-                        />
-                      </label>
-                    </div>
-                  </div>
+                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all active:scale-95 bg-blue-50">
+                    <Camera className="w-8 h-8 text-blue-600 mb-2" />
+                    <span className="text-sm font-medium">Foto/OCR</span>
+                    <span className="text-xs text-slate-400 mt-1">Extrai texto</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={processando} capture="environment" />
+                  </label>
 
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">📷 Evidências com OCR</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl">
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all active:scale-95 bg-blue-50">
-                        <Camera className="w-8 h-8 text-blue-600 mb-2" />
-                        <span className="text-sm font-medium">Foto/OCR</span>
-                        <span className="text-xs text-slate-400 mt-1">Extrai texto</span>
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={processando} capture="environment" />
-                      </label>
+                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all active:scale-95 bg-purple-50">
+                    <Video className="w-8 h-8 text-purple-600 mb-2" />
+                    <span className="text-sm font-medium">Vídeo</span>
+                    <span className="text-xs text-slate-400 mt-1">Transcreve áudio</span>
+                    <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={processando} capture="environment" />
+                  </label>
 
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all active:scale-95 bg-purple-50">
-                        <Video className="w-8 h-8 text-purple-600 mb-2" />
-                        <span className="text-sm font-medium">Vídeo</span>
-                        <span className="text-xs text-slate-400 mt-1">Transcreve áudio</span>
-                        <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={processando} capture="environment" />
-                      </label>
-
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all">
-                        <FileText className="w-8 h-8 text-[#E31E24] mb-2" />
-                        <span className="text-sm font-medium">PDF/Doc</span>
-                        <span className="text-xs text-slate-400 mt-1">Extrai texto</span>
-                        <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => handleFileUpload(e, 'documento')} disabled={processando} />
-                      </label>
-                    </div>
-                  </div>
+                  <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all">
+                    <FileText className="w-8 h-8 text-[#E31E24] mb-2" />
+                    <span className="text-sm font-medium">PDF/Doc</span>
+                    <span className="text-xs text-slate-400 mt-1">Extrai texto</span>
+                    <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => handleFileUpload(e, 'documento')} disabled={processando} />
+                  </label>
                 </div>
+
+                <p className="text-xs text-slate-500 mt-4">
+                  ✓ Aceita arquivos do WhatsApp (.ogg, .opus) • MP3 • M4A • WAV • WEBM
+                </p>
 
                 {processando && (
                   <div className="flex items-center justify-center gap-2 text-slate-600 pt-4">

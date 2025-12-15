@@ -124,46 +124,8 @@ export default function TranscricaoWhisper({ onTranscricaoCompleta, onTranscrica
     setProgressoTranscricao('Preparando arquivo...');
 
     try {
-      // 1. Preparar arquivo com detecção robusta de formato
-      let extensao = 'mp3';
-      let mimeType = 'audio/mpeg';
-
-      // Verificar pelo nome do arquivo se for um File
-      if (blob instanceof File && blob.name) {
-        const nomeArquivo = blob.name.toLowerCase();
-        if (nomeArquivo.endsWith('.ogg')) {
-          extensao = 'ogg';
-          mimeType = 'audio/ogg';
-        } else if (nomeArquivo.endsWith('.mp4') || nomeArquivo.endsWith('.m4a')) {
-          extensao = 'm4a';
-          mimeType = 'audio/mp4';
-        } else if (nomeArquivo.endsWith('.wav')) {
-          extensao = 'wav';
-          mimeType = 'audio/wav';
-        } else if (nomeArquivo.endsWith('.mp3')) {
-          extensao = 'mp3';
-          mimeType = 'audio/mpeg';
-        }
-      } else if (blob.type) {
-        // Verificar pelo MIME type
-        const tipo = blob.type;
-        if (tipo.includes('ogg')) {
-          extensao = 'ogg';
-          mimeType = 'audio/ogg';
-        } else if (tipo.includes('mp4') || tipo.includes('m4a')) {
-          extensao = 'm4a';
-          mimeType = 'audio/mp4';
-        } else if (tipo.includes('wav')) {
-          extensao = 'wav';
-          mimeType = 'audio/wav';
-        } else if (tipo.includes('webm')) {
-          extensao = 'webm';
-          mimeType = 'audio/webm';
-        }
-      }
-
-      // Converter para MP3 se for necessário (formato universal)
-      const arquivo = new File([blob], `audio-${Date.now()}.${extensao}`, { type: mimeType });
+      // Upload direto sem converter - InvokeLLM com Whisper aceita múltiplos formatos
+      const arquivo = blob instanceof File ? blob : new File([blob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
       
       // 2. Upload do arquivo
       setProgressoTranscricao('Enviando áudio...');
@@ -221,22 +183,18 @@ Transcreva:`;
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de arquivo - aceitar qualquer coisa que pareça áudio
-    const nomeArquivo = file.name.toLowerCase();
-    const extensoesAceitas = ['.mp3', '.wav', '.m4a', '.mp4', '.ogg', '.webm', '.opus', '.aac', '.flac'];
-
-    const extensaoValida = extensoesAceitas.some(ext => nomeArquivo.endsWith(ext));
-    const tipoValido = file.type.includes('audio/') || file.type.includes('video/');
-
-    if (!extensaoValida && !tipoValido) {
-      toast.error('Formato não suportado. Use: MP3, WAV, M4A, MP4, OGG, WEBM, OPUS');
+    // Aceitar qualquer arquivo de áudio
+    if (!file.type.includes('audio/') && !file.name.match(/\.(mp3|wav|m4a|mp4|ogg|webm|opus|aac|flac)$/i)) {
+      toast.error('Arquivo não parece ser áudio. Tente outro formato.');
       return;
     }
 
-    // Converter File para Blob e processar
     setAudioBlob(file);
     setAudioURL(URL.createObjectURL(file));
-    toast.success('Arquivo carregado! Clique em "Transcrever" para processar.');
+    toast.success('Arquivo carregado! Processando automaticamente...');
+
+    // Transcrever automaticamente
+    setTimeout(() => transcreverAudio(file), 500);
   };
 
   const togglePlayPause = () => {
