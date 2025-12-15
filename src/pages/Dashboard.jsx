@@ -11,6 +11,7 @@ import MonitorDemandasRecorrentes from "@/components/atores/MonitorDemandasRecor
 import MonitorDevolutivas from "@/components/devolutiva/MonitorDevolutivas";
 import BotaoPanicoAvancado from "@/components/dashboard/BotaoPanicoAvancado";
 import GraficosInterativos from "@/components/dashboard/GraficosInterativos";
+import ChatAssistente from "@/components/chat/ChatAssistente";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
