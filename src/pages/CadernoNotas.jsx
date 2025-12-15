@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, FileText, Search, Trash2, ExternalLink, Calendar, Star, Filter, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import EditorCadernoNota from '@/components/caderno/EditorCadernoNota.js';
+import EditorCadernoNota from '@/components/caderno/EditorCadernoNota';
 import {
   AlertDialog,
   AlertDialogAction,
