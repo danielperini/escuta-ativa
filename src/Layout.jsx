@@ -94,12 +94,12 @@ export default function Layout({ children, currentPageName }) {
       <MonitorDevolutivas />
       <style>{`
         :root {
-          --forest-900: #1B4332;
-          --forest-800: #2D6A4F;
-          --forest-700: #40916C;
-          --forest-600: #52B788;
-          --forest-500: #74C69D;
-          --forest-100: #D8F3DC;
+          --societa-red: #E31E24;
+          --societa-red-dark: #B01419;
+          --societa-red-light: #FF4D52;
+          --societa-black: #000000;
+          --societa-gray: #1a1a1a;
+          --societa-pink: #FF9999;
           --amber-500: #F59E0B;
           --amber-600: #D97706;
           --social-blue: #3B82F6;
@@ -136,7 +136,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed top-0 left-0 z-50 h-full w-64 bg-[#1B4332] transform transition-transform duration-300 ease-in-out lg:translate-x-0",
+        "fixed top-0 left-0 z-50 h-full w-64 bg-gradient-to-b from-[#E31E24] to-[#B01419] transform transition-transform duration-300 ease-in-out lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex flex-col h-full">
@@ -144,9 +144,9 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
             <div className="flex items-center gap-3">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/0e1bf5b7b_ChatGPTImage11dedezde202515_14_03.png"
-                alt="Escutativa"
-                className="h-8 object-contain"
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/6ef53ae31_transparent-Photoroom12.png"
+                alt="Societa.ai"
+                className="h-10 object-contain"
               />
             </div>
             <button 
@@ -231,7 +231,7 @@ export default function Layout({ children, currentPageName }) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 pl-2 pr-3">
-                    <div className="w-8 h-8 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-sm font-medium">
+                    <div className="w-8 h-8 rounded-full bg-[#E31E24] flex items-center justify-center text-white text-sm font-medium">
                       {user?.full_name?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <span className="hidden sm:block text-sm font-medium text-slate-700">

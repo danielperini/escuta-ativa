@@ -365,7 +365,7 @@ export default function GerenciarEquipes() {
           <h2 className="text-2xl font-bold text-slate-900">Gerenciar Equipes</h2>
           <p className="text-slate-500 mt-1">Administração de usuários, permissões e times de trabalho</p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="bg-[#2D6A4F]">
+        <Button onClick={() => setShowCreateDialog(true)} className="bg-[#E31E24] hover:bg-[#B01419]">
           <Plus className="w-4 h-4 mr-2" />
           Criar Nova Equipe
         </Button>
@@ -413,7 +413,7 @@ export default function GerenciarEquipes() {
                             className="w-16 h-16 rounded-full object-cover border-2 border-[#2D6A4F]"
                           />
                         ) : (
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#2D6A4F] to-[#40916C] flex items-center justify-center text-white text-xl font-bold">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#E31E24] to-[#FF4D52] flex items-center justify-center text-white text-xl font-bold">
                             {equipe.nome.substring(0, 2).toUpperCase()}
                           </div>
                         )}
@@ -512,7 +512,7 @@ export default function GerenciarEquipes() {
                   logs.map((log, idx) => (
                     <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                       <div className="flex items-center gap-3 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white font-semibold">
+                        <div className="w-10 h-10 rounded-full bg-[#E31E24] flex items-center justify-center text-white font-semibold">
                           {log.usuario_nome?.substring(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1">

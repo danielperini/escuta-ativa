@@ -1045,7 +1045,7 @@ Ou digite/cole o conteúdo diretamente..."
               <Button
                 onClick={analisarTextoConsolidado}
                 disabled={!textoConsolidado.trim() || analisando}
-                className="flex-1 bg-[#2D6A4F] hover:bg-[#1B4332] active:bg-[#0F2419] transition-all"
+                className="flex-1 bg-[#E31E24] hover:bg-[#B01419] active:bg-[#8A0F13] transition-all"
                 size="lg"
               >
                 {analisando ? (
@@ -1225,7 +1225,7 @@ Ou digite/cole o conteúdo diretamente..."
                 formData.casos_vinculados || []
               )}
               size="lg"
-              className="bg-[#2D6A4F] hover:bg-[#1B4332] active:bg-[#0F2419] transition-all"
+              className="bg-[#E31E24] hover:bg-[#B01419] active:bg-[#8A0F13] transition-all"
             >
               <Save className="w-5 h-5 mr-2" />
               Finalizar Registro
@@ -1247,7 +1247,7 @@ Ou digite/cole o conteúdo diretamente..."
             <p className="text-sm text-slate-500">Revise e complete as informações</p>
           </div>
         </div>
-        <Button onClick={handleFinalizar} disabled={createMutation.isPending || carregandoRegistro} className="bg-[#2D6A4F] hover:bg-[#1B4332] active:bg-[#0F2419] transition-all">
+        <Button onClick={handleFinalizar} disabled={createMutation.isPending || carregandoRegistro} className="bg-[#E31E24] hover:bg-[#B01419] active:bg-[#8A0F13] transition-all">
           {(createMutation.isPending || carregandoRegistro) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
           {modoEdicao ? 'Salvar Alterações' : 'Finalizar'}
         </Button>
