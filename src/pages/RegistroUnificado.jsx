@@ -323,21 +323,44 @@ IMPORTANTE:
 
         textoExtraido = resultado;
       } else {
-        // PDF/DOC - extração de texto
+        // PDF/DOC - extração de texto completa com OCR aprimorado
         const resultado = await base44.integrations.Core.InvokeLLM({
-          prompt: `Extraia TODO o texto deste documento.
+          prompt: `Execute OCR COMPLETO e extração de texto deste documento.
 
-INSTRUÇÕES:
-- Preserve estrutura (títulos, parágrafos, listas, tabelas)
-- Mantenha numeração e hierarquia
-- Inclua cabeçalhos, rodapés, notas
-- NÃO omita seções
-- Retorne APENAS o texto extraído, sem comentários`,
+INSTRUÇÕES CRÍTICAS:
+1. ESTRUTURA: Preserve completamente:
+   - Títulos, subtítulos e hierarquia
+   - Parágrafos e quebras de linha
+   - Listas numeradas e com marcadores
+   - Tabelas (formato texto, colunas alinhadas)
+   - Cabeçalhos e rodapés
+   - Notas de rodapé e citações
+
+2. CONTEÚDO: Extraia TUDO:
+   - Texto principal do corpo
+   - Textos em caixas/destaques
+   - Legendas de imagens/gráficos
+   - Números de página
+   - Textos em margens
+   - Assinaturas visíveis
+
+3. FORMATAÇÃO: Mantenha legibilidade:
+   - Use indentação para hierarquia
+   - Preserve quebras de seção
+   - Mantenha listas organizadas
+   - Tabelas: use | para separar colunas
+
+4. QUALIDADE:
+   - OCR em imagens de texto
+   - Corrija erros óbvios de OCR
+   - Preserve nomes próprios, datas, números
+
+RETORNE: Apenas o texto extraído formatado, sem comentários ou explicações.`,
           file_urls: [file_url]
         });
 
         if (!resultado || resultado.trim().length < 10) {
-          throw new Error('Não foi possível extrair texto do documento.');
+          throw new Error('Não foi possível extrair texto do documento. Verifique se o arquivo não está corrompido ou protegido.');
         }
 
         textoExtraido = resultado;
@@ -848,22 +871,54 @@ Extraia:
           </Card>
         )}
 
+        {/* Gravador de Áudio com Transcrição */}
+        {mostrarGravador && (
+         <TranscricaoWhisper
+           onTranscricaoCompleta={(transcricao, audioUrl) => {
+             const blocoTexto = `\n\n--- 🎙️ ÁUDIO GRAVADO ---\n${transcricao}\n`;
+             setTextoConsolidado(prev => prev + blocoTexto);
+             setArquivosProcessados(prev => [...prev, {
+               url: audioUrl,
+               tipo: 'audio',
+               nome: `Gravação_${new Date().toLocaleString('pt-BR').replace(/[/: ]/g, '_')}.wav`
+             }]);
+             setFormData(prev => ({
+               ...prev,
+               arquivos: [...prev.arquivos, {
+                 url: audioUrl,
+                 tipo: 'audio',
+                 nome: `Gravação_${new Date().toLocaleString('pt-BR').replace(/[/: ]/g, '_')}.wav`
+               }]
+             }));
+             setMostrarGravador(false);
+             toast.success('Gravação transcrita e adicionada ao registro!');
+           }}
+           onTranscricaoTempoReal={(texto) => {
+             // Atualizar texto consolidado em tempo real
+             setTextoConsolidado(prev => {
+               const textoSemParcial = prev.replace(/\n\n--- 🎙️ Gravando \(em andamento\) ---\n[\s\S]*?(?=\n\n---|\n\n\[|$)/, '');
+               return textoSemParcial + `\n\n--- 🎙️ Gravando (em andamento) ---\n${texto}\n`;
+             });
+           }}
+         />
+        )}
+
         {/* Processador Multimídia em Lote */}
         <ProcessadorMultimidia
-          onTextoExtraido={(blocoTexto, file_url, nome, tipo) => {
-            setTextoConsolidado(prev => prev + blocoTexto);
-            setFormData(prev => ({
-              ...prev,
-              arquivos: [...prev.arquivos, { url: file_url, tipo, nome }]
-            }));
-          }}
-          onTranscricaoTempoReal={(texto) => {
-            // Atualizar em tempo real sem duplicar
-            setTextoConsolidado(prev => {
-              const textoLimpo = prev.replace(/\n\n--- ⏳ Processando.*?\n/g, '');
-              return textoLimpo + texto;
-            });
-          }}
+         onTextoExtraido={(blocoTexto, file_url, nome, tipo) => {
+           setTextoConsolidado(prev => prev + blocoTexto);
+           setFormData(prev => ({
+             ...prev,
+             arquivos: [...prev.arquivos, { url: file_url, tipo, nome }]
+           }));
+         }}
+         onTranscricaoTempoReal={(texto) => {
+           // Atualizar em tempo real sem duplicar
+           setTextoConsolidado(prev => {
+             const textoLimpo = prev.replace(/\n\n--- ⏳ Processando.*?\n/g, '');
+             return textoLimpo + texto;
+           });
+         }}
         />
 
         {/* Botão de Análise Rápida após Upload */}
