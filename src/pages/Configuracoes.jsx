@@ -7,7 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, User, Palette, LayoutDashboard, Globe, Clock, Bell, Check, AlertTriangle } from "lucide-react";
+import { Save, User, Palette, LayoutDashboard, Globe, Clock, Bell, Check, AlertTriangle, Mic, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Switch } from "@/components/ui/switch";
 import { useToastSuccess } from "@/components/ui/toast-success";
 import {
@@ -329,6 +331,32 @@ export default function Configuracoes() {
                             Define o idioma usado pela IA para gerar relatórios, análises e respostas
                         </p>
                     </div>
+                </CardContent>
+            </Card>
+
+            {/* Transcrição Externa */}
+            <Card className="border-blue-500 border-2">
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Mic className="w-5 h-5" />
+                            Transcrição Externa
+                        </div>
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                            Novo
+                        </Badge>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p className="text-sm text-gray-600">
+                        Configure serviços profissionais de transcrição de áudio/vídeo (AssemblyAI, Google Speech-to-Text)
+                    </p>
+                    <Link to={createPageUrl('ConfiguracaoTranscricao')}>
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700 gap-2">
+                            <ExternalLink className="w-4 h-4" />
+                            Configurar Serviços de Transcrição
+                        </Button>
+                    </Link>
                 </CardContent>
             </Card>
 
