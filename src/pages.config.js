@@ -43,7 +43,6 @@ import GerenciarEquipesSimples from './pages/GerenciarEquipesSimples';
 import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import ComunidadesGrupos from './pages/ComunidadesGrupos';
 import Documentacao from './pages/Documentacao';
-import CadernoNotas from './pages/CadernoNotas';
 import __Layout from './Layout.jsx';
 
 
@@ -93,7 +92,6 @@ export const PAGES = {
     "GerenciarUsuarios": GerenciarUsuarios,
     "ComunidadesGrupos": ComunidadesGrupos,
     "Documentacao": Documentacao,
-    "CadernoNotas": CadernoNotas,
 }
 
 export const pagesConfig = {
