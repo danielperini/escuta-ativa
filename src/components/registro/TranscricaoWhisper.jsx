@@ -248,12 +248,38 @@ Transcreva:`;
           <div className="space-y-4">
             {gravando ? (
               <div className="text-center space-y-4">
-                <div className="flex items-center justify-center gap-3">
-                  <div className="w-4 h-4 rounded-full bg-red-600 animate-pulse" />
-                  <span className="text-2xl font-mono font-bold text-red-600">
-                    {formatarTempo(duracao)}
-                  </span>
+                <div className="flex flex-col items-center gap-4">
+                  {/* Animação de barras de áudio */}
+                  <div className="flex items-center justify-center gap-1 h-16">
+                    {[...Array(7)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-2 bg-red-600 rounded-full animate-pulse"
+                        style={{
+                          height: '100%',
+                          animation: `pulse ${0.5 + Math.random() * 0.5}s ease-in-out infinite`,
+                          animationDelay: `${i * 0.1}s`,
+                          transform: 'scaleY(0.3)',
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-red-600 animate-pulse" />
+                    <span className="text-2xl font-mono font-bold text-red-600">
+                      {formatarTempo(duracao)}
+                    </span>
+                  </div>
                 </div>
+
+                <style>{`
+                  @keyframes pulse {
+                    0%, 100% { transform: scaleY(0.3); }
+                    50% { transform: scaleY(1); }
+                  }
+                `}</style>
+
                 <Button 
                   onClick={pararGravacao} 
                   variant="destructive" 
