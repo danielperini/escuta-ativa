@@ -190,15 +190,46 @@ export default function RegistroUnificado() {
     setErrosProcessamento([]);
     
     try {
-      // Converter arquivo .ogg para formato compatível se necessário
-      let arquivoParaUpload = file;
+      // Preparar arquivo com detecção robusta de formato (mesma lógica do TranscricaoWhisper)
+      let extensao = 'mp3';
+      let mimeType = 'audio/mpeg';
       
-      // Para arquivos .ogg do WhatsApp, renomear extensão para .mp3 (codec compatível)
-      if (file.name.toLowerCase().endsWith('.ogg')) {
-        arquivoParaUpload = new File([file], file.name.replace(/\.ogg$/i, '.mp3'), { 
-          type: 'audio/mpeg' 
-        });
+      if (tipo === 'audio') {
+        const nomeArquivo = file.name.toLowerCase();
+        if (nomeArquivo.endsWith('.ogg')) {
+          extensao = 'ogg';
+          mimeType = 'audio/ogg';
+        } else if (nomeArquivo.endsWith('.mp4') || nomeArquivo.endsWith('.m4a')) {
+          extensao = 'm4a';
+          mimeType = 'audio/mp4';
+        } else if (nomeArquivo.endsWith('.wav')) {
+          extensao = 'wav';
+          mimeType = 'audio/wav';
+        } else if (nomeArquivo.endsWith('.mp3')) {
+          extensao = 'mp3';
+          mimeType = 'audio/mpeg';
+        } else if (file.type) {
+          const tipo = file.type;
+          if (tipo.includes('ogg')) {
+            extensao = 'ogg';
+            mimeType = 'audio/ogg';
+          } else if (tipo.includes('mp4') || tipo.includes('m4a')) {
+            extensao = 'm4a';
+            mimeType = 'audio/mp4';
+          } else if (tipo.includes('wav')) {
+            extensao = 'wav';
+            mimeType = 'audio/wav';
+          } else if (tipo.includes('webm')) {
+            extensao = 'webm';
+            mimeType = 'audio/webm';
+          }
+        }
       }
+      
+      // Criar arquivo com formato correto
+      const arquivoParaUpload = tipo === 'audio' 
+        ? new File([file], `audio-${Date.now()}.${extensao}`, { type: mimeType })
+        : file;
       
       const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivoParaUpload });
       
@@ -214,7 +245,15 @@ export default function RegistroUnificado() {
       let promptExtracao = '';
 
       if (tipo === 'audio') {
-        promptExtracao = `Transcreva COMPLETAMENTE este áudio em português:
+        promptExtracao = `Você tem acesso ao modelo Whisper de transcrição de áudio. Transcreva o áudio anexado em português brasileiro.
+
+IMPORTANTE: 
+- Retorne APENAS o texto transcrito, sem comentários
+- Use pontuação correta
+- Identifique falantes diferentes se houver
+- Mantenha expressões coloquiais
+
+Transcreva:
 
       INSTRUÇÕES:
       - Transcreva todas as falas e sons audíveis
@@ -254,36 +293,53 @@ export default function RegistroUnificado() {
       - Não omita nenhuma seção`;
       }
 
-      const extracao = await base44.integrations.Core.InvokeLLM({
-        prompt: promptExtracao,
-        file_urls: [file_url],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            texto_extraido: { type: "string" },
-            tipo_conteudo: { type: "string" },
-            qualidade_extracao: { type: "string" },
-            metadados: { 
-              type: "object",
-              properties: {
-                duracao_estimada: { type: "string" },
-                numero_falantes: { type: "number" },
-                idioma_detectado: { type: "string" },
-                confianca_ocr: { type: "string" }
+      // Para áudio, usar abordagem simplificada do Whisper
+      let textoExtraido = '';
+      
+      if (tipo === 'audio' || tipo === 'video') {
+        const resultado = await base44.integrations.Core.InvokeLLM({
+          prompt: promptExtracao,
+          file_urls: [file_url]
+        });
+        
+        if (!resultado || resultado.length < 3) {
+          throw new Error('Transcrição vazia. O áudio pode estar sem fala ou corrompido.');
+        }
+        
+        textoExtraido = resultado;
+      } else {
+        // Para outros tipos, usar schema estruturado
+        const extracao = await base44.integrations.Core.InvokeLLM({
+          prompt: promptExtracao,
+          file_urls: [file_url],
+          response_json_schema: {
+            type: "object",
+            properties: {
+              texto_extraido: { type: "string" },
+              tipo_conteudo: { type: "string" },
+              qualidade_extracao: { type: "string" },
+              metadados: { 
+                type: "object",
+                properties: {
+                  duracao_estimada: { type: "string" },
+                  numero_falantes: { type: "number" },
+                  idioma_detectado: { type: "string" },
+                  confianca_ocr: { type: "string" }
+                }
               }
             }
           }
-        }
-      });
+        });
 
-      if (!extracao.texto_extraido) {
-        throw new Error('Não foi possível extrair texto do arquivo');
+        if (!extracao.texto_extraido) {
+          throw new Error('Não foi possível extrair texto do arquivo');
+        }
+        
+        textoExtraido = extracao.texto_extraido;
       }
 
-      // Adicionar texto extraído à caixa consolidada com metadados
-      const metaInfo = extracao.metadados ? 
-        `\n[Metadados: ${Object.entries(extracao.metadados).filter(([k,v]) => v).map(([k,v]) => `${k}: ${v}`).join(', ')}]` : '';
-      const blocoTexto = `\n\n[${tipo.toUpperCase()} - ${file.name}]${metaInfo}\n${extracao.texto_extraido}\n`;
+      // Adicionar texto extraído à caixa consolidada
+      const blocoTexto = `\n\n[${tipo.toUpperCase()} - ${file.name}]\n${textoExtraido}\n`;
       setTextoConsolidado(prev => prev + blocoTexto);
       
       setEtapaAtual('texto');
