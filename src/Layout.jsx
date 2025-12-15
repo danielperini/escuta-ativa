@@ -19,7 +19,8 @@ import {
   CalendarDays,
   BarChart3,
   User,
-  Shield
+  Shield,
+  Home
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -48,6 +49,7 @@ const navigation = [
   { name: 'Stakeholders', href: 'Stakeholders', icon: UsersIcon },
   { name: 'Mapa de Stakeholders', href: 'MapaStakeholders', icon: Users },
   { name: 'Casos', href: 'Casos', icon: CheckSquare },
+  { name: 'Comunidades e Grupos', href: 'ComunidadesGrupos', icon: Home },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
   { name: 'Equipes', href: 'GerenciarEquipes', icon: Users },
   { name: 'Usuários', href: 'GerenciarUsuarios', icon: User }
