@@ -30,6 +30,7 @@ import MonitorAgendaAtraso from "@/components/agenda/MonitorAgendaAtraso";
 import DetectorRiscos from "@/components/mapa/DetectorRiscos";
 import MonitorDevolutivas from "@/components/notificacoes/MonitorDevolutivas";
 import MobileNavigation from "@/components/MobileNavigation";
+import PWASetup from "@/components/PWASetup";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,6 +93,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: estiloTema.background }}>
+      <PWASetup />
       <NotificationGenerator />
       <MonitorAgendaAtraso />
       <DetectorRiscos />
