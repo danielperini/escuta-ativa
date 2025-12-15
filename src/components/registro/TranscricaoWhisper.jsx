@@ -317,44 +317,19 @@ Transcreva:`;
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button 
-                  onClick={iniciarGravacao}
-                  className="bg-red-600 hover:bg-red-700"
-                  size="lg"
-                >
-                  <Mic className="w-5 h-5 mr-2" />
-                  Gravar Áudio
-                </Button>
-                
-                <label>
-                  <Button 
-                    variant="outline" 
-                    size="lg"
-                    className="w-full"
-                    asChild
-                  >
-                    <div>
-                      <Upload className="w-5 h-5 mr-2" />
-                      Enviar Arquivo
-                    </div>
-                  </Button>
-                  <input 
-                    type="file" 
-                    accept="audio/*,video/mp4,.mp3,.wav,.m4a,.ogg,.webm,.opus,.aac,.flac"
-                    className="hidden" 
-                    onChange={handleFileUpload}
-                  />
-                </label>
-              </div>
+              <Button 
+                onClick={iniciarGravacao}
+                className="w-full bg-red-600 hover:bg-red-700"
+                size="lg"
+              >
+                <Mic className="w-5 h-5 mr-2" />
+                Gravar Áudio Agora
+              </Button>
             )}
             
-            <div className="text-center text-xs space-y-1">
-              <p className="text-slate-500">
-                ✓ Formatos: MP3, WAV, M4A, MP4, OGG, WEBM, OPUS, AAC
-              </p>
+            <div className="text-center text-xs text-slate-500">
               <p className="text-emerald-600 font-medium">
-                ✓ Compatível com áudios do WhatsApp (.ogg)
+                🎤 Use o Processador Multimídia abaixo para enviar arquivos de áudio
               </p>
             </div>
           </div>

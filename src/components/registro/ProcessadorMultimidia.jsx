@@ -28,11 +28,12 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
   const adicionarArquivos = (files) => {
     const novosArquivos = Array.from(files).map((file, idx) => {
       let tipo = 'documento';
-      const nome = file.name.toLowerCase();
-      
-      if (nome.match(/\.(mp3|wav|m4a|ogg|webm|opus|aac|flac)$/)) tipo = 'audio';
-      else if (nome.match(/\.(mp4|mov|avi|mkv|webm)$/)) tipo = 'video';
-      else if (nome.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/)) tipo = 'foto';
+        const nome = file.name.toLowerCase();
+
+        if (nome.match(/\.(mp3|wav|m4a|ogg|webm|opus|aac|flac|mpeg)$/)) tipo = 'audio';
+        else if (nome.match(/\.(mp4|mov|avi|mkv|webm)$/)) tipo = 'video';
+        else if (nome.match(/\.(jpg|jpeg|png|gif|bmp|webp|tiff)$/)) tipo = 'foto';
+        else if (nome.match(/\.(pdf|doc|docx|txt|rtf|odt)$/)) tipo = 'documento';
       
       return {
         id: Date.now() + idx,
@@ -87,10 +88,10 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
       if (arquivo.tipo === 'audio' || arquivo.tipo === 'video') {
         prompt = `Transcreva este ${arquivo.tipo} em português brasileiro. Retorne APENAS o texto transcrito, sem comentários. Use pontuação correta e identifique falantes se houver.`;
       } else if (arquivo.tipo === 'foto') {
-        prompt = `Execute OCR completo nesta imagem. Extraia todo texto visível (placas, documentos, anotações). Preserve formatação e disposição espacial.`;
-      } else {
-        prompt = `Extraia TODO o texto deste documento. Preserve estrutura (títulos, parágrafos, listas). Não omita nenhuma seção.`;
-      }
+        prompt = `Execute OCR completo nesta imagem. Extraia todo texto visível (placas, documentos, anotações, texto manuscrito). Preserve formatação e disposição espacial.`;
+        } else {
+        prompt = `Extraia TODO o texto deste documento (PDF, DOC, DOCX, TXT). Preserve estrutura completa: títulos, subtítulos, parágrafos, listas, tabelas. Não omita nenhuma seção. Mantenha formatação original.`;
+        }
 
       const resultado = await base44.integrations.Core.InvokeLLM({
         prompt,
@@ -167,12 +168,12 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
               Clique para selecionar arquivos ou arraste aqui
             </p>
             <p className="text-xs text-slate-500">
-              Suporta: Áudio (MP3, WAV, OGG, M4A), Vídeo (MP4, MOV), Imagens (JPG, PNG), Documentos (PDF)
+              Suporta: Áudio (MP3, WAV, OGG, M4A, WhatsApp), Vídeo (MP4, MOV), Imagens (JPG, PNG), Documentos (PDF, DOC, DOCX, TXT)
             </p>
             <input
               type="file"
               multiple
-              accept="audio/*,video/*,image/*,.pdf,.doc,.docx"
+              accept="audio/*,video/*,image/*,.pdf,.doc,.docx,.txt,.rtf,.odt"
               onChange={handleFileInput}
               className="hidden"
             />
@@ -276,9 +277,10 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
         )}
 
         <div className="text-xs text-center text-slate-500 space-y-1">
-          <p>💡 Processamento em lote: até 3 arquivos simultâneos</p>
-          <p>🎙️ Transcrição automática com Whisper AI</p>
-          <p>📊 Progresso individual para cada arquivo</p>
+          <p>💡 Processamento automático em lote: até 3 arquivos simultâneos</p>
+          <p>🎙️ Transcrição de áudio/vídeo com Whisper AI</p>
+          <p>📄 Extração de texto de documentos e imagens (OCR)</p>
+          <p>✅ Todo conteúdo é adicionado automaticamente ao registro</p>
         </div>
       </CardContent>
     </Card>
