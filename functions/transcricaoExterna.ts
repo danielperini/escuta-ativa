@@ -2,11 +2,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 /**
  * Função para transcrição de áudio/vídeo usando serviços externos
- * Suporta: AssemblyAI e Google Speech-to-Text
+ * Suporta: AssemblyAI, Google Speech-to-Text e tldv.io
  * 
  * Payload:
- * - file_url: URL do arquivo de áudio/vídeo (já enviado via UploadFile)
- * - servico: 'assemblyai' | 'google' (padrão: assemblyai)
+ * - file_url: URL do arquivo de áudio/vídeo ou URL da reunião (para tldv)
+ * - servico: 'assemblyai' | 'google' | 'tldv' (padrão: assemblyai)
  * - idioma: código do idioma (padrão: 'pt')
  * - opcoes: objeto com opções adicionais (speaker_labels, punctuate, etc)
  */
@@ -27,14 +27,99 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'file_url é obrigatório' }, { status: 400 });
     }
 
-    // Buscar API keys das secrets
-    const ASSEMBLYAI_API_KEY = Deno.env.get('ASSEMBLYAI_API_KEY');
-    const GOOGLE_SPEECH_API_KEY = Deno.env.get('GOOGLE_SPEECH_API_KEY');
+    // Buscar API keys do usuário e fallback para env
+    const userConfig = user.configuracoes?.transcricao_externa || {};
+    const ASSEMBLYAI_API_KEY = userConfig.assemblyai_key || Deno.env.get('ASSEMBLYAI_API_KEY');
+    const GOOGLE_SPEECH_API_KEY = userConfig.google_key || Deno.env.get('GOOGLE_SPEECH_API_KEY');
+    const TLDV_API_KEY = userConfig.tldv_key || Deno.env.get('TLDV_API_KEY');
 
     let transcricao = '';
     let metadata = {};
 
-    if (servico === 'assemblyai') {
+    if (servico === 'tldv') {
+      if (!TLDV_API_KEY) {
+        return Response.json({ 
+          error: 'tldv.io API Key não configurada. Configure em Configurações > Transcrição Externa.' 
+        }, { status: 400 });
+      }
+
+      // PASSO 1: Importar reunião no tldv.io
+      const importResponse = await fetch('https://pasta.tldv.io/v1alpha1/meetings/import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': TLDV_API_KEY
+        },
+        body: JSON.stringify({
+          name: `Transcrição ${new Date().toISOString()}`,
+          url: file_url,
+          happenedAt: new Date().toISOString(),
+          dryRun: false
+        })
+      });
+
+      if (!importResponse.ok) {
+        const errorData = await importResponse.json();
+        throw new Error(`Erro ao importar reunião no tldv.io: ${errorData.message || importResponse.statusText}`);
+      }
+
+      const importData = await importResponse.json();
+
+      // PASSO 2: Aguardar processamento (polling a cada 10s por até 10 minutos)
+      let meetingId = null;
+      const maxTentativas = 60;
+      for (let i = 0; i < maxTentativas; i++) {
+        await new Promise(resolve => setTimeout(resolve, 10000)); // 10 segundos
+
+        // Buscar reuniões recentes
+        const meetingsResponse = await fetch('https://pasta.tldv.io/v1alpha1/meetings?limit=10', {
+          headers: { 'x-api-key': TLDV_API_KEY }
+        });
+
+        if (meetingsResponse.ok) {
+          const meetingsData = await meetingsResponse.json();
+          // Procurar pela reunião importada
+          const meeting = meetingsData.results?.find(m => m.name?.includes('Transcrição'));
+          if (meeting && meeting.id) {
+            meetingId = meeting.id;
+            break;
+          }
+        }
+      }
+
+      if (!meetingId) {
+        throw new Error('Timeout ao aguardar processamento da reunião no tldv.io (10 minutos)');
+      }
+
+      // PASSO 3: Obter transcrição
+      const transcriptResponse = await fetch(`https://pasta.tldv.io/v1alpha1/meetings/${meetingId}/transcript`, {
+        headers: { 'x-api-key': TLDV_API_KEY }
+      });
+
+      if (!transcriptResponse.ok) {
+        throw new Error('Erro ao obter transcrição do tldv.io');
+      }
+
+      const transcriptData = await transcriptResponse.json();
+      
+      // Formatar transcrição
+      if (transcriptData.segments && Array.isArray(transcriptData.segments)) {
+        transcricao = transcriptData.segments
+          .map(seg => `[${seg.speaker || 'Desconhecido'}]: ${seg.text}`)
+          .join('\n\n');
+      } else {
+        transcricao = transcriptData.text || '';
+      }
+
+      metadata = {
+        servico: 'tldv.io',
+        meetingId: meetingId,
+        duracao_audio: transcriptData.duration,
+        palavras_count: transcricao.split(/\s+/).length,
+        participantes: transcriptData.participants || []
+      };
+
+    } else if (servico === 'assemblyai') {
       if (!ASSEMBLYAI_API_KEY) {
         return Response.json({ 
           error: 'AssemblyAI API Key não configurada. Configure em Configurações > Transcrição Externa.' 
@@ -221,7 +306,7 @@ Deno.serve(async (req) => {
         throw new Error('Timeout: transcrição demorou mais de 5 minutos');
       }
     } else {
-      return Response.json({ error: 'Serviço não suportado. Use "assemblyai" ou "google"' }, { status: 400 });
+      return Response.json({ error: 'Serviço não suportado. Use "assemblyai", "google" ou "tldv"' }, { status: 400 });
     }
 
     if (!transcricao || transcricao.trim().length < 3) {
