@@ -225,93 +225,86 @@ export default function RegistroUnificado() {
         arquivos: [...prev.arquivos, arquivoInfo]
       }));
 
-      // Extrair texto do arquivo com prompts específicos por tipo
-      let promptExtracao = '';
-
-      if (tipo === 'audio') {
-        promptExtracao = `Você tem acesso ao modelo Whisper de transcrição de áudio. Transcreva o áudio anexado em português brasileiro.
-
-  IMPORTANTE: 
-  - Retorne APENAS o texto transcrito, sem comentários
-  - Use pontuação correta
-  - Identifique falantes diferentes se houver
-  - Mantenha expressões coloquiais
-
-  Transcreva:`;
-      } else if (tipo === 'video') {
-        promptExtracao = `Extraia TODO o conteúdo deste vídeo:
-
-      ÁUDIO: Transcreva todas as falas e sons
-      VISUAL: Descreva cenas importantes, textos visíveis na tela
-      OCR: Extraia qualquer texto escrito que apareça no vídeo
-
-      Retorne no formato:
-      [TRANSCRIÇÃO ÁUDIO]
-      ...
-      [TEXTO VISUAL/OCR]
-      ...`;
-      } else if (tipo === 'foto') {
-        promptExtracao = `Execute OCR COMPLETO nesta imagem:
-
-      EXTRAIA:
-      - Todo texto visível (placas, cartazes, documentos, anotações)
-      - Números, datas, nomes
-      - Legendas, títulos
-      - Textos manuscritos (descreva se ilegível)
-
-      IMPORTANTE: Preserve formatação, quebras de linha e disposição espacial dos textos`;
-      } else {
-        promptExtracao = `Extraia TODO o texto deste documento:
-
-      - Preserve estrutura (títulos, parágrafos, listas)
-      - Mantenha formatação de tabelas quando possível
-      - Inclua notas de rodapé
-      - Não omita nenhuma seção`;
-      }
-
-      // Para áudio, usar abordagem simplificada do Whisper
+      // Extrair texto do arquivo - abordagem unificada e simples
       let textoExtraido = '';
 
-      if (tipo === 'audio' || tipo === 'video') {
+      if (tipo === 'audio') {
+        // Transcrição de áudio com Whisper
         const resultado = await base44.integrations.Core.InvokeLLM({
-          prompt: promptExtracao,
+          prompt: `Transcreva este áudio em português brasileiro.
+Retorne APENAS a transcrição, sem comentários ou formatação extra.
+Identifique falantes diferentes se houver (ex: "Pessoa 1:", "Pessoa 2:").`,
           file_urls: [file_url]
         });
 
-        if (!resultado || resultado.length < 3) {
-          throw new Error('Transcrição vazia. O áudio pode estar sem fala ou corrompido.');
+        if (!resultado || resultado.trim().length < 3) {
+          throw new Error('Transcrição vazia. Verifique se o áudio contém fala.');
+        }
+
+        textoExtraido = resultado;
+      } else if (tipo === 'video') {
+        // Transcrição de vídeo (extrai áudio + texto visual)
+        const resultado = await base44.integrations.Core.InvokeLLM({
+          prompt: `Extraia TODO o conteúdo deste vídeo:
+
+1. TRANSCRIÇÃO DE ÁUDIO: Transcreva todas as falas
+2. TEXTO VISUAL: Extraia textos que aparecem na tela (placas, slides, legendas)
+
+Retorne no formato:
+[FALAS]
+...transcrição das falas...
+
+[TEXTO VISUAL]
+...textos visíveis na tela...`,
+          file_urls: [file_url]
+        });
+
+        if (!resultado || resultado.trim().length < 5) {
+          throw new Error('Não foi possível processar o vídeo.');
+        }
+
+        textoExtraido = resultado;
+      } else if (tipo === 'foto') {
+        // OCR em imagens
+        const resultado = await base44.integrations.Core.InvokeLLM({
+          prompt: `Execute OCR completo nesta imagem.
+
+EXTRAIA:
+- Todo texto visível (placas, documentos, cartazes, anotações)
+- Números, datas, nomes próprios
+- Textos manuscritos (transcreva se legível)
+
+IMPORTANTE: 
+- Preserve formatação e quebras de linha
+- Se não houver texto visível, escreva "Nenhum texto detectado na imagem"
+- Retorne APENAS o texto extraído`,
+          file_urls: [file_url]
+        });
+
+        if (!resultado || resultado.trim().length < 3) {
+          throw new Error('Nenhum texto detectado na imagem ou erro no OCR.');
         }
 
         textoExtraido = resultado;
       } else {
-        // Para outros tipos, usar schema estruturado
-        const extracao = await base44.integrations.Core.InvokeLLM({
-          prompt: promptExtracao,
-          file_urls: [file_url],
-          response_json_schema: {
-            type: "object",
-            properties: {
-              texto_extraido: { type: "string" },
-              tipo_conteudo: { type: "string" },
-              qualidade_extracao: { type: "string" },
-              metadados: { 
-                type: "object",
-                properties: {
-                  duracao_estimada: { type: "string" },
-                  numero_falantes: { type: "number" },
-                  idioma_detectado: { type: "string" },
-                  confianca_ocr: { type: "string" }
-                }
-              }
-            }
-          }
+        // PDF/DOC - extração de texto
+        const resultado = await base44.integrations.Core.InvokeLLM({
+          prompt: `Extraia TODO o texto deste documento.
+
+INSTRUÇÕES:
+- Preserve estrutura (títulos, parágrafos, listas, tabelas)
+- Mantenha numeração e hierarquia
+- Inclua cabeçalhos, rodapés, notas
+- NÃO omita seções
+- Retorne APENAS o texto extraído, sem comentários`,
+          file_urls: [file_url]
         });
 
-        if (!extracao.texto_extraido) {
-          throw new Error('Não foi possível extrair texto do arquivo');
+        if (!resultado || resultado.trim().length < 10) {
+          throw new Error('Não foi possível extrair texto do documento.');
         }
 
-        textoExtraido = extracao.texto_extraido;
+        textoExtraido = resultado;
       }
 
       // Substituir bloco de processamento pelo texto final
