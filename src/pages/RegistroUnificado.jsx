@@ -203,12 +203,16 @@ export default function RegistroUnificado() {
   const processarArquivo = async (file, tipo) => {
     setProcessando(true);
     setErrosProcessamento([]);
-    
+
     try {
-      // Preparar arquivo com detecção robusta de formato (mesma lógica do TranscricaoWhisper)
+      // Mostrar preview imediato na caixa
+      const blocoProcessando = `\n\n--- ⏳ Processando ${tipo}: ${file.name} ---\n`;
+      setTextoConsolidado(prev => prev + blocoProcessando);
+
+      // Preparar arquivo com detecção robusta de formato
       let extensao = 'mp3';
       let mimeType = 'audio/mpeg';
-      
+
       if (tipo === 'audio') {
         const nomeArquivo = file.name.toLowerCase();
         if (nomeArquivo.endsWith('.ogg')) {
@@ -240,17 +244,17 @@ export default function RegistroUnificado() {
           }
         }
       }
-      
+
       // Criar arquivo com formato correto
       const arquivoParaUpload = tipo === 'audio' 
         ? new File([file], `audio-${Date.now()}.${extensao}`, { type: mimeType })
         : file;
-      
+
       const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivoParaUpload });
-      
+
       const arquivoInfo = { url: file_url, tipo, nome: file.name };
       setArquivosProcessados(prev => [...prev, arquivoInfo]);
-      
+
       setFormData(prev => ({
         ...prev,
         arquivos: [...prev.arquivos, arquivoInfo]
@@ -262,21 +266,13 @@ export default function RegistroUnificado() {
       if (tipo === 'audio') {
         promptExtracao = `Você tem acesso ao modelo Whisper de transcrição de áudio. Transcreva o áudio anexado em português brasileiro.
 
-IMPORTANTE: 
-- Retorne APENAS o texto transcrito, sem comentários
-- Use pontuação correta
-- Identifique falantes diferentes se houver
-- Mantenha expressões coloquiais
+  IMPORTANTE: 
+  - Retorne APENAS o texto transcrito, sem comentários
+  - Use pontuação correta
+  - Identifique falantes diferentes se houver
+  - Mantenha expressões coloquiais
 
-Transcreva:
-
-      INSTRUÇÕES:
-      - Transcreva todas as falas e sons audíveis
-      - Identifique falantes diferentes quando possível (Pessoa 1, Pessoa 2, etc)
-      - Preserve pausas significativas com [pausa]
-      - Indique sons de fundo relevantes entre colchetes [aplausos], [risadas]
-      - Mantenha a ordem cronológica
-      - NÃO resuma, transcreva TUDO`;
+  Transcreva:`;
       } else if (tipo === 'video') {
         promptExtracao = `Extraia TODO o conteúdo deste vídeo:
 
@@ -310,17 +306,17 @@ Transcreva:
 
       // Para áudio, usar abordagem simplificada do Whisper
       let textoExtraido = '';
-      
+
       if (tipo === 'audio' || tipo === 'video') {
         const resultado = await base44.integrations.Core.InvokeLLM({
           prompt: promptExtracao,
           file_urls: [file_url]
         });
-        
+
         if (!resultado || resultado.length < 3) {
           throw new Error('Transcrição vazia. O áudio pode estar sem fala ou corrompido.');
         }
-        
+
         textoExtraido = resultado;
       } else {
         // Para outros tipos, usar schema estruturado
@@ -349,19 +345,26 @@ Transcreva:
         if (!extracao.texto_extraido) {
           throw new Error('Não foi possível extrair texto do arquivo');
         }
-        
+
         textoExtraido = extracao.texto_extraido;
       }
 
-      // Adicionar texto extraído à caixa consolidada
-      const blocoTexto = `\n\n[${tipo.toUpperCase()} - ${file.name}]\n${textoExtraido}\n`;
-      setTextoConsolidado(prev => prev + blocoTexto);
-      
+      // Substituir bloco de processamento pelo texto final
+      const blocoTexto = `\n\n--- ✅ ${tipo.toUpperCase()} - ${file.name} ---\n${textoExtraido}\n`;
+      setTextoConsolidado(prev => {
+        const textoLimpo = prev.replace(/\n\n--- ⏳ Processando.*?---\n/g, '');
+        return textoLimpo + blocoTexto;
+      });
+
       setEtapaAtual('texto');
     } catch (error) {
       console.error('Erro ao processar:', error);
       setErrosProcessamento(prev => [...prev, { arquivo: file.name, erro: error.message }]);
-      alert('Erro ao processar arquivo: ' + error.message + '\n\nTente reprocessar ou digite o conteúdo manualmente.');
+
+      // Remover bloco de processamento em caso de erro
+      setTextoConsolidado(prev => prev.replace(/\n\n--- ⏳ Processando.*?---\n/g, ''));
+
+      toast.error('Erro ao processar: ' + error.message);
     } finally {
       setProcessando(false);
     }
@@ -906,12 +909,24 @@ Extraia:
             <CardContent className="pt-6">
               <TranscricaoWhisper
                 arquivoExterno={arquivosProcessados.find(a => a.processando)?.arquivo}
+                onTranscricaoTempoReal={(transcricaoParcial, file_url) => {
+                  // Atualizar texto consolidado em tempo real
+                  const blocoTemp = `\n\n--- 🎙️ Transcrevendo Áudio... ---\n${transcricaoParcial}\n`;
+                  setTextoConsolidado(prev => {
+                    // Remover bloco anterior de transcrição em andamento
+                    const textoLimpo = prev.replace(/\n\n--- 🎙️ Transcrevendo Áudio\.\.\. ---\n[\s\S]*?(?=\n\n---|$)/g, '');
+                    return textoLimpo + blocoTemp;
+                  });
+                }}
                 onTranscricaoCompleta={async (transcricao, file_url) => {
-                  // Adicionar transcrição ao texto consolidado
-                  const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
-                  setTextoConsolidado(prev => prev + blocoTranscricao);
+                  // Substituir transcrição temporária pela final
+                  const blocoTranscricao = `\n\n--- ✅ Transcrição do Áudio ---\n${transcricao}\n`;
+                  setTextoConsolidado(prev => {
+                    const textoLimpo = prev.replace(/\n\n--- 🎙️ Transcrevendo Áudio\.\.\. ---\n[\s\S]*?(?=\n\n---|$)/g, '');
+                    return textoLimpo + blocoTranscricao;
+                  });
                   setMostrarGravador(false);
-                  
+
                   // Atualizar arquivo processado
                   setArquivosProcessados(prev => prev.map(a => 
                     a.processando ? { 
@@ -921,7 +936,7 @@ Extraia:
                       transcricao: transcricao
                     } : a
                   ));
-                  
+
                   setFormData(prev => ({
                     ...prev,
                     arquivos: [...prev.arquivos.filter(a => a.url), { 
@@ -1066,13 +1081,20 @@ Extraia:
           <CardContent className="p-6 space-y-4">
 
             <Textarea
-              className="min-h-[400px] font-mono text-sm"
-              placeholder="O texto extraído dos arquivos aparecerá aqui. Você pode editar antes de analisar.
+              className="min-h-[400px] font-mono text-sm leading-relaxed"
+              placeholder="O texto extraído dos arquivos aparecerá aqui em tempo real. Você pode editar antes de analisar.
 
-Ou digite/cole o conteúdo diretamente..."
+            Ou digite/cole o conteúdo diretamente..."
               value={textoConsolidado}
               onChange={(e) => setTextoConsolidado(e.target.value)}
             />
+
+            {textoConsolidado && (
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span>{textoConsolidado.length} caracteres</span>
+                <span>{textoConsolidado.split(/\s+/).filter(Boolean).length} palavras</span>
+              </div>
+            )}
 
             {errosProcessamento.length > 0 && (
               <div className="bg-red-50 p-3 rounded border border-red-200">
@@ -1116,9 +1138,14 @@ Ou digite/cole o conteúdo diretamente..."
               )}
             </div>
 
-            <p className="text-xs text-slate-500 text-center">
-              ⚠️ A IA analisará automaticamente este texto enquanto você digita
-            </p>
+            <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Transcrição em tempo real ativa</span>
+              </div>
+              <span>•</span>
+              <span>IA analisa automaticamente</span>
+            </div>
           </CardContent>
         </Card>
 

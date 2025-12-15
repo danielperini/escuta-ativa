@@ -12,7 +12,7 @@ import { toast } from 'sonner';
  * Suporta gravação direta e upload de arquivos
  * Formatos: MP3, MP4, M4A, WAV, WEBM, OGG
  */
-export default function TranscricaoWhisper({ onTranscricaoCompleta, arquivoExterno }) {
+export default function TranscricaoWhisper({ onTranscricaoCompleta, onTranscricaoTempoReal, arquivoExterno }) {
   const [gravando, setGravando] = useState(false);
   const [processando, setProcessando] = useState(false);
   const [transcricao, setTranscricao] = useState('');
@@ -22,6 +22,7 @@ export default function TranscricaoWhisper({ onTranscricaoCompleta, arquivoExter
   const [duracao, setDuracao] = useState(0);
   const [tocando, setTocando] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
+  const [progressoTranscricao, setProgressoTranscricao] = useState('');
   
   // Processar arquivo externo automaticamente
   React.useEffect(() => {
@@ -120,6 +121,7 @@ export default function TranscricaoWhisper({ onTranscricaoCompleta, arquivoExter
 
   const transcreverAudio = async (blob) => {
     setProcessando(true);
+    setProgressoTranscricao('Preparando arquivo...');
 
     try {
       // 1. Preparar arquivo com detecção robusta de formato
@@ -164,9 +166,17 @@ export default function TranscricaoWhisper({ onTranscricaoCompleta, arquivoExter
       const arquivo = new File([blob], `audio-${Date.now()}.${extensao}`, { type: mimeType });
       
       // 2. Upload do arquivo
+      setProgressoTranscricao('Enviando áudio...');
       const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo });
       
       // 3. Transcrever usando Whisper via LLM com prompt otimizado
+      setProgressoTranscricao('Transcrevendo com IA...');
+      
+      // Notificar início da transcrição
+      if (onTranscricaoTempoReal) {
+        onTranscricaoTempoReal('⏳ Transcrevendo áudio...', file_url);
+      }
+      
       const prompt = `Você tem acesso ao modelo Whisper de transcrição de áudio. Transcreva o áudio anexado em português brasileiro.
 
 IMPORTANTE: 
@@ -189,11 +199,18 @@ Transcreva:`;
       setTranscricao(resultado);
       setTranscricaoEditavel(resultado);
       setModoEdicao(true);
+      setProgressoTranscricao('');
+
+      // Enviar transcrição em tempo real para a caixa
+      if (onTranscricaoTempoReal) {
+        onTranscricaoTempoReal(resultado, file_url);
+      }
 
       toast.success('Áudio transcrito! Revise e edite se necessário.');
       
     } catch (error) {
       console.error('Erro na transcrição:', error);
+      setProgressoTranscricao('');
       toast.error(error.message || 'Erro ao transcrever áudio');
     } finally {
       setProcessando(false);
@@ -236,13 +253,19 @@ Transcreva:`;
 
   const confirmarTranscricao = () => {
     if (onTranscricaoCompleta && transcricaoEditavel) {
-      // Passar tanto a transcrição quanto a URL do arquivo original
       const fileUrl = audioURL;
       onTranscricaoCompleta(transcricaoEditavel, fileUrl);
-      toast.success('Transcrição adicionada ao registro!');
+      toast.success('Transcrição confirmada e adicionada!');
     }
     limpar();
   };
+
+  // Atualizar transcrição em tempo real enquanto edita
+  React.useEffect(() => {
+    if (modoEdicao && onTranscricaoTempoReal && transcricaoEditavel) {
+      onTranscricaoTempoReal(transcricaoEditavel, audioURL);
+    }
+  }, [transcricaoEditavel, modoEdicao]);
 
   const downloadTranscricao = () => {
     const blob = new Blob([transcricaoEditavel], { type: 'text/plain;charset=utf-8' });
@@ -425,7 +448,7 @@ Transcreva:`;
               {processando ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Transcrevendo com Whisper...
+                  {progressoTranscricao || 'Transcrevendo com Whisper...'}
                 </>
               ) : (
                 <>
@@ -434,6 +457,11 @@ Transcreva:`;
                 </>
               )}
             </Button>
+            {processando && (
+              <div className="mt-2 text-xs text-center text-blue-600 animate-pulse">
+                {progressoTranscricao}
+              </div>
+            )}
           </div>
         )}
 
