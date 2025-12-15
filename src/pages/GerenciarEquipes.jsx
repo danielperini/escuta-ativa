@@ -25,8 +25,11 @@ import {
   Laptop,
   UserX,
   UserCheck,
-  Settings
+  Settings,
+  Lock
 } from 'lucide-react';
+import GerenciadorPermissoesGranular from '@/components/permissoes/GerenciadorPermissoesGranular';
+import HistoricoPermissoes from '@/components/permissoes/HistoricoPermissoes';
 import {
   Dialog,
   DialogContent,
@@ -101,6 +104,8 @@ export default function GerenciarEquipes() {
   const [showMembersDialog, setShowMembersDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPermissoesDialog, setShowPermissoesDialog] = useState(false);
+  const [selectedUserForPermissions, setSelectedUserForPermissions] = useState(null);
   const [editingEquipe, setEditingEquipe] = useState(null);
   const [selectedEquipe, setSelectedEquipe] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -375,7 +380,7 @@ export default function GerenciarEquipes() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="equipes">
             <Users className="w-4 h-4 mr-2" />
             Equipes
@@ -383,6 +388,10 @@ export default function GerenciarEquipes() {
           <TabsTrigger value="atividade">
             <Activity className="w-4 h-4 mr-2" />
             Atividade
+          </TabsTrigger>
+          <TabsTrigger value="historico">
+            <Clock className="w-4 h-4 mr-2" />
+            Histórico Permissões
           </TabsTrigger>
         </TabsList>
 
@@ -543,7 +552,24 @@ export default function GerenciarEquipes() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="historico" className="space-y-4">
+          <HistoricoPermissoes />
+        </TabsContent>
       </Tabs>
+
+      {/* Dialog Permissões Granulares */}
+      <Dialog open={showPermissoesDialog} onOpenChange={setShowPermissoesDialog}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Permissões Granulares - {selectedUserForPermissions?.full_name}</DialogTitle>
+          </DialogHeader>
+          <GerenciadorPermissoesGranular
+            usuario={selectedUserForPermissions}
+            onSalvar={() => setShowPermissoesDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog Criar */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -781,6 +807,19 @@ export default function GerenciarEquipes() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={async () => {
+                              const usuarios = await base44.entities.User.list();
+                              const usuario = usuarios.find(u => u.email === membro.email);
+                              if (usuario) {
+                                setSelectedUserForPermissions(usuario);
+                                setShowMembersDialog(false);
+                                setShowPermissoesDialog(true);
+                              }
+                            }}>
+                              <Lock className="w-4 h-4 mr-2" />
+                              Gerenciar Permissões
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleToggleStatusMembro(selectedEquipe, membro.email)}>
                               {membro.status_usuario === 'ativo' ? (
                                 <><UserX className="w-4 h-4 mr-2" /> Desativar Acesso</>

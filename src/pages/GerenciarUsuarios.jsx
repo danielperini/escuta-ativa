@@ -62,6 +62,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import GerenciadorPermissoesGranular from '@/components/permissoes/GerenciadorPermissoesGranular';
 import HistoricoPermissoes from '@/components/permissoes/HistoricoPermissoes';
+import GerenciadorPapeisCustomizados from '@/components/permissoes/GerenciadorPapeisCustomizados';
 
 const ROLES_CONFIG = {
   admin: {
@@ -297,7 +298,7 @@ export default function GerenciarUsuarios() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="usuarios">
             <Users className="w-4 h-4 mr-2" />
             Ativos ({usuariosAtivos.length})
@@ -305,6 +306,10 @@ export default function GerenciarUsuarios() {
           <TabsTrigger value="inativos">
             <UserX className="w-4 h-4 mr-2" />
             Inativos ({usuariosInativos.length})
+          </TabsTrigger>
+          <TabsTrigger value="papeis">
+            <Shield className="w-4 h-4 mr-2" />
+            Papéis
           </TabsTrigger>
           <TabsTrigger value="atividade">
             <Activity className="w-4 h-4 mr-2" />
@@ -342,6 +347,12 @@ export default function GerenciarUsuarios() {
                             <RoleIcon className="w-3 h-3 mr-1" />
                             {ROLES_CONFIG[usuario.role]?.label || 'Usuário'}
                           </Badge>
+                          {usuario.papeis && usuario.papeis.length > 0 && (
+                            <Badge className="bg-purple-100 text-purple-700 text-xs">
+                              <Shield className="w-3 h-3 mr-1" />
+                              {usuario.papeis.length} papel(eis)
+                            </Badge>
+                          )}
                           {equipesUsuario.length > 0 && (
                             <Badge variant="secondary" className="text-xs">
                               <Users className="w-3 h-3 mr-1" />
@@ -480,6 +491,10 @@ export default function GerenciarUsuarios() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="papeis" className="space-y-3">
+          <GerenciadorPapeisCustomizados />
         </TabsContent>
 
         <TabsContent value="historico" className="space-y-3">
