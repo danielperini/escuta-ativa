@@ -76,11 +76,13 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
         onTranscricaoTempoReal(`⏳ Processando ${arquivo.tipo}: ${arquivo.file.name}...`);
       }
 
-      // Converter .ogg para formato mais compatível se necessário
+      // Converter .ogg e .webm para .mp3 para compatibilidade universal
       let fileToUpload = arquivo.file;
-      if (arquivo.file.name.toLowerCase().endsWith('.ogg')) {
-        const newName = arquivo.file.name.replace(/\.ogg$/i, '.webm');
-        fileToUpload = new File([arquivo.file], newName, { type: 'audio/webm' });
+      const fileName = arquivo.file.name.toLowerCase();
+      if (fileName.endsWith('.ogg') || fileName.endsWith('.webm')) {
+        const timestamp = Date.now();
+        const newName = `audio_${timestamp}.mp3`;
+        fileToUpload = new File([arquivo.file], newName, { type: 'audio/mpeg' });
       }
 
       // Upload
