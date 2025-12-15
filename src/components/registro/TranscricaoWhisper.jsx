@@ -190,8 +190,26 @@ Transcreva:`;
   const confirmarTranscricao = () => {
     if (onTranscricaoCompleta && transcricaoEditavel) {
       onTranscricaoCompleta(transcricaoEditavel, audioURL);
+      toast.success('Transcrição adicionada ao registro!');
     }
-    limpar();
+    setModoEdicao(false);
+    setTranscricao('');
+    setTranscricaoEditavel('');
+    setAudioBlob(null);
+    setAudioURL(null);
+  };
+
+  const downloadTranscricao = () => {
+    const blob = new Blob([transcricaoEditavel], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transcricao_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Transcrição baixada!');
   };
 
   const limpar = () => {
@@ -394,20 +412,32 @@ Transcreva:`;
               </p>
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-between gap-2">
               <Button 
                 variant="outline" 
-                onClick={limpar}
+                onClick={downloadTranscricao}
+                className="gap-2"
               >
-                Cancelar
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Baixar .txt
               </Button>
-              <Button 
-                onClick={confirmarTranscricao}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Confirmar e Usar Transcrição
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={limpar}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={confirmarTranscricao}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Confirmar e Usar Transcrição
+                </Button>
+              </div>
             </div>
           </div>
         )}
