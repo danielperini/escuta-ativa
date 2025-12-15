@@ -48,6 +48,7 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
   const [idioma, setIdioma] = useState('pt');
   const [identificarFalantes, setIdentificarFalantes] = useState(false);
   const [analiseSentimento, setAnaliseSentimento] = useState(false);
+  const [urlArquivo, setUrlArquivo] = useState('');
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
@@ -107,7 +108,7 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
       setEtapa(`Transcrevendo com ${servico === 'assemblyai' ? 'AssemblyAI' : 'Google Speech'}...`);
 
       const response = await base44.functions.invoke('transcricaoExterna', {
-        file_url,
+        file_url: servico === 'tldv' ? urlArquivo : file_url,
         servico,
         idioma,
         opcoes
@@ -222,6 +223,12 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
                     Google Speech-to-Text
                   </div>
                 </SelectItem>
+                <SelectItem value="tldv">
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-purple-600" />
+                    tldv.io (Reuniões/URLs)
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -262,8 +269,33 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
           )}
         </div>
 
+        {/* URL para tldv.io */}
+        {servico === 'tldv' && !transcricao && (
+          <div className="border-2 border-purple-300 rounded-lg p-4">
+            <Label className="text-sm font-medium mb-2 block">URL da Gravação/Reunião</Label>
+            <Input
+              type="url"
+              placeholder="https://exemplo.com/gravacao.mp4"
+              value={urlArquivo}
+              onChange={(e) => setUrlArquivo(e.target.value)}
+              className="mb-3"
+            />
+            <p className="text-xs text-slate-500 mb-3">
+              Cole a URL pública da gravação. Formatos suportados: MP3, MP4, WAV, M4A, MKV, MOV, AVI, WMA, FLAC
+            </p>
+            <Button
+              onClick={iniciarTranscricao}
+              disabled={processando || !urlArquivo}
+              className="w-full bg-purple-600 hover:bg-purple-700"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Importar e Transcrever
+            </Button>
+          </div>
+        )}
+
         {/* Upload de Arquivo */}
-        {!arquivo && !transcricao && (
+        {servico !== 'tldv' && !arquivo && !transcricao && (
           <div className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
             <label className="cursor-pointer">
               <div className="flex flex-col items-center gap-3">
@@ -275,7 +307,7 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
                     Selecione áudio ou vídeo
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
-                    MP3, WAV, M4A, OGG, OPUS, MP4, MOV, WEBM (até 500MB)
+                    {servico === 'tldv' ? 'Cole a URL da gravação ou reunião abaixo' : 'MP3, WAV, M4A, OGG, OPUS, MP4, MOV, WEBM (até 500MB)'}
                   </p>
                 </div>
               </div>
