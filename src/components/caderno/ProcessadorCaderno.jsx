@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Upload, Mic, X, FileAudio, FileVideo, Image, FileText, Loader2, CheckCircle2 } from 'lucide-react';
+import { Upload, Mic, X, FileAudio, FileVideo, Image as ImageIcon, FileText, Loader2, CheckCircle2, Camera, Video } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ProcessadorCaderno({ notaId, onProcessamentoCompleto }) {
@@ -122,48 +122,88 @@ export default function ProcessadorCaderno({ notaId, onProcessamentoCompleto }) 
     const icons = {
       audio: FileAudio,
       video: FileVideo,
-      foto: Image,
+      foto: ImageIcon,
       documento: FileText
     };
     return icons[tipo] || FileText;
   };
 
   return (
-    <Card className="border-2 border-blue-500">
-      <CardHeader className="bg-blue-50">
-        <CardTitle className="flex items-center gap-2">
-          <Upload className="w-5 h-5 text-blue-600" />
-          Upload e Transcrição
+    <Card className="border-2 border-[#E31E24]">
+      <CardHeader className="bg-gradient-to-r from-red-50 to-pink-50">
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex items-center gap-2 text-[#E31E24]">
+            <Upload className="w-5 h-5" />
+            Processador Multimídia em Lote
+          </span>
+          <Badge variant="secondary">
+            {arquivos.length} arquivo{arquivos.length !== 1 ? 's' : ''}
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6 space-y-4">
-        {/* Controles */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <label>
-            <Button variant="outline" size="lg" className="w-full" asChild>
-              <div>
-                <Upload className="w-5 h-5 mr-2" />
-                Enviar Arquivos
-              </div>
-            </Button>
-            <input 
-              type="file" 
-              multiple
-              accept="audio/*,video/*,image/*,.pdf,.doc,.docx"
-              className="hidden" 
-              onChange={(e) => adicionarArquivos(e.target.files)}
-            />
-          </label>
+        {/* Área de Upload Estilo RegistroUnificado */}
+        <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-[#E31E24] transition-colors">
+          <div className="w-16 h-16 rounded-full bg-[#E31E24]/10 flex items-center justify-center mx-auto mb-4">
+            <Upload className="w-8 h-8 text-[#E31E24]" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Envie arquivos ou grave áudio</h3>
+          <p className="text-sm text-slate-500 mb-6">Todos os arquivos serão convertidos em texto editável</p>
 
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={gravando ? pararGravacao : iniciarGravacao}
-            className={gravando ? 'bg-red-50 border-red-500' : ''}
-          >
-            <Mic className={`w-5 h-5 mr-2 ${gravando ? 'text-red-600 animate-pulse' : ''}`} />
-            {gravando ? 'Parar Gravação' : 'Gravar Áudio'}
-          </Button>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
+            <button
+              onClick={gravando ? pararGravacao : iniciarGravacao}
+              disabled={processando}
+              className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#E31E24] transition-all bg-gradient-to-br from-red-50 to-red-100 disabled:opacity-50"
+            >
+              <Mic className={`w-8 h-8 mb-2 ${gravando ? 'text-red-600 animate-pulse' : 'text-red-600'}`} />
+              <span className="text-sm font-medium">{gravando ? 'Parar' : 'Gravar Áudio'}</span>
+              <span className="text-xs text-slate-400 mt-1">Transcrição automática</span>
+            </button>
+
+            <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all bg-blue-50">
+              <Camera className="w-8 h-8 text-blue-600 mb-2" />
+              <span className="text-sm font-medium">Foto/OCR</span>
+              <span className="text-xs text-slate-400 mt-1">Extrai texto</span>
+              <input 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={(e) => adicionarArquivos(e.target.files)}
+                capture="environment"
+              />
+            </label>
+
+            <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all bg-purple-50">
+              <Video className="w-8 h-8 text-purple-600 mb-2" />
+              <span className="text-sm font-medium">Vídeo</span>
+              <span className="text-xs text-slate-400 mt-1">Transcreve áudio</span>
+              <input 
+                type="file" 
+                accept="video/*" 
+                className="hidden" 
+                onChange={(e) => adicionarArquivos(e.target.files)}
+                capture="environment"
+              />
+            </label>
+
+            <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all">
+              <FileText className="w-8 h-8 text-[#E31E24] mb-2" />
+              <span className="text-sm font-medium">PDF/Doc</span>
+              <span className="text-xs text-slate-400 mt-1">Extrai texto</span>
+              <input 
+                type="file" 
+                accept=".pdf,.doc,.docx,audio/*" 
+                multiple
+                className="hidden" 
+                onChange={(e) => adicionarArquivos(e.target.files)}
+              />
+            </label>
+          </div>
+
+          <p className="text-xs text-slate-500 mt-4">
+            ✓ Aceita arquivos do WhatsApp (.ogg, .opus) • MP3 • M4A • WAV • WEBM
+          </p>
         </div>
 
         {/* Lista de Arquivos */}
