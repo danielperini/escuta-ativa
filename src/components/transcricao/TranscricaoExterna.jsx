@@ -43,12 +43,42 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
   const [metadata, setMetadata] = useState(null);
   const [erro, setErro] = useState(null);
   
-  // Configurações
+  // Configurações (carregadas do usuário)
   const [servico, setServico] = useState('assemblyai');
   const [idioma, setIdioma] = useState('pt');
   const [identificarFalantes, setIdentificarFalantes] = useState(false);
   const [analiseSentimento, setAnaliseSentimento] = useState(false);
   const [urlArquivo, setUrlArquivo] = useState('');
+  
+  // Carregar configurações padrão do usuário
+  React.useEffect(() => {
+    const loadUserConfig = async () => {
+      try {
+        const user = await base44.auth.me();
+        const transcricaoConfig = user?.configuracoes?.transcricao_externa;
+        
+        if (transcricaoConfig) {
+          // Definir idioma e opções baseado no serviço selecionado
+          if (servico === 'assemblyai' && transcricaoConfig.assemblyai_config) {
+            setIdioma(transcricaoConfig.assemblyai_config.idioma || 'pt');
+            setIdentificarFalantes(transcricaoConfig.assemblyai_config.speaker_labels || false);
+            setAnaliseSentimento(transcricaoConfig.assemblyai_config.sentiment_analysis || false);
+          } else if (servico === 'openai' && transcricaoConfig.openai_config) {
+            setIdioma(transcricaoConfig.openai_config.idioma || 'pt');
+          } else if (servico === 'google' && transcricaoConfig.google_config) {
+            setIdioma(transcricaoConfig.google_config.idioma || 'pt-BR');
+            setIdentificarFalantes(transcricaoConfig.google_config.enableSpeakerDiarization || false);
+          } else if (servico === 'tldv' && transcricaoConfig.tldv_config) {
+            setIdioma(transcricaoConfig.tldv_config.idioma || 'pt');
+          }
+        }
+      } catch (error) {
+        console.warn('Não foi possível carregar configurações do usuário:', error);
+      }
+    };
+    
+    loadUserConfig();
+  }, [servico]);
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];

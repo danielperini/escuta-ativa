@@ -18,13 +18,34 @@ import {
   Sparkles,
   Shield,
   Loader2,
-  Zap
+  Zap,
+  Settings2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export default function ConfiguracaoTranscricao() {
+  const [expandedAssembly, setExpandedAssembly] = useState(false);
+  const [expandedOpenai, setExpandedOpenai] = useState(false);
+  const [expandedGoogle, setExpandedGoogle] = useState(false);
+  const [expandedTldv, setExpandedTldv] = useState(false);
+  
   const [showAssemblyKey, setShowAssemblyKey] = useState(false);
   const [showGoogleKey, setShowGoogleKey] = useState(false);
   const [showTldvKey, setShowTldvKey] = useState(false);
@@ -34,6 +55,33 @@ export default function ConfiguracaoTranscricao() {
   const [googleKey, setGoogleKey] = useState('');
   const [tldvKey, setTldvKey] = useState('');
   const [openaiKey, setOpenaiKey] = useState('');
+  
+  // Configurações avançadas
+  const [assemblyaiConfig, setAssemblyaiConfig] = useState({
+    idioma: 'pt',
+    speaker_labels: true,
+    sentiment_analysis: true,
+    punctuate: true,
+    format_text: true
+  });
+  
+  const [openaiConfig, setOpenaiConfig] = useState({
+    idioma: 'pt',
+    model: 'whisper-1',
+    response_format: 'verbose_json'
+  });
+  
+  const [googleConfig, setGoogleConfig] = useState({
+    idioma: 'pt-BR',
+    enableSpeakerDiarization: true,
+    enableAutomaticPunctuation: true,
+    model: 'latest_long',
+    useEnhanced: true
+  });
+  
+  const [tldvConfig, setTldvConfig] = useState({
+    idioma: 'pt'
+  });
   
   const [editMode, setEditMode] = useState(false);
   const [testando, setTestando] = useState(false);
@@ -45,10 +93,17 @@ export default function ConfiguracaoTranscricao() {
 
   React.useEffect(() => {
     if (user?.configuracoes?.transcricao_externa) {
-      setAssemblyaiKey(user.configuracoes.transcricao_externa.assemblyai_key || '');
-      setGoogleKey(user.configuracoes.transcricao_externa.google_key || '');
-      setTldvKey(user.configuracoes.transcricao_externa.tldv_key || '');
-      setOpenaiKey(user.configuracoes.transcricao_externa.openai_key || '');
+      const config = user.configuracoes.transcricao_externa;
+      setAssemblyaiKey(config.assemblyai_key || '');
+      setGoogleKey(config.google_key || '');
+      setTldvKey(config.tldv_key || '');
+      setOpenaiKey(config.openai_key || '');
+      
+      // Carregar configurações avançadas
+      if (config.assemblyai_config) setAssemblyaiConfig(config.assemblyai_config);
+      if (config.openai_config) setOpenaiConfig(config.openai_config);
+      if (config.google_config) setGoogleConfig(config.google_config);
+      if (config.tldv_config) setTldvConfig(config.tldv_config);
     }
   }, [user]);
 
@@ -61,11 +116,15 @@ export default function ConfiguracaoTranscricao() {
             assemblyai_key: assemblyaiKey,
             google_key: googleKey,
             tldv_key: tldvKey,
-            openai_key: openaiKey
+            openai_key: openaiKey,
+            assemblyai_config: assemblyaiConfig,
+            openai_config: openaiConfig,
+            google_config: googleConfig,
+            tldv_config: tldvConfig
           }
         }
       });
-      toast.success('Configurações salvas!');
+      toast.success('Configurações salvas com sucesso!');
       setEditMode(false);
     } catch (error) {
       toast.error('Erro ao salvar: ' + error.message);
@@ -202,6 +261,97 @@ export default function ConfiguracaoTranscricao() {
                 )}
               </Button>
             )}
+
+            {/* Configurações Avançadas AssemblyAI */}
+            <Collapsible open={expandedAssembly} onOpenChange={setExpandedAssembly}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between">
+                  <div className="flex items-center gap-2">
+                    <Settings2 className="w-4 h-4" />
+                    Configurações Avançadas
+                  </div>
+                  {expandedAssembly ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 pt-4">
+                <div>
+                  <Label className="text-xs">Idioma Padrão</Label>
+                  <Select 
+                    value={assemblyaiConfig.idioma} 
+                    onValueChange={(val) => {
+                      setAssemblyaiConfig({...assemblyaiConfig, idioma: val});
+                      setEditMode(true);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pt">🇧🇷 Português (Brasil)</SelectItem>
+                      <SelectItem value="en">🇺🇸 Inglês</SelectItem>
+                      <SelectItem value="es">🇪🇸 Espanhol</SelectItem>
+                      <SelectItem value="fr">🇫🇷 Francês</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-xs font-medium">Identificar Falantes</Label>
+                    <p className="text-xs text-slate-500">Separar transcrição por falante</p>
+                  </div>
+                  <Switch
+                    checked={assemblyaiConfig.speaker_labels}
+                    onCheckedChange={(val) => {
+                      setAssemblyaiConfig({...assemblyaiConfig, speaker_labels: val});
+                      setEditMode(true);
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-xs font-medium">Análise de Sentimento</Label>
+                    <p className="text-xs text-slate-500">Detectar tom emocional</p>
+                  </div>
+                  <Switch
+                    checked={assemblyaiConfig.sentiment_analysis}
+                    onCheckedChange={(val) => {
+                      setAssemblyaiConfig({...assemblyaiConfig, sentiment_analysis: val});
+                      setEditMode(true);
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-xs font-medium">Pontuação Automática</Label>
+                    <p className="text-xs text-slate-500">Adicionar vírgulas e pontos</p>
+                  </div>
+                  <Switch
+                    checked={assemblyaiConfig.punctuate}
+                    onCheckedChange={(val) => {
+                      setAssemblyaiConfig({...assemblyaiConfig, punctuate: val});
+                      setEditMode(true);
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-xs font-medium">Formatação de Texto</Label>
+                    <p className="text-xs text-slate-500">Capitalização e formatação</p>
+                  </div>
+                  <Switch
+                    checked={assemblyaiConfig.format_text}
+                    onCheckedChange={(val) => {
+                      setAssemblyaiConfig({...assemblyaiConfig, format_text: val});
+                      setEditMode(true);
+                    }}
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </CardContent>
         </Card>
 
@@ -274,6 +424,87 @@ export default function ConfiguracaoTranscricao() {
                 )}
               </Button>
             )}
+
+            {/* Configurações Avançadas OpenAI */}
+            <Collapsible open={expandedOpenai} onOpenChange={setExpandedOpenai}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between">
+                  <div className="flex items-center gap-2">
+                    <Settings2 className="w-4 h-4" />
+                    Configurações Avançadas
+                  </div>
+                  {expandedOpenai ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 pt-4">
+                <div>
+                  <Label className="text-xs">Modelo Whisper</Label>
+                  <Select 
+                    value={openaiConfig.model} 
+                    onValueChange={(val) => {
+                      setOpenaiConfig({...openaiConfig, model: val});
+                      setEditMode(true);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="whisper-1">whisper-1 (Padrão)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500 mt-1">Atualmente apenas whisper-1 disponível</p>
+                </div>
+
+                <div>
+                  <Label className="text-xs">Idioma Padrão</Label>
+                  <Select 
+                    value={openaiConfig.idioma} 
+                    onValueChange={(val) => {
+                      setOpenaiConfig({...openaiConfig, idioma: val});
+                      setEditMode(true);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pt">🇧🇷 Português</SelectItem>
+                      <SelectItem value="en">🇺🇸 Inglês</SelectItem>
+                      <SelectItem value="es">🇪🇸 Espanhol</SelectItem>
+                      <SelectItem value="fr">🇫🇷 Francês</SelectItem>
+                      <SelectItem value="de">🇩🇪 Alemão</SelectItem>
+                      <SelectItem value="it">🇮🇹 Italiano</SelectItem>
+                      <SelectItem value="ja">🇯🇵 Japonês</SelectItem>
+                      <SelectItem value="ko">🇰🇷 Coreano</SelectItem>
+                      <SelectItem value="zh">🇨🇳 Chinês</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-xs">Formato de Resposta</Label>
+                  <Select 
+                    value={openaiConfig.response_format} 
+                    onValueChange={(val) => {
+                      setOpenaiConfig({...openaiConfig, response_format: val});
+                      setEditMode(true);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="verbose_json">Verbose JSON (com metadata)</SelectItem>
+                      <SelectItem value="json">JSON</SelectItem>
+                      <SelectItem value="text">Texto Simples</SelectItem>
+                      <SelectItem value="srt">SRT (legendas)</SelectItem>
+                      <SelectItem value="vtt">VTT (legendas web)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </CardContent>
         </Card>
 
@@ -308,6 +539,105 @@ export default function ConfiguracaoTranscricao() {
                 </button>
               </div>
             </div>
+
+            {/* Configurações Avançadas Google */}
+            <Collapsible open={expandedGoogle} onOpenChange={setExpandedGoogle}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between">
+                  <div className="flex items-center gap-2">
+                    <Settings2 className="w-4 h-4" />
+                    Configurações Avançadas
+                  </div>
+                  {expandedGoogle ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 pt-4">
+                <div>
+                  <Label className="text-xs">Idioma Padrão</Label>
+                  <Select 
+                    value={googleConfig.idioma} 
+                    onValueChange={(val) => {
+                      setGoogleConfig({...googleConfig, idioma: val});
+                      setEditMode(true);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pt-BR">🇧🇷 Português (Brasil)</SelectItem>
+                      <SelectItem value="en-US">🇺🇸 Inglês (EUA)</SelectItem>
+                      <SelectItem value="es-ES">🇪🇸 Espanhol</SelectItem>
+                      <SelectItem value="fr-FR">🇫🇷 Francês</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-xs">Modelo de Reconhecimento</Label>
+                  <Select 
+                    value={googleConfig.model} 
+                    onValueChange={(val) => {
+                      setGoogleConfig({...googleConfig, model: val});
+                      setEditMode(true);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="latest_long">Latest Long (Recomendado)</SelectItem>
+                      <SelectItem value="latest_short">Latest Short</SelectItem>
+                      <SelectItem value="command_and_search">Command and Search</SelectItem>
+                      <SelectItem value="phone_call">Phone Call</SelectItem>
+                      <SelectItem value="video">Video</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-xs font-medium">Diarização de Falantes</Label>
+                    <p className="text-xs text-slate-500">Separar por falante</p>
+                  </div>
+                  <Switch
+                    checked={googleConfig.enableSpeakerDiarization}
+                    onCheckedChange={(val) => {
+                      setGoogleConfig({...googleConfig, enableSpeakerDiarization: val});
+                      setEditMode(true);
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-xs font-medium">Pontuação Automática</Label>
+                    <p className="text-xs text-slate-500">Adicionar pontuação</p>
+                  </div>
+                  <Switch
+                    checked={googleConfig.enableAutomaticPunctuation}
+                    onCheckedChange={(val) => {
+                      setGoogleConfig({...googleConfig, enableAutomaticPunctuation: val});
+                      setEditMode(true);
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-xs font-medium">Modelo Aprimorado</Label>
+                    <p className="text-xs text-slate-500">Maior precisão (custo extra)</p>
+                  </div>
+                  <Switch
+                    checked={googleConfig.useEnhanced}
+                    onCheckedChange={(val) => {
+                      setGoogleConfig({...googleConfig, useEnhanced: val});
+                      setEditMode(true);
+                    }}
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </CardContent>
         </Card>
 
@@ -342,6 +672,40 @@ export default function ConfiguracaoTranscricao() {
                 </button>
               </div>
             </div>
+
+            {/* Configurações Avançadas tldv */}
+            <Collapsible open={expandedTldv} onOpenChange={setExpandedTldv}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between">
+                  <div className="flex items-center gap-2">
+                    <Settings2 className="w-4 h-4" />
+                    Configurações Avançadas
+                  </div>
+                  {expandedTldv ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 pt-4">
+                <div>
+                  <Label className="text-xs">Idioma Padrão</Label>
+                  <Select 
+                    value={tldvConfig.idioma} 
+                    onValueChange={(val) => {
+                      setTldvConfig({...tldvConfig, idioma: val});
+                      setEditMode(true);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pt">🇧🇷 Português</SelectItem>
+                      <SelectItem value="en">🇺🇸 Inglês</SelectItem>
+                      <SelectItem value="es">🇪🇸 Espanhol</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </CardContent>
         </Card>
       </div>

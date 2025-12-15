@@ -27,12 +27,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'file_url é obrigatório' }, { status: 400 });
     }
 
-    // Buscar API keys do usuário e fallback para env
+    // Buscar API keys e configurações do usuário com fallback para env
     const userConfig = user.configuracoes?.transcricao_externa || {};
     const ASSEMBLYAI_API_KEY = userConfig.assemblyai_key || Deno.env.get('ASSEMBLYAI_API_KEY');
     const GOOGLE_SPEECH_API_KEY = userConfig.google_key || Deno.env.get('GOOGLE_SPEECH_API_KEY');
     const TLDV_API_KEY = userConfig.tldv_key || Deno.env.get('TLDV_API_KEY');
     const OPENAI_API_KEY = userConfig.openai_key || Deno.env.get('OPENAI_API_KEY');
+    
+    // Configurações avançadas por serviço
+    const assemblyaiConfig = userConfig.assemblyai_config || {};
+    const openaiConfig = userConfig.openai_config || {};
+    const googleConfig = userConfig.google_config || {};
+    const tldvConfig = userConfig.tldv_config || {};
 
     let transcricao = '';
     let metadata = {};
@@ -151,12 +157,12 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           audio_url: upload_url,
-          language_code: idioma === 'pt' ? 'pt' : idioma,
-          punctuate: opcoes.punctuate !== false,
-          format_text: opcoes.format_text !== false,
-          speaker_labels: opcoes.speaker_labels || false,
+          language_code: assemblyaiConfig.idioma || idioma === 'pt' ? 'pt' : idioma,
+          punctuate: assemblyaiConfig.punctuate !== undefined ? assemblyaiConfig.punctuate : (opcoes.punctuate !== false),
+          format_text: assemblyaiConfig.format_text !== undefined ? assemblyaiConfig.format_text : (opcoes.format_text !== false),
+          speaker_labels: assemblyaiConfig.speaker_labels !== undefined ? assemblyaiConfig.speaker_labels : (opcoes.speaker_labels || false),
           auto_chapters: opcoes.auto_chapters || false,
-          sentiment_analysis: opcoes.sentiment_analysis || false,
+          sentiment_analysis: assemblyaiConfig.sentiment_analysis !== undefined ? assemblyaiConfig.sentiment_analysis : (opcoes.sentiment_analysis || false),
         })
       });
 
@@ -230,15 +236,15 @@ Deno.serve(async (req) => {
       const requestBody = {
         config: {
           encoding: 'WEBM_OPUS', // Formato mais flexível
-          languageCode: idioma === 'pt' ? 'pt-BR' : idioma,
-          enableAutomaticPunctuation: true,
-          model: 'latest_long',
-          useEnhanced: true,
-          enableSpeakerDiarization: opcoes.speaker_labels || false,
+          languageCode: googleConfig.idioma || (idioma === 'pt' ? 'pt-BR' : idioma),
+          enableAutomaticPunctuation: googleConfig.enableAutomaticPunctuation !== undefined ? googleConfig.enableAutomaticPunctuation : true,
+          model: googleConfig.model || 'latest_long',
+          useEnhanced: googleConfig.useEnhanced !== undefined ? googleConfig.useEnhanced : true,
+          enableSpeakerDiarization: googleConfig.enableSpeakerDiarization !== undefined ? googleConfig.enableSpeakerDiarization : (opcoes.speaker_labels || false),
           diarizationSpeakerCount: opcoes.speaker_count || 2,
         },
         audio: {
-          uri: file_url // Usar URI direta ao invés de base64 para evitar timeout
+          uri: file_url
         }
       };
 
@@ -320,13 +326,9 @@ Deno.serve(async (req) => {
       // Criar FormData para upload
       const formData = new FormData();
       formData.append('file', audioBlob, 'audio.mp3');
-      formData.append('model', 'whisper-1');
-      formData.append('language', idioma === 'pt' ? 'pt' : idioma);
-      if (opcoes.response_format) {
-        formData.append('response_format', opcoes.response_format);
-      } else {
-        formData.append('response_format', 'verbose_json');
-      }
+      formData.append('model', openaiConfig.model || 'whisper-1');
+      formData.append('language', openaiConfig.idioma || (idioma === 'pt' ? 'pt' : idioma));
+      formData.append('response_format', openaiConfig.response_format || opcoes.response_format || 'verbose_json');
 
       const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
         method: 'POST',
