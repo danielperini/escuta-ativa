@@ -38,11 +38,11 @@ export default function Dashboard() {
             <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
                 <div className="text-center space-y-3 md:space-y-4">
                     <img 
-                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/0e1bf5b7b_ChatGPTImage11dedezde202515_14_03.png"
-                        alt="Escutativa"
-                        className="h-16 md:h-24 mx-auto object-contain"
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/8a81a6207_transparent-Photoroom12.png"
+                        alt="Societa.ai"
+                        className="h-20 md:h-28 mx-auto object-contain"
                     />
-                    <p className="text-sm md:text-base text-gray-600 mt-1">Inteligência Aplicada ao Território</p>
+                    <p className="text-sm md:text-base text-gray-600 mt-1 font-light tracking-wide">inteligência social</p>
                         </div>
 
                     <div className="mt-6">

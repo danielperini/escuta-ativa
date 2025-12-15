@@ -148,9 +148,9 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
             <div className="flex items-center gap-3">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/6ef53ae31_transparent-Photoroom12.png"
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/8a81a6207_transparent-Photoroom12.png"
                 alt="Societa.ai"
-                className="h-10 object-contain"
+                className="h-8 object-contain"
               />
             </div>
             <button 
