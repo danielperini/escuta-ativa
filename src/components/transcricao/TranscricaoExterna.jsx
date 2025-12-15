@@ -112,8 +112,13 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
         opcoes
       });
 
-      if (!response.data.sucesso) {
-        throw new Error(response.data.error || 'Erro desconhecido na transcrição');
+      // Verificar se há erro na response
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      if (!response.data?.sucesso) {
+        throw new Error(response.data?.error || 'Erro desconhecido na transcrição');
       }
 
       setProgresso(100);
@@ -134,16 +139,19 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
 
     } catch (error) {
       console.error('Erro na transcrição:', error);
-      setErro(error.message || 'Erro ao processar transcrição');
+      const mensagemErro = error.response?.data?.error || error.message || 'Erro ao processar transcrição';
+      setErro(mensagemErro);
       setProgresso(0);
       setEtapa('');
       
-      if (error.message?.includes('não configurada')) {
+      if (mensagemErro.includes('não configurada')) {
         toast.error('Configure a API Key em Configurações > Transcrição Externa', {
           duration: 5000
         });
+      } else if (mensagemErro.includes('400')) {
+        toast.error('Erro de validação. Verifique o formato do arquivo e tente novamente.');
       } else {
-        toast.error('Erro: ' + error.message);
+        toast.error('Erro: ' + mensagemErro);
       }
     } finally {
       setProcessando(false);

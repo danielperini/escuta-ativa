@@ -140,14 +140,10 @@ Deno.serve(async (req) => {
         }, { status: 400 });
       }
 
-      // Google Speech-to-Text usando operação de longa duração
-      const audioBytes = await fetch(file_url).then(res => res.arrayBuffer());
-      const audioContent = btoa(String.fromCharCode(...new Uint8Array(audioBytes)));
-
+      // Google Speech-to-Text - usar URI ao invés de content para arquivos grandes
       const requestBody = {
         config: {
-          encoding: 'LINEAR16',
-          sampleRateHertz: 16000,
+          encoding: 'WEBM_OPUS', // Formato mais flexível
           languageCode: idioma === 'pt' ? 'pt-BR' : idioma,
           enableAutomaticPunctuation: true,
           model: 'latest_long',
@@ -156,7 +152,7 @@ Deno.serve(async (req) => {
           diarizationSpeakerCount: opcoes.speaker_count || 2,
         },
         audio: {
-          content: audioContent
+          uri: file_url // Usar URI direta ao invés de base64 para evitar timeout
         }
       };
 
