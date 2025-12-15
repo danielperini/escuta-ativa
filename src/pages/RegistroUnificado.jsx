@@ -86,6 +86,8 @@ export default function RegistroUnificado() {
     transcricao: '',
     participantes: [],
     comunidade: '',
+    grupo_coletivo: '',
+    organizacao: '',
     local: '',
     data_registro: new Date().toISOString().split('T')[0],
     temas_identificados: [],
@@ -97,7 +99,8 @@ export default function RegistroUnificado() {
     proximos_passos: [],
     arquivos: [],
     resumo_automatico: '',
-    status: 'rascunho'
+    status: 'rascunho',
+    localizacao: { municipio: '', estado: '' }
   });
   
   const [processando, setProcessando] = useState(false);
@@ -117,6 +120,16 @@ export default function RegistroUnificado() {
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
     queryFn: () => base44.entities.Comunidade.list()
+  });
+
+  const { data: gruposColetivos = [] } = useQuery({
+    queryKey: ['grupos-coletivos'],
+    queryFn: () => base44.entities.GrupoColetivo.list()
+  });
+
+  const { data: organizacoes = [] } = useQuery({
+    queryKey: ['organizacoes'],
+    queryFn: () => base44.entities.ProjetoOrganizacao.list()
   });
 
   const { data: user } = useQuery({
@@ -145,6 +158,8 @@ export default function RegistroUnificado() {
         transcricao: registroExistente.transcricao || '',
         participantes: registroExistente.participantes || [],
         comunidade: registroExistente.comunidade || '',
+        grupo_coletivo: registroExistente.grupo_coletivo || '',
+        organizacao: registroExistente.organizacao || '',
         local: registroExistente.local || '',
         data_registro: registroExistente.data_registro || new Date().toISOString().split('T')[0],
         temas_identificados: registroExistente.temas_identificados || [],
@@ -157,7 +172,7 @@ export default function RegistroUnificado() {
         arquivos: registroExistente.arquivos || [],
         resumo_automatico: registroExistente.resumo_automatico || '',
         status: registroExistente.status || 'rascunho',
-        localizacao: registroExistente.localizacao || null
+        localizacao: registroExistente.localizacao || { municipio: '', estado: '' }
       });
       setTextoConsolidado(registroExistente.transcricao || '');
       setArquivosProcessados(registroExistente.arquivos || []);
@@ -543,8 +558,8 @@ Extraia:
   };
 
   const handleFinalizar = async () => {
-    if (!formData.titulo || !formData.comunidade) {
-      alert('Preencha título e comunidade');
+    if (!formData.titulo || !formData.localizacao?.municipio) {
+      alert('Preencha título e município');
       return;
     }
     
@@ -1328,7 +1343,7 @@ Ou digite/cole o conteúdo diretamente..."
           id="basico" 
           titulo="Informações Básicas" 
           icone={FileText}
-          badge={(!formData.titulo || !formData.comunidade) && <Badge variant="destructive" className="text-xs">Obrigatório</Badge>}
+          badge={(!formData.titulo || !formData.localizacao?.municipio) && <Badge variant="destructive" className="text-xs">Obrigatório</Badge>}
         >
           <div className="space-y-4">
             <div>
@@ -1346,24 +1361,83 @@ Ou digite/cole o conteúdo diretamente..."
                 </Select>
               </div>
               <div>
-                <Label>Comunidade *</Label>
+                <Label>Comunidade Territorial</Label>
                 <Select value={formData.comunidade} onValueChange={(v) => setFormData(p => ({ ...p, comunidade: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Selecione bairro/vila" /></SelectTrigger>
                   <SelectContent>
-                    {comunidades.map(c => <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>)}
+                    <SelectItem value={null}>Nenhuma</SelectItem>
+                    {comunidades.map(c => (
+                      <SelectItem key={c.id} value={c.nome}>
+                        {c.nome} ({c.tipo})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Município</Label>
+                <Label>Município *</Label>
                 <Input 
                   value={formData.localizacao?.municipio || ''} 
                   onChange={(e) => setFormData(p => ({ 
                     ...p, 
                     localizacao: { ...p.localizacao, municipio: e.target.value } 
                   }))}
-                  placeholder="Digite o município"
+                  placeholder="Ex: Belo Horizonte"
                 />
+              </div>
+              <div>
+                <Label>Estado</Label>
+                <Select 
+                  value={formData.localizacao?.estado || ''} 
+                  onValueChange={(v) => setFormData(p => ({ 
+                    ...p, 
+                    localizacao: { ...p.localizacao, estado: v } 
+                  }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Grupo/Coletivo (opcional)</Label>
+                <Select 
+                  value={formData.grupo_coletivo || ''} 
+                  onValueChange={(v) => setFormData(p => ({ ...p, grupo_coletivo: v }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="Ex: Grupo Musical" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Nenhum</SelectItem>
+                    {gruposColetivos.map(g => (
+                      <SelectItem key={g.id} value={g.nome}>
+                        {g.nome} ({g.tipo})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Organização (opcional)</Label>
+                <Select 
+                  value={formData.organizacao || ''} 
+                  onValueChange={(v) => setFormData(p => ({ ...p, organizacao: v }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="Ex: ONG, Associação" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Nenhuma</SelectItem>
+                    {organizacoes.map(o => (
+                      <SelectItem key={o.id} value={o.nome_oficial}>
+                        {o.nome_fantasia || o.nome_oficial}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div>
