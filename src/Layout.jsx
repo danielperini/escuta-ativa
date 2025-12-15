@@ -18,7 +18,8 @@ import {
   ChevronDown,
   CalendarDays,
   BarChart3,
-  User
+  User,
+  Shield
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -48,7 +49,8 @@ const navigation = [
   { name: 'Mapa de Stakeholders', href: 'MapaStakeholders', icon: Users },
   { name: 'Casos', href: 'Casos', icon: CheckSquare },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
-  { name: 'Equipes', href: 'GerenciarEquipes', icon: Users }
+  { name: 'Equipes', href: 'GerenciarEquipes', icon: Users },
+  { name: 'Usuários', href: 'GerenciarUsuarios', icon: User }
   ];
 
 export default function Layout({ children, currentPageName }) {
@@ -160,24 +162,30 @@ export default function Layout({ children, currentPageName }) {
           {/* Navigation */}
           <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
-              const isActive = currentPageName === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  to={createPageUrl(item.href)}
-                  onClick={() => setSidebarOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                    isActive 
-                      ? "bg-white/15 text-white" 
-                      : "text-white/70 hover:bg-white/10 hover:text-white"
-                  )}
-                >
-                  <item.icon className="w-5 h-5" />
-                  {item.name}
-                </Link>
-              );
-            })}
+                              const isActive = currentPageName === item.href;
+                              const requerAdmin = item.href === 'GerenciarUsuarios';
+
+                              // Ocultar link de Usuários se não for admin
+                              if (requerAdmin && user?.role !== 'admin') return null;
+
+                              return (
+                                <Link
+                                  key={item.name}
+                                  to={createPageUrl(item.href)}
+                                  onClick={() => setSidebarOpen(false)}
+                                  className={cn(
+                                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                                    isActive 
+                                      ? "bg-white/15 text-white" 
+                                      : "text-white/70 hover:bg-white/10 hover:text-white"
+                                  )}
+                                >
+                                  <item.icon className="w-5 h-5" />
+                                  {item.name}
+                                  {requerAdmin && <Shield className="w-3 h-3 ml-auto" />}
+                                </Link>
+                              );
+                            })}
           </nav>
 
           {/* User section */}

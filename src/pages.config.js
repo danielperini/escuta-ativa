@@ -40,6 +40,7 @@ import DetalhesComunidade from './pages/DetalhesComunidade';
 import GerenciarEquipes from './pages/GerenciarEquipes';
 import ConfiguracoesSistema from './pages/ConfiguracoesSistema';
 import GerenciarEquipesSimples from './pages/GerenciarEquipesSimples';
+import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import __Layout from './Layout.jsx';
 
 
@@ -86,6 +87,7 @@ export const PAGES = {
     "GerenciarEquipes": GerenciarEquipes,
     "ConfiguracoesSistema": ConfiguracoesSistema,
     "GerenciarEquipesSimples": GerenciarEquipesSimples,
+    "GerenciarUsuarios": GerenciarUsuarios,
 }
 
 export const pagesConfig = {
