@@ -12,7 +12,7 @@ import { toast } from 'sonner';
  * Suporta gravação direta e upload de arquivos
  * Formatos: MP3, MP4, M4A, WAV, WEBM, OGG
  */
-export default function TranscricaoWhisper({ onTranscricaoCompleta }) {
+export default function TranscricaoWhisper({ onTranscricaoCompleta, arquivoExterno }) {
   const [gravando, setGravando] = useState(false);
   const [processando, setProcessando] = useState(false);
   const [transcricao, setTranscricao] = useState('');
@@ -22,6 +22,18 @@ export default function TranscricaoWhisper({ onTranscricaoCompleta }) {
   const [duracao, setDuracao] = useState(0);
   const [tocando, setTocando] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
+  
+  // Processar arquivo externo automaticamente
+  React.useEffect(() => {
+    if (arquivoExterno && !audioBlob) {
+      setAudioBlob(arquivoExterno);
+      setAudioURL(URL.createObjectURL(arquivoExterno));
+      // Transcrever automaticamente
+      setTimeout(() => {
+        transcreverAudio(arquivoExterno);
+      }, 100);
+    }
+  }, [arquivoExterno]);
   
   const mediaRecorderRef = React.useRef(null);
   const audioChunksRef = React.useRef([]);

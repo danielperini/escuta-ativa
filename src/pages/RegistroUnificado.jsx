@@ -772,7 +772,22 @@ Extraia:
                           type="file" 
                           accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a,.aac,.webm,.mp4" 
                           className="hidden" 
-                          onChange={(e) => handleFileUpload(e, 'audio')}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              // Adicionar arquivo à lista imediatamente
+                              const arquivoInfo = { 
+                                url: null, 
+                                tipo: 'audio', 
+                                nome: file.name,
+                                arquivo: file,
+                                processando: true
+                              };
+                              setArquivosProcessados(prev => [...prev, arquivoInfo]);
+                              setMostrarGravador(true);
+                              setEtapaAtual('texto');
+                            }
+                          }}
                           disabled={processando}
                           capture="environment"
                         />
@@ -857,22 +872,30 @@ Extraia:
 
         {mostrarGravador && (
           <TranscricaoWhisper
+            arquivoExterno={arquivosProcessados.find(a => a.processando)?.arquivo}
             onTranscricaoCompleta={async (transcricao, file_url) => {
               // Adicionar transcrição ao texto consolidado
               const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
               setTextoConsolidado(prev => prev + blocoTranscricao);
               setMostrarGravador(false);
               
-              // Adicionar arquivo à lista
-              const arquivoInfo = { 
-                url: file_url, 
-                tipo: 'audio', 
-                nome: 'Gravação de áudio.mp3' 
-              };
-              setArquivosProcessados(prev => [...prev, arquivoInfo]);
+              // Atualizar arquivo processado
+              setArquivosProcessados(prev => prev.map(a => 
+                a.processando ? { 
+                  ...a, 
+                  url: file_url, 
+                  processando: false,
+                  transcricao: transcricao
+                } : a
+              ));
+              
               setFormData(prev => ({
                 ...prev,
-                arquivos: [...prev.arquivos, arquivoInfo]
+                arquivos: [...prev.arquivos.filter(a => a.url), { 
+                  url: file_url, 
+                  tipo: 'audio', 
+                  nome: arquivosProcessados.find(a => a.processando)?.nome || 'Áudio.mp3' 
+                }]
               }));
             }}
           />
@@ -946,12 +969,12 @@ Extraia:
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {(arquivo.tipo === 'audio' || arquivo.tipo === 'video') && textoConsolidado && (
+                      {(arquivo.tipo === 'audio' || arquivo.tipo === 'video') && arquivo.transcricao && (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const blob = new Blob([textoConsolidado], { type: 'text/plain;charset=utf-8' });
+                            const blob = new Blob([arquivo.transcricao], { type: 'text/plain;charset=utf-8' });
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
@@ -978,6 +1001,7 @@ Extraia:
                           }));
                         }}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                        disabled={arquivo.processando}
                       >
                         <X className="w-4 h-4" />
                       </Button>
