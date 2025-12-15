@@ -124,19 +124,8 @@ export default function TranscricaoWhisper({ onTranscricaoCompleta, onTranscrica
     setProgressoTranscricao('Preparando arquivo...');
 
     try {
-      // Converter formatos problemáticos para .mp3 universal
-      let arquivo;
-      if (blob instanceof File) {
-        const nomeOriginal = blob.name.toLowerCase();
-        if (nomeOriginal.endsWith('.ogg') || nomeOriginal.endsWith('.webm')) {
-          const timestamp = Date.now();
-          arquivo = new File([blob], `audio_${timestamp}.mp3`, { type: 'audio/mpeg' });
-        } else {
-          arquivo = blob;
-        }
-      } else {
-        arquivo = new File([blob], `audio_${Date.now()}.mp3`, { type: 'audio/mpeg' });
-      }
+      // Upload direto sem renomear - API deve aceitar múltiplos formatos
+      const arquivo = blob instanceof File ? blob : new File([blob], `audio-${Date.now()}.wav`, { type: 'audio/wav' });
       
       // 2. Upload do arquivo
       setProgressoTranscricao('Enviando áudio...');

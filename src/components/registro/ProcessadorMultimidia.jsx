@@ -76,18 +76,9 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
         onTranscricaoTempoReal(`⏳ Processando ${arquivo.tipo}: ${arquivo.file.name}...`);
       }
 
-      // Converter .ogg e .webm para .mp3 para compatibilidade universal
-      let fileToUpload = arquivo.file;
-      const fileName = arquivo.file.name.toLowerCase();
-      if (fileName.endsWith('.ogg') || fileName.endsWith('.webm')) {
-        const timestamp = Date.now();
-        const newName = `audio_${timestamp}.mp3`;
-        fileToUpload = new File([arquivo.file], newName, { type: 'audio/mpeg' });
-      }
-
-      // Upload
+      // Upload direto sem converter - manter nome original
       atualizarArquivo(arquivo.id, { progresso: 30 });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo.file });
       
       // Transcrever/extrair
       atualizarArquivo(arquivo.id, { progresso: 60 });
