@@ -16,7 +16,6 @@ import VozComunidade from "@/components/dashboard/VozComunidade";
 import MonitorDemandasRecorrentes from "@/components/atores/MonitorDemandasRecorrentes";
 import MonitorDevolutivas from "@/components/devolutiva/MonitorDevolutivas";
 import BotaoPanicoAvancado from "@/components/dashboard/BotaoPanicoAvancado";
-import ChatAssistente from "@/components/chat/ChatAssistente";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -203,7 +202,6 @@ export default function Dashboard() {
                 {/* Botões de Ação */}
                 <div className="flex flex-wrap gap-3">
                     <BotaoPanicoAvancado />
-                    <ChatAssistente />
                 </div>
             </div>
         </div>
