@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 import ProcessadorCaderno from './ProcessadorCaderno';
+import TranscricaoExterna from '@/components/transcricao/TranscricaoExterna';
 
 export default function EditorCadernoNota({ nota, onVoltar }) {
   const queryClient = useQueryClient();
@@ -270,6 +271,35 @@ export default function EditorCadernoNota({ nota, onVoltar }) {
       <ProcessadorCaderno
         notaId={nota.id}
         onProcessamentoCompleto={handleProcessamentoCompleto}
+      />
+
+      {/* Transcrição Externa */}
+      <TranscricaoExterna
+        onTranscricaoCompleta={(transcricao, audioUrl, metadata) => {
+          const servicoNome = metadata?.servico || 'Serviço Externo';
+          const blocoTexto = `\n\n--- 🌐 ${servicoNome} ---\n${transcricao}\n`;
+          setTextoExtraido(prev => prev + blocoTexto);
+          setArquivos(prev => [...prev, {
+            url: audioUrl,
+            nome: `Transcrição_${servicoNome}_${Date.now()}.txt`,
+            tipo: 'audio',
+            tamanho: transcricao.length,
+            metadata
+          }]);
+          
+          saveMutation.mutate({
+            titulo,
+            texto_extraido: textoExtraido + blocoTexto,
+            arquivos: [...arquivos, {
+              url: audioUrl,
+              nome: `Transcrição_${servicoNome}_${Date.now()}.txt`,
+              tipo: 'audio',
+              tamanho: transcricao.length,
+              metadata
+            }],
+            status: 'pronto'
+          });
+        }}
       />
 
       {/* Busca Interna */}

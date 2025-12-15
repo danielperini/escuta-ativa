@@ -75,11 +75,45 @@ export default function ProcessadorCaderno({ notaId, onProcessamentoCompleto }) 
       
       let prompt = '';
       if (arquivo.tipo === 'audio' || arquivo.tipo === 'video') {
-        prompt = `Transcreva este ${arquivo.tipo} em português. Retorne APENAS o texto transcrito.`;
+        prompt = `Transcreva este ${arquivo.tipo} em português brasileiro.
+Retorne APENAS a transcrição, sem comentários ou formatação extra.
+Identifique falantes diferentes se houver (ex: "Pessoa 1:", "Pessoa 2:").`;
       } else if (arquivo.tipo === 'foto') {
-        prompt = `Execute OCR completo nesta imagem. Extraia todo texto visível.`;
+        prompt = `Execute OCR completo nesta imagem.
+
+EXTRAIA:
+- Todo texto visível (placas, documentos, cartazes, anotações)
+- Números, datas, nomes próprios
+- Textos manuscritos (transcreva se legível)
+
+IMPORTANTE: 
+- Preserve formatação e quebras de linha
+- Se não houver texto visível, escreva "Nenhum texto detectado na imagem"
+- Retorne APENAS o texto extraído`;
       } else {
-        prompt = `Extraia TODO o texto deste documento. Preserve estrutura e formatação.`;
+        prompt = `Execute OCR COMPLETO e extração de texto deste documento.
+
+INSTRUÇÕES CRÍTICAS:
+1. ESTRUTURA: Preserve completamente:
+   - Títulos, subtítulos e hierarquia
+   - Parágrafos e quebras de linha
+   - Listas numeradas e com marcadores
+   - Tabelas (formato texto, colunas alinhadas)
+   - Cabeçalhos e rodapés
+
+2. CONTEÚDO: Extraia TUDO:
+   - Texto principal do corpo
+   - Textos em caixas/destaques
+   - Legendas de imagens/gráficos
+   - Números de página
+   - Assinaturas visíveis
+
+3. FORMATAÇÃO: Mantenha legibilidade:
+   - Use indentação para hierarquia
+   - Preserve quebras de seção
+   - Mantenha listas organizadas
+
+RETORNE: Apenas o texto extraído formatado, sem comentários.`;
       }
 
       const resultado = await base44.integrations.Core.InvokeLLM({

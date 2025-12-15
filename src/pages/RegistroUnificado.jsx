@@ -58,6 +58,7 @@ import GravadorAudioCompleto from '@/components/registro/GravadorAudioCompleto';
 import TranscricaoWhisper from '@/components/registro/TranscricaoWhisper';
 import ProcessadorMultimidia from '@/components/registro/ProcessadorMultimidia';
 import AnalisadorIAConteudo from '@/components/registro/AnalisadorIAConteudo';
+import TranscricaoExterna from '@/components/transcricao/TranscricaoExterna';
 import { processarRegistroCompleto, alimentarModulos } from '@/components/registro/ProcessadorIALote';
 import TranscricaoNativa from '@/components/registro/TranscricaoNativa';
 import SugestoesIARegistro from '@/components/registro/SugestoesIARegistro';
@@ -871,7 +872,7 @@ Extraia:
           </Card>
         )}
 
-        {/* Gravador de Áudio com Transcrição */}
+        {/* Gravador de Áudio com Transcrição Direta */}
         {mostrarGravador && (
          <TranscricaoWhisper
            onTranscricaoCompleta={(transcricao, audioUrl) => {
@@ -894,7 +895,6 @@ Extraia:
              toast.success('Gravação transcrita e adicionada ao registro!');
            }}
            onTranscricaoTempoReal={(texto) => {
-             // Atualizar texto consolidado em tempo real
              setTextoConsolidado(prev => {
                const textoSemParcial = prev.replace(/\n\n--- 🎙️ Gravando \(em andamento\) ---\n[\s\S]*?(?=\n\n---|\n\n\[|$)/, '');
                return textoSemParcial + `\n\n--- 🎙️ Gravando (em andamento) ---\n${texto}\n`;
@@ -902,6 +902,37 @@ Extraia:
            }}
          />
         )}
+
+        {/* Transcrição Externa com AssemblyAI/Google */}
+        <TranscricaoExterna
+         onTranscricaoCompleta={(transcricao, audioUrl, metadata) => {
+           const servicoNome = metadata?.servico || 'Serviço Externo';
+           const blocoTexto = `\n\n--- 🌐 ${servicoNome.toUpperCase()} ---\n${transcricao}\n`;
+           setTextoConsolidado(prev => prev + blocoTexto);
+           setArquivosProcessados(prev => [...prev, {
+             url: audioUrl,
+             tipo: 'audio',
+             nome: `Transcrição_${servicoNome}_${Date.now()}.txt`,
+             metadata
+           }]);
+           setFormData(prev => ({
+             ...prev,
+             arquivos: [...prev.arquivos, {
+               url: audioUrl,
+               tipo: 'audio',
+               nome: `Transcrição_${servicoNome}_${Date.now()}.txt`,
+               metadata
+             }]
+           }));
+           toast.success(`Transcrição via ${servicoNome} concluída!`);
+         }}
+         onTranscricaoTempoReal={(texto) => {
+           setTextoConsolidado(prev => {
+             const textoLimpo = prev.replace(/\n\n--- ⏳.*?\n/g, '');
+             return textoLimpo + `\n\n--- ⏳ Processando via API externa ---\n${texto}\n`;
+           });
+         }}
+        />
 
         {/* Processador Multimídia em Lote */}
         <ProcessadorMultimidia
