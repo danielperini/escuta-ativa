@@ -21,7 +21,10 @@ import {
   Target,
   AlertTriangle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Zap,
+  Check,
+  Clock
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import DetectorContinuidade from '@/components/continuidade/DetectorContinuidade';
 import DetectorAtores from '@/components/atores/DetectorAtores';
@@ -82,6 +86,9 @@ export default function RegistroUnificado() {
     'upload'
   );
   const [secaoExpandida, setSecaoExpandida] = useState('basico');
+  const [salvandoRascunho, setSalvandoRascunho] = useState(false);
+  const [ultimoSalvamento, setUltimoSalvamento] = useState(null);
+  const [rascunhoId, setRascunhoId] = useState(null);
   const [formData, setFormData] = useState({
     titulo: '',
     tipo: 'conversa_campo',
@@ -150,6 +157,35 @@ export default function RegistroUnificado() {
     queryFn: () => base44.entities.Registro.list().then(registros => registros.find(r => r.id === registroIdEditar)),
     enabled: modoEdicao
   });
+
+  // Auto-save de rascunhos a cada 10 segundos
+  React.useEffect(() => {
+    if (!modoEdicao && formData.titulo && etapaAtual === 'formulario') {
+      const timer = setTimeout(() => {
+        salvarRascunho();
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [formData, etapaAtual]);
+
+  const salvarRascunho = async () => {
+    if (!formData.titulo || modoEdicao) return;
+    
+    setSalvandoRascunho(true);
+    try {
+      if (rascunhoId) {
+        await base44.entities.Registro.update(rascunhoId, { ...formData, status: 'rascunho' });
+      } else {
+        const novoRascunho = await base44.entities.Registro.create({ ...formData, status: 'rascunho' });
+        setRascunhoId(novoRascunho.id);
+      }
+      setUltimoSalvamento(new Date());
+    } catch (error) {
+      console.error('Erro ao salvar rascunho:', error);
+    } finally {
+      setSalvandoRascunho(false);
+    }
+  };
 
   // Carregar dados do registro existente em modo edição
   React.useEffect(() => {
@@ -830,6 +866,32 @@ Extraia:
           }}
         />
 
+        {/* Botão de Análise Rápida após Upload */}
+        {arquivosProcessados.length > 0 && textoConsolidado && !analisando && (
+          <Card className="border-2 border-[#E31E24] bg-gradient-to-r from-red-50 to-pink-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-[#E31E24] mb-1">
+                    ✅ {arquivosProcessados.length} arquivo(s) processado(s)
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    Pronto para análise automática
+                  </p>
+                </div>
+                <Button
+                  onClick={analisarTextoConsolidado}
+                  className="bg-[#E31E24] hover:bg-[#B01419] gap-2"
+                  size="lg"
+                >
+                  <Zap className="w-5 h-5" />
+                  Analisar Agora
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Analisador IA de Conteúdo */}
         <AnalisadorIAConteudo
           conteudo={textoConsolidado}
@@ -1204,13 +1266,47 @@ Extraia:
           </Button>
           <div>
             <h2 className="text-2xl font-bold">{modoEdicao ? 'Editar Registro' : 'Novo Registro'}</h2>
-            <p className="text-sm text-slate-500">Revise e complete as informações</p>
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-slate-500">Revise e complete as informações</p>
+              {!modoEdicao && (
+                <div className="flex items-center gap-2 text-xs">
+                  {salvandoRascunho ? (
+                    <span className="text-blue-600 flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Salvando...
+                    </span>
+                  ) : ultimoSalvamento ? (
+                    <span className="text-emerald-600 flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      Salvo {new Date().getTime() - ultimoSalvamento.getTime() < 60000 ? 'agora' : 'há ' + Math.round((new Date().getTime() - ultimoSalvamento.getTime()) / 60000) + 'min'}
+                    </span>
+                  ) : formData.titulo && (
+                    <span className="text-slate-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      Auto-save ativo
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        <Button onClick={handleFinalizar} disabled={createMutation.isPending || carregandoRegistro} className="bg-[#E31E24] hover:bg-[#B01419] active:bg-[#8A0F13] transition-all">
-          {(createMutation.isPending || carregandoRegistro) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-          {modoEdicao ? 'Salvar Alterações' : 'Finalizar'}
-        </Button>
+        <div className="flex gap-2">
+          {!modoEdicao && formData.titulo && (
+            <Button
+              variant="outline"
+              onClick={salvarRascunho}
+              disabled={salvandoRascunho}
+              size="sm"
+            >
+              {salvandoRascunho ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            </Button>
+          )}
+          <Button onClick={handleFinalizar} disabled={createMutation.isPending || carregandoRegistro} className="bg-[#E31E24] hover:bg-[#B01419] active:bg-[#8A0F13] transition-all">
+            {(createMutation.isPending || carregandoRegistro) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            {modoEdicao ? 'Salvar Alterações' : 'Finalizar'}
+          </Button>
+        </div>
       </div>
 
       {/* Análise Avançada IA */}
@@ -1256,13 +1352,47 @@ Extraia:
         </Card>
       )}
 
-      <div className="space-y-4">
-        <SecaoCollapsible 
-          id="basico" 
-          titulo="Informações Básicas" 
-          icone={FileText}
-          badge={(!formData.titulo || !formData.localizacao?.municipio) && <Badge variant="destructive" className="text-xs">Obrigatório</Badge>}
-        >
+      <Tabs value={secaoExpandida} onValueChange={setSecaoExpandida} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsTrigger value="basico" className="gap-2">
+            <FileText className="w-4 h-4" />
+            Básico
+            {(!formData.titulo || !formData.localizacao?.municipio) && (
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="temas" className="gap-2">
+            <Target className="w-4 h-4" />
+            Temas
+            {formData.temas_identificados.length > 0 && (
+              <Badge className="ml-1 h-5 text-xs">{formData.temas_identificados.length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="demandas" className="gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            Demandas
+            {formData.demandas.length > 0 && (
+              <Badge className="ml-1 h-5 text-xs bg-amber-500">{formData.demandas.length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="compromissos" className="gap-2">
+            <CheckCircle2 className="w-4 h-4" />
+            Compromissos
+            {formData.compromissos.length > 0 && (
+              <Badge className="ml-1 h-5 text-xs bg-emerald-500">{formData.compromissos.length}</Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="basico">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#E31E24]" />
+                Informações Básicas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
           <div className="space-y-4">
             <div>
               <Label>Título *</Label>
@@ -1379,15 +1509,19 @@ Extraia:
                 ))}
               </div>
             </div>
-          </div>
-        </SecaoCollapsible>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <SecaoCollapsible 
-          id="temas" 
-          titulo="Temas Identificados" 
-          icone={Target}
-          badge={formData.temas_identificados.length > 0 && <Badge className="bg-emerald-100 text-emerald-700">{formData.temas_identificados.length} IA</Badge>}
-        >
+        <TabsContent value="temas">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-[#E31E24]" />
+                Temas Identificados
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
           <div className="bg-blue-50 p-3 rounded mb-3 border border-blue-200">
             <p className="text-xs text-blue-800">
               <Sparkles className="w-3 h-3 inline mr-1" />
@@ -1404,14 +1538,19 @@ Extraia:
               </Badge>
             ))}
           </div>
-        </SecaoCollapsible>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <SecaoCollapsible 
-          id="demandas" 
-          titulo="Demandas da Comunidade" 
-          icone={AlertTriangle}
-          badge={formData.demandas.length > 0 && <Badge className="bg-amber-100 text-amber-700">{formData.demandas.length} IA</Badge>}
-        >
+        <TabsContent value="demandas">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-[#E31E24]" />
+                Demandas da Comunidade
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
           <div className="bg-amber-50 p-3 rounded mb-3 border border-amber-200">
             <p className="text-xs text-amber-800">
               <Sparkles className="w-3 h-3 inline mr-1" />
@@ -1435,14 +1574,19 @@ Extraia:
               </div>
             ))}
           </div>
-        </SecaoCollapsible>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <SecaoCollapsible 
-          id="compromissos" 
-          titulo="Compromissos Assumidos" 
-          icone={CheckCircle2}
-          badge={formData.compromissos.length > 0 && <Badge className="bg-emerald-100 text-emerald-700">{formData.compromissos.length} IA</Badge>}
-        >
+        <TabsContent value="compromissos">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-[#E31E24]" />
+                Compromissos Assumidos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
           <div className="bg-emerald-50 p-3 rounded mb-3 border border-emerald-200">
             <p className="text-xs text-emerald-800">
               <Sparkles className="w-3 h-3 inline mr-1" />
@@ -1466,8 +1610,10 @@ Extraia:
               </div>
             ))}
           </div>
-        </SecaoCollapsible>
-      </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
