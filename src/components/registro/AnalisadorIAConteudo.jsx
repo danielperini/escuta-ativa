@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Loader2, FileText, TrendingUp, AlertTriangle, Users } from 'lucide-react';
+import { Sparkles, Loader2, FileText, TrendingUp, AlertTriangle, Users, Target } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AnalisadorIAConteudo({ conteudo, onAnaliseCompleta }) {

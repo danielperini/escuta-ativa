@@ -14,11 +14,11 @@ const TIPO_ICONE = {
   documento: FileText
 };
 
-const STATUS_COLOR = {
-  pendente: 'bg-slate-100 text-slate-600',
-  processando: 'bg-blue-100 text-blue-600',
-  concluido: 'bg-emerald-100 text-emerald-600',
-  erro: 'bg-red-100 text-red-600'
+const STATUS_CONFIG = {
+  pendente: { color: 'bg-slate-100 text-slate-600', label: 'Pendente' },
+  processando: { color: 'bg-blue-100 text-blue-600', label: 'Processando' },
+  concluido: { color: 'bg-emerald-100 text-emerald-600', label: 'Concluído' },
+  erro: { color: 'bg-red-100 text-red-600', label: 'Erro' }
 };
 
 export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTempoReal }) {
@@ -184,7 +184,7 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
           <div className="space-y-3">
             {arquivos.map(arquivo => {
               const Icon = TIPO_ICONE[arquivo.tipo] || FileText;
-              const statusColor = STATUS_COLOR[arquivo.status];
+              const statusConfig = STATUS_CONFIG[arquivo.status];
               
               return (
                 <div key={arquivo.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
@@ -201,11 +201,11 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className={statusColor}>
+                      <Badge className={statusConfig.color}>
                         {arquivo.status === 'processando' && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
                         {arquivo.status === 'concluido' && <CheckCircle2 className="w-3 h-3 mr-1" />}
                         {arquivo.status === 'erro' && <AlertCircle className="w-3 h-3 mr-1" />}
-                        {arquivo.status}
+                        {statusConfig.label}
                       </Badge>
                       {arquivo.status === 'pendente' && (
                         <Button
@@ -221,7 +221,14 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
                   </div>
                   
                   {arquivo.status === 'processando' && (
-                    <Progress value={arquivo.progresso} className="h-2" />
+                    <div className="space-y-2">
+                      <Progress value={arquivo.progresso} className="h-2" />
+                      <p className="text-xs text-blue-600">
+                        {arquivo.progresso < 30 ? '📤 Enviando...' : 
+                         arquivo.progresso < 60 ? '🎙️ Transcrevendo com Whisper...' : 
+                         '✨ Finalizando...'}
+                      </p>
+                    </div>
                   )}
                   
                   {arquivo.erro && (

@@ -52,9 +52,12 @@ import { detectarContinuidadeInteligente } from '@/components/analise/DetectorCo
 import { gerarResumoExecutivo, gerarAtaReuniao } from '@/components/analise/GeradorResumoExecutivo';
 import GravadorAudioCompleto from '@/components/registro/GravadorAudioCompleto';
 import TranscricaoWhisper from '@/components/registro/TranscricaoWhisper';
+import ProcessadorMultimidia from '@/components/registro/ProcessadorMultimidia';
+import AnalisadorIAConteudo from '@/components/registro/AnalisadorIAConteudo';
 import { processarRegistroCompleto, alimentarModulos } from '@/components/registro/ProcessadorIALote';
 import TranscricaoNativa from '@/components/registro/TranscricaoNativa';
 import SugestoesIARegistro from '@/components/registro/SugestoesIARegistro';
+import { toast } from 'sonner';
 
 const tipoOptions = [
   { value: 'reuniao', label: 'Reunião' },
