@@ -2,28 +2,39 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Plus, 
   Users, 
-  Crown,
-  ShieldCheck,
-  UserCheck,
-  Search,
-  MoreVertical,
-  Edit,
+  Plus, 
+  Search, 
+  MoreVertical, 
+  Edit, 
   Trash2,
+  UserPlus,
+  Mail,
+  Shield,
+  User,
+  Upload,
+  X,
   Eye,
-  RefreshCw
+  Clock,
+  Activity,
+  Laptop,
+  UserX,
+  UserCheck,
+  Settings
 } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,373 +45,824 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import FormularioEquipe from '@/components/equipes/FormularioEquipe';
-import DetalhesEquipe from '@/components/equipes/DetalhesEquipe';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { toast } from 'sonner';
-import { cn } from "@/lib/utils";
-import GraficosInterativos from '@/components/dashboard/GraficosInterativos';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-const funcaoConfig = {
-  coordenador_geral: { label: 'Coordenador Geral', icon: Crown, color: 'bg-purple-100 text-purple-700' },
-  coordenador: { label: 'Coordenador', icon: ShieldCheck, color: 'bg-blue-100 text-blue-700' },
-  supervisor: { label: 'Supervisor', icon: UserCheck, color: 'bg-emerald-100 text-emerald-700' },
-  membro: { label: 'Membro', icon: Users, color: 'bg-slate-100 text-slate-700' }
+const PERMISSOES_CONFIG = {
+  administrador: {
+    label: 'Administrador',
+    icon: Shield,
+    color: 'bg-emerald-100 text-emerald-700',
+    descricao: 'Controle total: criar/excluir equipes, gerenciar membros e permissões'
+  },
+  editor: {
+    label: 'Editor',
+    icon: Edit,
+    color: 'bg-blue-100 text-blue-700',
+    descricao: 'Visualizar membros e criar conteúdo, sem alterar permissões'
+  },
+  visualizador: {
+    label: 'Visualizador',
+    icon: Eye,
+    color: 'bg-slate-100 text-slate-700',
+    descricao: 'Apenas leitura de informações da equipe'
+  }
 };
 
-const tipoConfig = {
-  campo: { label: 'Campo', color: 'bg-green-100 text-green-700' },
-  analise: { label: 'Análise', color: 'bg-blue-100 text-blue-700' },
-  coordenacao: { label: 'Coordenação', color: 'bg-purple-100 text-purple-700' },
-  mista: { label: 'Mista', color: 'bg-amber-100 text-amber-700' }
+const STATUS_CONFIG = {
+  ativo: { label: 'Ativo', color: 'bg-emerald-100 text-emerald-700' },
+  convidado: { label: 'Convidado', color: 'bg-amber-100 text-amber-700' },
+  inativo: { label: 'Inativo', color: 'bg-slate-100 text-slate-600' }
 };
 
 export default function GerenciarEquipes() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
-  const [showForm, setShowForm] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showMembersDialog, setShowMembersDialog] = useState(false);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editingEquipe, setEditingEquipe] = useState(null);
-  const [viewingEquipe, setViewingEquipe] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
+  const [selectedEquipe, setSelectedEquipe] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [activeTab, setActiveTab] = useState('equipes');
+  
+  const [formData, setFormData] = useState({
+    nome: '',
+    descricao: '',
+    foto_url: '',
+    status: 'ativa'
+  });
+
+  const [inviteData, setInviteData] = useState({
+    email: '',
+    permissao: 'editor'
+  });
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me()
   });
 
-  const { data: equipes = [], isLoading, refetch } = useQuery({
+  const { data: equipes = [], isLoading } = useQuery({
     queryKey: ['equipes'],
     queryFn: () => base44.entities.Equipe.list('-created_date')
+  });
+
+  const { data: logs = [] } = useQuery({
+    queryKey: ['logs-acesso'],
+    queryFn: () => base44.entities.LogAcesso.list('-created_date', 100)
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.Equipe.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipes'] });
+      setShowCreateDialog(false);
+      resetForm();
+      registrarLog('criacao', 'Criou nova equipe');
+      toast.success('Equipe criada com sucesso!');
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Equipe.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipes'] });
+      setShowEditDialog(false);
+      setShowMembersDialog(false);
+      setEditingEquipe(null);
+      registrarLog('edicao', 'Atualizou equipe');
+      toast.success('Equipe atualizada!');
+    }
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Equipe.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['equipes'] });
-      setDeleteId(null);
-      toast.success('Equipe excluída com sucesso');
+      setShowDeleteDialog(false);
+      setDeleteTarget(null);
+      toast.success('Equipe excluída!');
     }
   });
 
-  // Determinar função do usuário atual
-  const minhaFuncao = React.useMemo(() => {
-    if (!user || !equipes) return 'membro';
-    
-    // Verifica se é coordenador geral de alguma equipe
-    if (equipes.some(e => e.coordenador_geral_email === user.email)) {
-      return 'coordenador_geral';
+  const registrarLog = async (acao, descricao) => {
+    try {
+      await base44.entities.LogAcesso.create({
+        usuario_email: user?.email,
+        usuario_nome: user?.full_name,
+        acao,
+        dispositivo: navigator.userAgent,
+        navegador: navigator.userAgent.split(') ')[1]?.split(' ')[0]
+      });
+    } catch (error) {
+      console.error('Erro ao registrar log:', error);
     }
-    
-    // Verifica se é coordenador
-    if (equipes.some(e => e.coordenadores_emails?.includes(user.email))) {
-      return 'coordenador';
-    }
-    
-    // Verifica se é supervisor
-    if (equipes.some(e => e.supervisor_email === user.email)) {
-      return 'supervisor';
-    }
-    
-    return 'membro';
-  }, [user, equipes]);
+  };
 
-  // Filtrar equipes baseado na função
-  const equipesVisiveis = React.useMemo(() => {
-    if (!user) return [];
-    
-    let filtered = equipes;
-    
-    // Coordenador geral vê tudo
-    if (minhaFuncao === 'coordenador_geral') {
-      filtered = equipes;
+  const resetForm = () => {
+    setFormData({ nome: '', descricao: '', foto_url: '', status: 'ativa' });
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, foto_url: file_url }));
+      toast.success('Foto enviada!');
+    } catch (error) {
+      toast.error('Erro ao enviar foto');
+    } finally {
+      setUploadingPhoto(false);
     }
-    // Coordenador vê suas equipes
-    else if (minhaFuncao === 'coordenador') {
-      filtered = equipes.filter(e => 
-        e.coordenadores_emails?.includes(user.email) ||
-        e.coordenador_geral_email === user.email
-      );
-    }
-    // Supervisor vê sua equipe
-    else if (minhaFuncao === 'supervisor') {
-      filtered = equipes.filter(e => e.supervisor_email === user.email);
-    }
-    // Membro vê sua equipe
-    else {
-      filtered = equipes.filter(e => 
-        e.membros?.some(m => m.email === user.email && m.ativo)
-      );
+  };
+
+  const handleCreate = () => {
+    if (!formData.nome) {
+      toast.error('Nome da equipe é obrigatório');
+      return;
     }
 
-    // Aplicar busca
-    if (search) {
-      filtered = filtered.filter(e =>
-        e.nome?.toLowerCase().includes(search.toLowerCase()) ||
-        e.descricao?.toLowerCase().includes(search.toLowerCase()) ||
-        e.comunidades_atendidas?.some(c => c.toLowerCase().includes(search.toLowerCase()))
-      );
-    }
-
-    return filtered;
-  }, [equipes, user, minhaFuncao, search]);
+    createMutation.mutate({
+      ...formData,
+      membros: [{
+        usuario_id: user?.id,
+        email: user?.email,
+        nome: user?.full_name,
+        permissao: 'administrador',
+        data_entrada: new Date().toISOString(),
+        ultimo_login: new Date().toISOString(),
+        status_usuario: 'ativo'
+      }]
+    });
+  };
 
   const handleEdit = (equipe) => {
     setEditingEquipe(equipe);
-    setShowForm(true);
+    setFormData({
+      nome: equipe.nome,
+      descricao: equipe.descricao || '',
+      foto_url: equipe.foto_url || '',
+      status: equipe.status || 'ativa'
+    });
+    setShowEditDialog(true);
   };
 
-  const handleView = (equipe) => {
-    setViewingEquipe(equipe);
+  const handleUpdate = () => {
+    updateMutation.mutate({
+      id: editingEquipe.id,
+      data: { ...editingEquipe, ...formData }
+    });
   };
 
-  const stats = {
-    total: equipesVisiveis.length,
-    ativas: equipesVisiveis.filter(e => e.ativa).length,
-    membrosTotal: equipesVisiveis.reduce((acc, e) => acc + (e.membros?.filter(m => m.ativo).length || 0), 0)
+  const handleInviteMember = async () => {
+    if (!inviteData.email) {
+      toast.error('Email é obrigatório');
+      return;
+    }
+
+    const token = Math.random().toString(36).substring(2, 15);
+    const novoConvite = {
+      email: inviteData.email,
+      permissao: inviteData.permissao,
+      data_convite: new Date().toISOString(),
+      token
+    };
+
+    const equipeAtualizada = {
+      ...selectedEquipe,
+      convites_pendentes: [...(selectedEquipe.convites_pendentes || []), novoConvite]
+    };
+
+    try {
+      await base44.entities.Equipe.update(selectedEquipe.id, equipeAtualizada);
+      
+      const linkConvite = `${window.location.origin}/aceitar-convite?token=${token}&equipe=${selectedEquipe.id}`;
+      await base44.integrations.Core.SendEmail({
+        to: inviteData.email,
+        subject: `Convite para equipe: ${selectedEquipe.nome}`,
+        body: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2D6A4F;">Você foi convidado para a equipe ${selectedEquipe.nome}!</h2>
+            <p><strong>Permissão:</strong> ${PERMISSOES_CONFIG[inviteData.permissao].label}</p>
+            <p>${PERMISSOES_CONFIG[inviteData.permissao].descricao}</p>
+            <div style="margin: 30px 0;">
+              <a href="${linkConvite}" 
+                 style="background-color: #2D6A4F; color: white; padding: 12px 24px; 
+                        text-decoration: none; border-radius: 6px; display: inline-block;">
+                Aceitar Convite
+              </a>
+            </div>
+            <p style="color: #666; font-size: 14px;">
+              Ou copie e cole este link no navegador:<br/>
+              <code style="background: #f5f5f5; padding: 4px 8px; border-radius: 4px;">${linkConvite}</code>
+            </p>
+          </div>
+        `
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['equipes'] });
+      setShowInviteDialog(false);
+      setInviteData({ email: '', permissao: 'editor' });
+      registrarLog('criacao', `Convidou ${inviteData.email} para equipe`);
+      toast.success('Convite enviado por email!');
+    } catch (error) {
+      toast.error('Erro ao enviar convite');
+    }
   };
 
-  const podeGerenciar = minhaFuncao === 'coordenador_geral' || minhaFuncao === 'coordenador';
+  const handleChangePermissao = async (equipe, membroEmail, novaPermissao) => {
+    const membrosAtualizados = equipe.membros.map(m =>
+      m.email === membroEmail ? { ...m, permissao: novaPermissao } : m
+    );
+
+    try {
+      await base44.entities.Equipe.update(equipe.id, {
+        ...equipe,
+        membros: membrosAtualizados
+      });
+      queryClient.invalidateQueries({ queryKey: ['equipes'] });
+      registrarLog('edicao', `Alterou permissão de ${membroEmail}`);
+      toast.success('Permissão atualizada!');
+    } catch (error) {
+      toast.error('Erro ao atualizar permissão');
+    }
+  };
+
+  const handleToggleStatusMembro = async (equipe, membroEmail) => {
+    const membrosAtualizados = equipe.membros.map(m =>
+      m.email === membroEmail 
+        ? { ...m, status_usuario: m.status_usuario === 'ativo' ? 'inativo' : 'ativo' } 
+        : m
+    );
+
+    try {
+      await base44.entities.Equipe.update(equipe.id, {
+        ...equipe,
+        membros: membrosAtualizados
+      });
+      queryClient.invalidateQueries({ queryKey: ['equipes'] });
+      toast.success('Status do membro atualizado!');
+    } catch (error) {
+      toast.error('Erro ao atualizar status');
+    }
+  };
+
+  const handleRemoveMember = async (equipe, membroEmail) => {
+    const membrosAtualizados = equipe.membros.filter(m => m.email !== membroEmail);
+
+    try {
+      await base44.entities.Equipe.update(equipe.id, {
+        ...equipe,
+        membros: membrosAtualizados
+      });
+      queryClient.invalidateQueries({ queryKey: ['equipes'] });
+      registrarLog('edicao', `Removeu ${membroEmail} da equipe`);
+      toast.success('Membro removido!');
+    } catch (error) {
+      toast.error('Erro ao remover membro');
+    }
+  };
+
+  const isAdmin = (equipe) => {
+    return equipe?.membros?.some(m => 
+      m.email === user?.email && m.permissao === 'administrador'
+    );
+  };
+
+  const equipesFiltered = equipes.filter(e =>
+    e.nome?.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-6 pb-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Gerenciar Equipes</h2>
-          <p className="text-slate-500 mt-1">
-            {equipesVisiveis.length} equipe{equipesVisiveis.length !== 1 && 's'} • Seu nível: {funcaoConfig[minhaFuncao]?.label}
-          </p>
+          <p className="text-slate-500 mt-1">Administração de usuários, permissões e times de trabalho</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => refetch()}>
-            <RefreshCw className="w-4 h-4" />
-          </Button>
-          {podeGerenciar && (
-            <Button 
-              onClick={() => {
-                setEditingEquipe(null);
-                setShowForm(true);
-              }}
-              className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Nova Equipe
-            </Button>
-          )}
-        </div>
+        <Button onClick={() => setShowCreateDialog(true)} className="bg-[#2D6A4F]">
+          <Plus className="w-4 h-4 mr-2" />
+          Criar Nova Equipe
+        </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500">Total de Equipes</p>
-                <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-              </div>
-              <Users className="w-10 h-10 text-slate-300" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500">Equipes Ativas</p>
-                <p className="text-2xl font-bold text-emerald-600">{stats.ativas}</p>
-              </div>
-              <ShieldCheck className="w-10 h-10 text-emerald-300" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500">Total de Membros</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.membrosTotal}</p>
-              </div>
-              <UserCheck className="w-10 h-10 text-blue-300" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="equipes">
+            <Users className="w-4 h-4 mr-2" />
+            Equipes
+          </TabsTrigger>
+          <TabsTrigger value="atividade">
+            <Activity className="w-4 h-4 mr-2" />
+            Atividade
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Search */}
-      <Card className="p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            placeholder="Buscar equipes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </Card>
-
-      {/* Gráficos */}
-      {equipesVisiveis.length > 0 && (
-        <div className="mt-6">
-          <GraficosInterativos />
-        </div>
-      )}
-
-      {/* Lista de Equipes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {isLoading ? (
-          Array(6).fill(0).map((_, i) => (
-            <Skeleton key={i} className="h-56 rounded-xl" />
-          ))
-        ) : equipesVisiveis.length === 0 ? (
-          <Card className="col-span-full p-12 text-center">
-            <Users className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-            <h3 className="text-lg font-medium text-slate-900 mb-2">Nenhuma equipe encontrada</h3>
-            <p className="text-slate-500">
-              {podeGerenciar ? 'Crie sua primeira equipe para começar' : 'Você ainda não faz parte de nenhuma equipe'}
-            </p>
+        <TabsContent value="equipes" className="space-y-4">
+          <Card className="p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Buscar equipe..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </Card>
-        ) : (
-          equipesVisiveis.map(equipe => {
-            const FuncaoIcon = funcaoConfig[minhaFuncao]?.icon || Users;
-            const membrosAtivos = equipe.membros?.filter(m => m.ativo).length || 0;
-            
-            return (
-              <Card key={equipe.id} className="hover:shadow-md transition-all">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {equipe.cor_identificacao && (
-                          <div 
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: equipe.cor_identificacao }}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {equipesFiltered.map(equipe => {
+              const admins = equipe.membros?.filter(m => m.permissao === 'administrador') || [];
+              const PermissaoIcon = PERMISSOES_CONFIG[equipe.membros?.find(m => m.email === user?.email)?.permissao]?.icon || User;
+
+              return (
+                <Card key={equipe.id} className="hover:shadow-lg transition-all">
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3 flex-1">
+                        {equipe.foto_url ? (
+                          <img 
+                            src={equipe.foto_url} 
+                            alt={equipe.nome}
+                            className="w-16 h-16 rounded-full object-cover border-2 border-[#2D6A4F]"
                           />
-                        )}
-                        <CardTitle className="text-base">{equipe.nome}</CardTitle>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary" className={tipoConfig[equipe.tipo]?.color}>
-                          {tipoConfig[equipe.tipo]?.label}
-                        </Badge>
-                        {equipe.ativa ? (
-                          <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
-                            Ativa
-                          </Badge>
                         ) : (
-                          <Badge variant="secondary" className="bg-slate-100 text-slate-700">
-                            Inativa
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#2D6A4F] to-[#40916C] flex items-center justify-center text-white text-xl font-bold">
+                            {equipe.nome.substring(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-slate-900 truncate">{equipe.nome}</h3>
+                          <p className="text-xs text-slate-500 truncate">{equipe.descricao}</p>
+                          <Badge className={`text-xs mt-1 ${equipe.status === 'ativa' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                            {equipe.status === 'ativa' ? 'Ativa' : 'Inativa'}
                           </Badge>
-                        )}
+                        </div>
                       </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => { setSelectedEquipe(equipe); setShowMembersDialog(true); }}>
+                            <Users className="w-4 h-4 mr-2" />
+                            Ver Membros
+                          </DropdownMenuItem>
+                          {isAdmin(equipe) && (
+                            <>
+                              <DropdownMenuItem onClick={() => handleEdit(equipe)}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Editar Equipe
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSelectedEquipe(equipe); setShowInviteDialog(true); }}>
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                Convidar Membro
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => { setDeleteTarget(equipe); setShowDeleteDialog(true); }}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleView(equipe)}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver Detalhes
-                        </DropdownMenuItem>
-                        {podeGerenciar && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleEdit(equipe)}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="text-red-600"
-                              onClick={() => setDeleteId(equipe.id)}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Excluir
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {equipe.descricao && (
-                    <p className="text-sm text-slate-600 line-clamp-2">{equipe.descricao}</p>
-                  )}
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-500">Membros</span>
-                      <span className="font-medium">{membrosAtivos}</span>
-                    </div>
-                    {equipe.comunidades_atendidas?.length > 0 && (
+
+                    <div className="space-y-2 text-sm">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-500">Comunidades</span>
-                        <span className="font-medium">{equipe.comunidades_atendidas.length}</span>
+                        <span className="text-slate-600 flex items-center gap-1">
+                          <Users className="w-4 h-4" />
+                          Membros
+                        </span>
+                        <Badge variant="secondary">{equipe.membros?.length || 0}</Badge>
                       </div>
-                    )}
-                    {equipe.estatisticas?.total_registros > 0 && (
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-500">Registros</span>
-                        <span className="font-medium">{equipe.estatisticas.total_registros}</span>
+                        <span className="text-slate-600 flex items-center gap-1">
+                          <Shield className="w-4 h-4" />
+                          Administradores
+                        </span>
+                        <Badge className="bg-emerald-100 text-emerald-700">
+                          {admins.length}
+                        </Badge>
                       </div>
-                    )}
-                  </div>
+                      {equipe.convites_pendentes?.length > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-600 flex items-center gap-1">
+                            <Mail className="w-4 h-4" />
+                            Convites pendentes
+                          </span>
+                          <Badge className="bg-amber-100 text-amber-700">
+                            {equipe.convites_pendentes.length}
+                          </Badge>
+                        </div>
+                      )}
+                      <div className="pt-2 border-t text-xs text-slate-500">
+                        Criada em {format(new Date(equipe.created_date), 'dd/MM/yyyy', { locale: ptBR })}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
 
-                  <div className="pt-3 border-t border-slate-100">
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <Crown className="w-3 h-3" />
-                      <span className="truncate">
-                        {equipe.supervisor_email?.split('@')[0]}
-                      </span>
+        <TabsContent value="atividade" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Histórico de Login e Atividade</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {logs.length === 0 ? (
+                  <p className="text-center text-slate-500 py-8">Nenhuma atividade registrada</p>
+                ) : (
+                  logs.map((log, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-10 h-10 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white font-semibold">
+                          {log.usuario_nome?.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-slate-900">{log.usuario_nome}</p>
+                          <p className="text-sm text-slate-500">{log.usuario_email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-slate-600">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {format(new Date(log.created_date), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                        </div>
+                        {log.dispositivo && (
+                          <div className="flex items-center gap-1">
+                            <Laptop className="w-4 h-4" />
+                            {log.navegador || 'Desktop'}
+                          </div>
+                        )}
+                        <Badge variant="outline">{log.acao}</Badge>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Dialog Criar */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Nova Equipe</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Foto da Equipe</Label>
+              <div className="flex items-center gap-4">
+                {formData.foto_url ? (
+                  <div className="relative">
+                    <img src={formData.foto_url} alt="Preview" className="w-20 h-20 rounded-full object-cover" />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white hover:bg-red-600"
+                      onClick={() => setFormData(prev => ({ ...prev, foto_url: '' }))}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center">
+                    <Upload className="w-8 h-8 text-slate-400" />
+                  </div>
+                )}
+                <label>
+                  <Button variant="outline" size="sm" disabled={uploadingPhoto} asChild>
+                    <div>
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploadingPhoto ? 'Enviando...' : 'Escolher Foto'}
+                    </div>
+                  </Button>
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nome da Equipe *</Label>
+              <Input
+                value={formData.nome}
+                onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
+                placeholder="Ex: Equipe de Campo Norte"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Descrição</Label>
+              <Textarea
+                value={formData.descricao}
+                onChange={(e) => setFormData(prev => ({ ...prev, descricao: e.target.value }))}
+                placeholder="Descreva o propósito desta equipe..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancelar</Button>
+            <Button onClick={handleCreate} disabled={!formData.nome} className="bg-[#2D6A4F]">
+              Criar Equipe
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Editar */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Equipe</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Foto da Equipe</Label>
+              <div className="flex items-center gap-4">
+                {formData.foto_url ? (
+                  <div className="relative">
+                    <img src={formData.foto_url} alt="Preview" className="w-20 h-20 rounded-full object-cover" />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white hover:bg-red-600"
+                      onClick={() => setFormData(prev => ({ ...prev, foto_url: '' }))}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center">
+                    <Upload className="w-8 h-8 text-slate-400" />
+                  </div>
+                )}
+                <label>
+                  <Button variant="outline" size="sm" disabled={uploadingPhoto} asChild>
+                    <div>
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploadingPhoto ? 'Enviando...' : 'Trocar Foto'}
+                    </div>
+                  </Button>
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nome da Equipe *</Label>
+              <Input
+                value={formData.nome}
+                onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Descrição</Label>
+              <Textarea
+                value={formData.descricao}
+                onChange={(e) => setFormData(prev => ({ ...prev, descricao: e.target.value }))}
+                rows={3}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <div>
+                <Label>Status da Equipe</Label>
+                <p className="text-xs text-slate-500">
+                  {formData.status === 'ativa' ? 'Equipe ativa e funcional' : 'Equipe inativa (membros não terão acesso)'}
+                </p>
+              </div>
+              <Switch
+                checked={formData.status === 'ativa'}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, status: checked ? 'ativa' : 'inativa' }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button>
+            <Button onClick={handleUpdate} className="bg-[#2D6A4F]">Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Membros */}
+      <Dialog open={showMembersDialog} onOpenChange={setShowMembersDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Membros: {selectedEquipe?.nome}</DialogTitle>
+            <DialogDescription>
+              Gerencie permissões e status dos membros da equipe
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {selectedEquipe?.membros?.map((membro, idx) => {
+              const permConfig = PERMISSOES_CONFIG[membro.permissao];
+              const statusConfig = STATUS_CONFIG[membro.status_usuario];
+              const PermIcon = permConfig.icon;
+
+              return (
+                <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-12 h-12 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white font-semibold">
+                      {membro.nome?.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-slate-900">{membro.nome}</p>
+                      <p className="text-sm text-slate-500">{membro.email}</p>
+                      {membro.ultimo_login && (
+                        <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                          <Clock className="w-3 h-3" />
+                          Último login: {format(new Date(membro.ultimo_login), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                        </p>
+                      )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
-      </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={statusConfig.color}>
+                      {statusConfig.label}
+                    </Badge>
+                    {isAdmin(selectedEquipe) && membro.email !== user?.email ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="gap-1">
+                            <PermIcon className="w-4 h-4" />
+                            {permConfig.label}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleChangePermissao(selectedEquipe, membro.email, 'administrador')}>
+                            <Shield className="w-4 h-4 mr-2" />
+                            Administrador
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleChangePermissao(selectedEquipe, membro.email, 'editor')}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editor
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleChangePermissao(selectedEquipe, membro.email, 'visualizador')}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Visualizador
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleToggleStatusMembro(selectedEquipe, membro.email)}>
+                            {membro.status_usuario === 'ativo' ? (
+                              <><UserX className="w-4 h-4 mr-2" /> Desativar</>
+                            ) : (
+                              <><UserCheck className="w-4 h-4 mr-2" /> Ativar</>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => handleRemoveMember(selectedEquipe, membro.email)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Remover da Equipe
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <Badge className={permConfig.color}>
+                        <PermIcon className="w-3 h-3 mr-1" />
+                        {permConfig.label}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
 
-      {/* Formulário de Equipe */}
-      <FormularioEquipe
-        open={showForm}
-        onOpenChange={setShowForm}
-        equipe={editingEquipe}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['equipes'] });
-          setShowForm(false);
-          setEditingEquipe(null);
-        }}
-      />
+            {selectedEquipe?.convites_pendentes?.length > 0 && (
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-slate-700 mb-3">Convites Pendentes</h4>
+                {selectedEquipe.convites_pendentes.map((convite, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg mb-2">
+                    <div>
+                      <p className="font-medium text-slate-900">{convite.email}</p>
+                      <p className="text-xs text-slate-500">
+                        Convidado em {format(new Date(convite.data_convite), 'dd/MM/yyyy', { locale: ptBR })}
+                      </p>
+                    </div>
+                    <Badge className="bg-amber-100 text-amber-700">
+                      {PERMISSOES_CONFIG[convite.permissao].label}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      {/* Detalhes da Equipe */}
-      <DetalhesEquipe
-        equipe={viewingEquipe}
-        open={!!viewingEquipe}
-        onOpenChange={(open) => !open && setViewingEquipe(null)}
-        onEdit={() => {
-          handleEdit(viewingEquipe);
-          setViewingEquipe(null);
-        }}
-      />
+      {/* Dialog Convidar */}
+      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Convidar Novo Membro</DialogTitle>
+            <DialogDescription>
+              Envie um convite por email para adicionar um membro à equipe
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Email *</Label>
+              <Input
+                type="email"
+                value={inviteData.email}
+                onChange={(e) => setInviteData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="email@exemplo.com"
+              />
+            </div>
 
-      {/* Delete Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+            <div className="space-y-2">
+              <Label>Nível de Permissão</Label>
+              <Select
+                value={inviteData.permissao}
+                onValueChange={(value) => setInviteData(prev => ({ ...prev, permissao: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(PERMISSOES_CONFIG).map(([key, config]) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex items-center gap-2">
+                        <config.icon className="w-4 h-4" />
+                        {config.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  {PERMISSOES_CONFIG[inviteData.permissao].descricao}
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInviteDialog(false)}>Cancelar</Button>
+            <Button onClick={handleInviteMember} disabled={!inviteData.email} className="bg-[#2D6A4F]">
+              <Mail className="w-4 h-4 mr-2" />
+              Enviar Convite
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Excluir */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir equipe?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. A equipe será permanentemente removida.
+              Esta ação não pode ser desfeita. A equipe "{deleteTarget?.nome}" será permanentemente removida.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
-              onClick={() => deleteMutation.mutate(deleteId)}
+              onClick={() => deleteMutation.mutate(deleteTarget.id)}
             >
               Excluir
             </AlertDialogAction>
