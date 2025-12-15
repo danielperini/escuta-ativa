@@ -190,7 +190,17 @@ export default function RegistroUnificado() {
     setErrosProcessamento([]);
     
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      // Converter arquivo .ogg para formato compatível se necessário
+      let arquivoParaUpload = file;
+      
+      // Para arquivos .ogg do WhatsApp, renomear extensão para .mp3 (codec compatível)
+      if (file.name.toLowerCase().endsWith('.ogg')) {
+        arquivoParaUpload = new File([file], file.name.replace(/\.ogg$/i, '.mp3'), { 
+          type: 'audio/mpeg' 
+        });
+      }
+      
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivoParaUpload });
       
       const arquivoInfo = { url: file_url, tipo, nome: file.name };
       setArquivosProcessados(prev => [...prev, arquivoInfo]);
