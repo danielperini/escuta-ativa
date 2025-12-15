@@ -1508,6 +1508,7 @@ Extraia:
                   </Badge>
                 ))}
               </div>
+              </div>
             </div>
             </CardContent>
           </Card>
@@ -1522,22 +1523,22 @@ Extraia:
               </CardTitle>
             </CardHeader>
             <CardContent>
-          <div className="bg-blue-50 p-3 rounded mb-3 border border-blue-200">
-            <p className="text-xs text-blue-800">
-              <Sparkles className="w-3 h-3 inline mr-1" />
-              Temas detectados automaticamente pela IA. Você pode editar ou remover.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {formData.temas_identificados.map((t, i) => (
-              <Badge key={i} variant="secondary" className="gap-1 pr-1">
-                {t}
-                <button onClick={() => setFormData(prev => ({ ...prev, temas_identificados: prev.temas_identificados.filter((_, idx) => idx !== i) }))}>
-                  <X className="w-3 h-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
+              <div className="bg-blue-50 p-3 rounded mb-3 border border-blue-200">
+                <p className="text-xs text-blue-800">
+                  <Sparkles className="w-3 h-3 inline mr-1" />
+                  Temas detectados automaticamente pela IA. Você pode editar ou remover.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.temas_identificados.map((t, i) => (
+                  <Badge key={i} variant="secondary" className="gap-1 pr-1">
+                    {t}
+                    <button onClick={() => setFormData(prev => ({ ...prev, temas_identificados: prev.temas_identificados.filter((_, idx) => idx !== i) }))}>
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -1551,29 +1552,29 @@ Extraia:
               </CardTitle>
             </CardHeader>
             <CardContent>
-          <div className="bg-amber-50 p-3 rounded mb-3 border border-amber-200">
-            <p className="text-xs text-amber-800">
-              <Sparkles className="w-3 h-3 inline mr-1" />
-              Demandas detectadas automaticamente. Revise urgência e prazos.
-            </p>
-          </div>
-          <div className="space-y-2">
-            {formData.demandas.map((d, i) => (
-              <div key={i} className="p-3 bg-slate-50 rounded border relative group">
-                <button 
-                  onClick={() => setFormData(prev => ({ ...prev, demandas: prev.demandas.filter((_, idx) => idx !== i) }))}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-4 h-4 text-red-600" />
-                </button>
-                <p className="text-sm font-medium pr-6">{d.descricao}</p>
-                <div className="flex gap-2 mt-2 text-xs">
-                  <Badge variant="secondary">{d.urgencia}</Badge>
-                  <Badge variant="outline">Devolutiva: {new Date(d.prazo_devolutiva).toLocaleDateString('pt-BR')}</Badge>
-                </div>
+              <div className="bg-amber-50 p-3 rounded mb-3 border border-amber-200">
+                <p className="text-xs text-amber-800">
+                  <Sparkles className="w-3 h-3 inline mr-1" />
+                  Demandas detectadas automaticamente. Revise urgência e prazos.
+                </p>
               </div>
-            ))}
-          </div>
+              <div className="space-y-2">
+                {formData.demandas.map((d, i) => (
+                  <div key={i} className="p-3 bg-slate-50 rounded border relative group">
+                    <button 
+                      onClick={() => setFormData(prev => ({ ...prev, demandas: prev.demandas.filter((_, idx) => idx !== i) }))}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-4 h-4 text-red-600" />
+                    </button>
+                    <p className="text-sm font-medium pr-6">{d.descricao}</p>
+                    <div className="flex gap-2 mt-2 text-xs">
+                      <Badge variant="secondary">{d.urgencia}</Badge>
+                      <Badge variant="outline">Devolutiva: {new Date(d.prazo_devolutiva).toLocaleDateString('pt-BR')}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -1587,29 +1588,29 @@ Extraia:
               </CardTitle>
             </CardHeader>
             <CardContent>
-          <div className="bg-emerald-50 p-3 rounded mb-3 border border-emerald-200">
-            <p className="text-xs text-emerald-800">
-              <Sparkles className="w-3 h-3 inline mr-1" />
-              Compromissos identificados automaticamente. Revise responsáveis e prazos.
-            </p>
-          </div>
-          <div className="space-y-2">
-            {formData.compromissos.map((c, i) => (
-              <div key={i} className="p-3 bg-emerald-50 rounded border border-emerald-200 relative group">
-                <button 
-                  onClick={() => setFormData(prev => ({ ...prev, compromissos: prev.compromissos.filter((_, idx) => idx !== i) }))}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-4 h-4 text-red-600" />
-                </button>
-                <p className="text-sm font-medium pr-6">{c.descricao}</p>
-                <p className="text-xs text-slate-600 mt-1">
-                  {c.responsavel && `Responsável: ${c.responsavel}`}
-                  {c.prazo && ` • Prazo: ${new Date(c.prazo).toLocaleDateString('pt-BR')}`}
+              <div className="bg-emerald-50 p-3 rounded mb-3 border border-emerald-200">
+                <p className="text-xs text-emerald-800">
+                  <Sparkles className="w-3 h-3 inline mr-1" />
+                  Compromissos identificados automaticamente. Revise responsáveis e prazos.
                 </p>
               </div>
-            ))}
-          </div>
+              <div className="space-y-2">
+                {formData.compromissos.map((c, i) => (
+                  <div key={i} className="p-3 bg-emerald-50 rounded border border-emerald-200 relative group">
+                    <button 
+                      onClick={() => setFormData(prev => ({ ...prev, compromissos: prev.compromissos.filter((_, idx) => idx !== i) }))}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-4 h-4 text-red-600" />
+                    </button>
+                    <p className="text-sm font-medium pr-6">{c.descricao}</p>
+                    <p className="text-xs text-slate-600 mt-1">
+                      {c.responsavel && `Responsável: ${c.responsavel}`}
+                      {c.prazo && ` • Prazo: ${new Date(c.prazo).toLocaleDateString('pt-BR')}`}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
