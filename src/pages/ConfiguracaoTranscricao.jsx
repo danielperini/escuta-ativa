@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,120 +12,98 @@ import {
   Save, 
   Eye, 
   EyeOff, 
-  CheckCircle, 
+  CheckCircle2, 
   AlertCircle,
   ExternalLink,
   Sparkles,
-  Shield
+  Shield,
+  Loader2,
+  Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-/**
- * Página para configurar integração com serviços externos de transcrição
- */
 export default function ConfiguracaoTranscricao() {
-  const [mostrarKeys, setMostrarKeys] = useState({
-    assemblyai: false,
-    google: false
-  });
-
-  const [apiKeys, setApiKeys] = useState({
-    ASSEMBLYAI_API_KEY: '',
-    GOOGLE_SPEECH_API_KEY: ''
-  });
-
-  const [editando, setEditando] = useState(false);
+  const [showAssemblyKey, setShowAssemblyKey] = useState(false);
+  const [showGoogleKey, setShowGoogleKey] = useState(false);
+  const [showTldvKey, setShowTldvKey] = useState(false);
+  const [showOpenaiKey, setShowOpenaiKey] = useState(false);
+  
+  const [assemblyaiKey, setAssemblyaiKey] = useState('');
+  const [googleKey, setGoogleKey] = useState('');
+  const [tldvKey, setTldvKey] = useState('');
+  const [openaiKey, setOpenaiKey] = useState('');
+  
+  const [editMode, setEditMode] = useState(false);
+  const [testando, setTestando] = useState(false);
 
   const { data: user } = useQuery({
-    queryKey: ['current-user-config'],
+    queryKey: ['current-user-transcricao'],
     queryFn: () => base44.auth.me()
   });
 
-  // Carregar configurações atuais (se existirem)
   React.useEffect(() => {
-    if (user?.configuracoes_transcricao) {
-      setApiKeys({
-        ASSEMBLYAI_API_KEY: user.configuracoes_transcricao.ASSEMBLYAI_API_KEY || '',
-        GOOGLE_SPEECH_API_KEY: user.configuracoes_transcricao.GOOGLE_SPEECH_API_KEY || ''
-      });
+    if (user?.configuracoes?.transcricao_externa) {
+      setAssemblyaiKey(user.configuracoes.transcricao_externa.assemblyai_key || '');
+      setGoogleKey(user.configuracoes.transcricao_externa.google_key || '');
+      setTldvKey(user.configuracoes.transcricao_externa.tldv_key || '');
+      setOpenaiKey(user.configuracoes.transcricao_externa.openai_key || '');
     }
   }, [user]);
 
-  const salvarConfiguracao = async () => {
+  const salvarConfiguracoes = async () => {
     try {
-      // Salvar nas configurações do usuário
       await base44.auth.updateMe({
-        configuracoes_transcricao: apiKeys
+        configuracoes: {
+          ...user.configuracoes,
+          transcricao_externa: {
+            assemblyai_key: assemblyaiKey,
+            google_key: googleKey,
+            tldv_key: tldvKey,
+            openai_key: openaiKey
+          }
+        }
       });
-
-      toast.success('Configurações salvas com sucesso!');
-      setEditando(false);
+      toast.success('Configurações salvas!');
+      setEditMode(false);
     } catch (error) {
-      console.error('Erro ao salvar:', error);
-      toast.error('Erro ao salvar configurações: ' + error.message);
+      toast.error('Erro ao salvar: ' + error.message);
     }
   };
 
-  const testarConexao = async (servico) => {
+  const testConnection = async (servico) => {
+    setTestando(true);
     try {
-      toast.info('Testando conexão...', { duration: 2000 });
-
-      // Criar um arquivo de teste de áudio silencioso (1 segundo)
-      const sampleRate = 16000;
-      const duration = 1;
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const buffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate);
+      const testFile = new Blob([new Uint8Array(44100)], { type: 'audio/wav' });
+      const file = new File([testFile], 'test.wav', { type: 'audio/wav' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      // Criar arquivo WAV de teste
-      const testBlob = new Blob([new Uint8Array(44100)], { type: 'audio/wav' });
-      const testFile = new File([testBlob], 'test.wav', { type: 'audio/wav' });
-
-      // Fazer upload
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: testFile });
-
-      // Testar transcrição
-      const response = await base44.functions.invoke('transcricaoExterna', {
+      await base44.functions.invoke('transcricaoExterna', {
         file_url,
-        servico: servico === 'assemblyai' ? 'assemblyai' : 'google',
+        servico,
         idioma: 'pt',
         opcoes: {}
       });
-
-      if (response.data.sucesso || response.data.error?.includes('vazia')) {
-        toast.success(`✅ ${servico === 'assemblyai' ? 'AssemblyAI' : 'Google Speech'} conectado com sucesso!`);
-      } else {
-        throw new Error(response.data.error || 'Erro desconhecido');
-      }
+      
+      toast.success(`✅ Conexão com ${servico} OK!`);
     } catch (error) {
-      console.error('Erro ao testar:', error);
-      toast.error(`❌ Falha na conexão: ${error.message}`);
+      toast.error(`❌ Erro: ${error.message}`);
+    } finally {
+      setTestando(false);
     }
-  };
-
-  const keyConfigurada = (key) => {
-    return apiKeys[key] && apiKeys[key].length > 10;
   };
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Configuração de Transcrição Externa</h2>
-          <p className="text-slate-500 text-sm mt-1">
-            Configure serviços externos para transcrição de áudio/vídeo
-          </p>
+          <h2 className="text-2xl font-bold text-slate-900">Transcrição Externa</h2>
+          <p className="text-slate-500 text-sm mt-1">Configure serviços de transcrição profissionais</p>
         </div>
-        {user?.role === 'admin' && (
-          <Badge variant="secondary" className="gap-1">
-            <Shield className="w-3 h-3" />
-            Admin
-          </Badge>
-        )}
       </div>
 
-      {/* Informações Gerais */}
+      {/* Info Geral */}
       <Card className="border-2 border-blue-500">
         <CardHeader className="bg-blue-50">
           <CardTitle className="flex items-center gap-2 text-blue-900">
@@ -138,230 +116,259 @@ export default function ConfiguracaoTranscricao() {
             <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
               <Sparkles className="w-8 h-8 text-emerald-600 mb-2" />
               <h4 className="font-semibold text-emerald-900 mb-1">Alta Precisão</h4>
-              <p className="text-emerald-700 text-xs">
-                Modelos de IA especializados com acurácia superior a 95%
-              </p>
+              <p className="text-emerald-700 text-xs">Acurácia superior a 95%</p>
             </div>
             <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
               <Globe className="w-8 h-8 text-purple-600 mb-2" />
               <h4 className="font-semibold text-purple-900 mb-1">Múltiplos Idiomas</h4>
-              <p className="text-purple-700 text-xs">
-                Suporte para português, inglês, espanhol e mais
-              </p>
+              <p className="text-purple-700 text-xs">99+ idiomas suportados</p>
             </div>
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
               <Shield className="w-8 h-8 text-blue-600 mb-2" />
               <h4 className="font-semibold text-blue-900 mb-1">Privacidade</h4>
-              <p className="text-blue-700 text-xs">
-                Suas API keys ficam seguras e criptografadas
-              </p>
+              <p className="text-blue-700 text-xs">API keys criptografadas</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* AssemblyAI */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-600" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* AssemblyAI */}
+        <Card className="border-2 border-purple-500">
+          <CardHeader className="bg-purple-50">
+            <CardTitle className="flex items-center gap-2 text-purple-900">
+              <Sparkles className="w-5 h-5" />
               AssemblyAI
-              <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                Recomendado
-              </Badge>
+              <Badge className="bg-purple-100 text-purple-700">Recomendado</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <h4 className="font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Recursos
+              </h4>
+              <ul className="text-sm text-purple-800 space-y-1">
+                <li>• 🎯 Identificação de falantes</li>
+                <li>• 💬 Análise de sentimento</li>
+                <li>• 📊 Detecção de tópicos</li>
+                <li>• 🇧🇷 PT-BR nativo</li>
+              </ul>
             </div>
-            {keyConfigurada('ASSEMBLYAI_API_KEY') && (
-              <CheckCircle className="w-5 h-5 text-emerald-600" />
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-slate-50 p-4 rounded-lg border text-sm space-y-2">
-            <p className="text-slate-700">
-              <strong>AssemblyAI</strong> oferece transcrição de alta qualidade com recursos avançados:
-            </p>
-            <ul className="text-slate-600 text-xs space-y-1 ml-4">
-              <li>✓ Identificação automática de falantes</li>
-              <li>✓ Análise de sentimento</li>
-              <li>✓ Detecção de tópicos</li>
-              <li>✓ Suporte a PT-BR nativo</li>
-            </ul>
-            <div className="flex items-center gap-2 pt-2">
-              <a
-                href="https://www.assemblyai.com/dashboard/signup"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-purple-600 hover:underline flex items-center gap-1"
-              >
-                Criar conta grátis
-                <ExternalLink className="w-3 h-3" />
-              </a>
-              <span className="text-xs text-slate-400">•</span>
-              <a
-                href="https://www.assemblyai.com/docs"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-slate-600 hover:underline flex items-center gap-1"
-              >
-                Documentação
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
 
-          <div>
-            <Label className="flex items-center gap-2 mb-2">
-              <Key className="w-4 h-4" />
-              API Key
-            </Label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
+            <div className="space-y-2">
+              <Label>API Key da AssemblyAI</Label>
+              <div className="relative">
                 <Input
-                  type={mostrarKeys.assemblyai ? 'text' : 'password'}
-                  value={apiKeys.ASSEMBLYAI_API_KEY}
+                  type={showAssemblyKey ? 'text' : 'password'}
+                  value={assemblyaiKey}
                   onChange={(e) => {
-                    setApiKeys(prev => ({ ...prev, ASSEMBLYAI_API_KEY: e.target.value }));
-                    setEditando(true);
+                    setAssemblyaiKey(e.target.value);
+                    setEditMode(true);
                   }}
-                  placeholder="cole sua API key aqui..."
+                  placeholder="Insira sua API Key"
                   className="pr-10"
                 />
                 <button
-                  onClick={() => setMostrarKeys(prev => ({ ...prev, assemblyai: !prev.assemblyai }))}
+                  type="button"
+                  onClick={() => setShowAssemblyKey(!showAssemblyKey)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
-                  {mostrarKeys.assemblyai ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showAssemblyKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {keyConfigurada('ASSEMBLYAI_API_KEY') && (
-                <Button
-                  variant="outline"
-                  onClick={() => testarConexao('assemblyai')}
-                  className="gap-2"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  Testar
-                </Button>
-              )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Google Speech-to-Text */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Globe className="w-5 h-5 text-blue-600" />
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <p className="text-xs text-slate-700 mb-2 font-medium">Como obter:</p>
+              <ol className="text-xs text-slate-600 space-y-1 ml-4 list-decimal">
+                <li>Acesse <a href="https://www.assemblyai.com/dashboard/signup" target="_blank" rel="noopener noreferrer" className="text-purple-600 underline">assemblyai.com/dashboard</a></li>
+                <li>Crie uma conta gratuita</li>
+                <li>Copie sua API Key</li>
+              </ol>
+            </div>
+
+            {assemblyaiKey && (
+              <Button
+                variant="outline"
+                onClick={() => testConnection('assemblyai')}
+                disabled={testando}
+                className="w-full"
+              >
+                {testando ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Testando...</>
+                ) : (
+                  <><Zap className="w-4 h-4 mr-2" />Testar Conexão</>
+                )}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* OpenAI Whisper */}
+        <Card className="border-2 border-green-500">
+          <CardHeader className="bg-green-50">
+            <CardTitle className="flex items-center gap-2 text-green-900">
+              <Sparkles className="w-5 h-5" />
+              OpenAI Whisper
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Recursos
+              </h4>
+              <ul className="text-sm text-green-800 space-y-1">
+                <li>• 🎯 Excelente precisão em PT</li>
+                <li>• 🌍 Suporta 99+ idiomas</li>
+                <li>• ⚡ Rápido e eficiente</li>
+                <li>• 💰 $0.006/minuto</li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <Label>API Key da OpenAI</Label>
+              <div className="relative">
+                <Input
+                  type={showOpenaiKey ? 'text' : 'password'}
+                  value={openaiKey}
+                  onChange={(e) => {
+                    setOpenaiKey(e.target.value);
+                    setEditMode(true);
+                  }}
+                  placeholder="sk-..."
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowOpenaiKey(!showOpenaiKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showOpenaiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <p className="text-xs text-slate-700 mb-2 font-medium">Como obter:</p>
+              <ol className="text-xs text-slate-600 space-y-1 ml-4 list-decimal">
+                <li>Acesse <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-green-600 underline">platform.openai.com/api-keys</a></li>
+                <li>Faça login ou crie uma conta</li>
+                <li>Clique em "Create new secret key"</li>
+                <li>Copie e cole aqui</li>
+              </ol>
+            </div>
+
+            {openaiKey && (
+              <Button
+                variant="outline"
+                onClick={() => testConnection('openai')}
+                disabled={testando}
+                className="w-full"
+              >
+                {testando ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Testando...</>
+                ) : (
+                  <><Zap className="w-4 h-4 mr-2" />Testar Conexão</>
+                )}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Google Speech */}
+        <Card>
+          <CardHeader className="bg-blue-50">
+            <CardTitle className="flex items-center gap-2 text-blue-900">
+              <Globe className="w-5 h-5" />
               Google Speech-to-Text
-            </div>
-            {keyConfigurada('GOOGLE_SPEECH_API_KEY') && (
-              <CheckCircle className="w-5 h-5 text-emerald-600" />
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-slate-50 p-4 rounded-lg border text-sm space-y-2">
-            <p className="text-slate-700">
-              <strong>Google Speech-to-Text</strong> é robusto e confiável:
-            </p>
-            <ul className="text-slate-600 text-xs space-y-1 ml-4">
-              <li>✓ Alta precisão em múltiplos idiomas</li>
-              <li>✓ Integração com Google Cloud</li>
-              <li>✓ Reconhecimento em tempo real</li>
-            </ul>
-            <div className="flex items-center gap-2 pt-2">
-              <a
-                href="https://console.cloud.google.com/apis/credentials"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-              >
-                Console do Google Cloud
-                <ExternalLink className="w-3 h-3" />
-              </a>
-              <span className="text-xs text-slate-400">•</span>
-              <a
-                href="https://cloud.google.com/speech-to-text/docs"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-slate-600 hover:underline flex items-center gap-1"
-              >
-                Documentação
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-
-          <div>
-            <Label className="flex items-center gap-2 mb-2">
-              <Key className="w-4 h-4" />
-              API Key
-            </Label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="space-y-2">
+              <Label>API Key do Google Cloud</Label>
+              <div className="relative">
                 <Input
-                  type={mostrarKeys.google ? 'text' : 'password'}
-                  value={apiKeys.GOOGLE_SPEECH_API_KEY}
+                  type={showGoogleKey ? 'text' : 'password'}
+                  value={googleKey}
                   onChange={(e) => {
-                    setApiKeys(prev => ({ ...prev, GOOGLE_SPEECH_API_KEY: e.target.value }));
-                    setEditando(true);
+                    setGoogleKey(e.target.value);
+                    setEditMode(true);
                   }}
-                  placeholder="cole sua API key aqui..."
+                  placeholder="Insira sua API Key"
                   className="pr-10"
                 />
                 <button
-                  onClick={() => setMostrarKeys(prev => ({ ...prev, google: !prev.google }))}
+                  type="button"
+                  onClick={() => setShowGoogleKey(!showGoogleKey)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
-                  {mostrarKeys.google ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showGoogleKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {keyConfigurada('GOOGLE_SPEECH_API_KEY') && (
-                <Button
-                  variant="outline"
-                  onClick={() => testarConexao('google')}
-                  className="gap-2"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  Testar
-                </Button>
-              )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Botões de Ação */}
-      <div className="flex justify-between items-center">
+        {/* tldv.io */}
+        <Card>
+          <CardHeader className="bg-purple-50">
+            <CardTitle className="flex items-center gap-2 text-purple-900">
+              <Globe className="w-5 h-5" />
+              tldv.io
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="space-y-2">
+              <Label>API Key do tldv.io</Label>
+              <div className="relative">
+                <Input
+                  type={showTldvKey ? 'text' : 'password'}
+                  value={tldvKey}
+                  onChange={(e) => {
+                    setTldvKey(e.target.value);
+                    setEditMode(true);
+                  }}
+                  placeholder="Insira sua API Key"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowTldvKey(!showTldvKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showTldvKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Botões */}
+      <div className="flex justify-between">
         <Link to={createPageUrl('Configuracoes')}>
-          <Button variant="outline">
-            Voltar
-          </Button>
+          <Button variant="outline">Voltar</Button>
         </Link>
         <Button
-          onClick={salvarConfiguracao}
-          disabled={!editando}
-          className="bg-[#E31E24] hover:bg-[#B01419] gap-2"
+          onClick={salvarConfiguracoes}
+          disabled={!editMode}
+          className="bg-[#E31E24] hover:bg-[#B01419]"
         >
-          <Save className="w-4 h-4" />
+          <Save className="w-4 h-4 mr-2" />
           Salvar Configurações
         </Button>
       </div>
 
-      {/* Aviso de Segurança */}
+      {/* Aviso */}
       <Card className="border-amber-500 bg-amber-50">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
             <div className="text-sm text-amber-800">
-              <p className="font-semibold mb-1">Segurança das API Keys</p>
-              <p className="text-xs">
-                Suas chaves são armazenadas de forma segura e criptografadas. Apenas administradores podem configurá-las.
-                Nunca compartilhe suas API keys publicamente.
-              </p>
+              <p className="font-semibold mb-1">Segurança</p>
+              <p className="text-xs">Suas chaves são criptografadas e nunca compartilhadas.</p>
             </div>
           </div>
         </CardContent>
