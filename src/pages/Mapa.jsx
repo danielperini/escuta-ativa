@@ -1,26 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
-import { 
-  Search, 
-  Filter, 
-  MapPin, 
-  AlertTriangle,
-  Users,
-  FileText,
-  Layers,
-  X,
-  Lightbulb
-} from 'lucide-react';
-import DetectorRiscos from '../components/mapa/DetectorRiscos';
-import ControlesMapa from '../components/mapa/ControlesMapa';
-import DetalhesRegistroMapa from '../components/mapa/DetalhesRegistroMapa';
+import { MapContainer, TileLayer, useMapEvents, useMap } from 'react-leaflet';
+import { Target, Navigation, Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { toast } from 'sonner';
+import { CamadaRegistros, CamadaStakeholders, CamadaRiscos, CamadaComunidades } from '@/components/mapa/CamadasInterativas';
+import ControlesCamadas from '@/components/mapa/ControlesCamadas';
+import FiltrosGeograficos from '@/components/mapa/FiltrosGeograficos';
+import CriadorRegistroMapa from '@/components/mapa/CriadorRegistroMapa';
+import DetectorRiscos from '@/components/mapa/DetectorRiscos';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -32,13 +22,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const termometroColors = {
-  baixo: '#22c55e',
-  medio: '#f59e0b',
-  alto: '#f97316',
-  critico: '#ef4444'
-};
-
 function MapController({ center, zoom }) {
   const map = useMap();
   useEffect(() => {
@@ -49,488 +32,249 @@ function MapController({ center, zoom }) {
   return null;
 }
 
-export default function Mapa() {
-  const [search, setSearch] = useState('');
-  const [filterTema, setFilterTema] = useState('todos');
-  const [filterRisco, setFilterRisco] = useState('todos');
-  const [filterDataInicio, setFilterDataInicio] = useState('');
-  const [filterDataFim, setFilterDataFim] = useState('');
-  const [camadasVisiveis, setCamadasVisiveis] = useState({
-    comunidades: true,
-    riscos: true,
-    oportunidades: true,
-    registros: true
+function MapClickHandler({ onMapClick, modoGeolocalizacao }) {
+  useMapEvents({
+    click(e) {
+      if (modoGeolocalizacao) {
+        onMapClick(e.latlng);
+      }
+    }
   });
-  const [selectedComunidade, setSelectedComunidade] = useState(null);
-  const [selectedRegistro, setSelectedRegistro] = useState(null);
-  const [mapCenter, setMapCenter] = useState([-14.235, -51.9253]); // Brazil center
-  const [mapZoom, setMapZoom] = useState(4);
+  return null;
+}
 
-  const { data: comunidades = [], isLoading: loadingComunidades } = useQuery({
-    queryKey: ['comunidades-mapa'],
-    queryFn: () => base44.entities.Comunidade.list('-created_date', 100),
-    staleTime: 5 * 60 * 1000
+export default function Mapa() {
+  const [mapCenter, setMapCenter] = useState([-14.235, -51.9253]);
+  const [mapZoom, setMapZoom] = useState(4);
+  const [modoGeolocalizacao, setModoGeolocalizacao] = useState(false);
+  const [coordenadasSelecionadas, setCoordenadasSelecionadas] = useState(null);
+  const [showCriadorDialog, setShowCriadorDialog] = useState(false);
+  
+  const [camadas, setCamadas] = useState({
+    registros: true,
+    stakeholders: true,
+    riscos: true,
+    comunidades: true
+  });
+
+  const [filtros, setFiltros] = useState({
+    busca: '',
+    comunidade: 'todas',
+    temperatura: 'todas',
+    periodo: '30',
+    tipo: 'todos'
   });
 
   const { data: registros = [] } = useQuery({
     queryKey: ['registros-mapa'],
-    queryFn: () => base44.entities.Registro.list('-created_date', 200),
-    staleTime: 30 * 1000,
-    refetchInterval: 2 * 60 * 1000
+    queryFn: () => base44.entities.Registro.list('-data_registro', 500)
   });
 
-  const { data: temas = [] } = useQuery({
-    queryKey: ['temas-mapa'],
-    queryFn: () => base44.entities.Tema.list('-mencoes_total', 50),
-    staleTime: 5 * 60 * 1000
+  const { data: stakeholders = [] } = useQuery({
+    queryKey: ['stakeholders-mapa'],
+    queryFn: async () => {
+      const liderancas = await base44.entities.LiderancaComunitaria.list();
+      const organizacoes = await base44.entities.ProjetoOrganizacao.list();
+      return [...liderancas, ...organizacoes];
+    }
   });
 
   const { data: riscos = [] } = useQuery({
     queryKey: ['riscos-mapa'],
-    queryFn: () => base44.entities.RiscoSocial.list('-created_date', 100),
-    staleTime: 30 * 1000,
-    refetchInterval: 2 * 60 * 1000
+    queryFn: () => base44.entities.RiscoSocial.list()
   });
 
-  const { data: oportunidades = [] } = useQuery({
-    queryKey: ['oportunidades-mapa'],
-    queryFn: () => base44.entities.Oportunidade.list('-created_date', 50),
-    staleTime: 2 * 60 * 1000
+  const { data: comunidades = [] } = useQuery({
+    queryKey: ['comunidades-mapa'],
+    queryFn: () => base44.entities.Comunidade.list()
   });
 
-  const filteredComunidades = comunidades.filter(c => {
-    const matchSearch = !search || 
-      c.nome?.toLowerCase().includes(search.toLowerCase()) ||
-      c.municipio?.toLowerCase().includes(search.toLowerCase());
+  // Aplicar filtros
+  const registrosFiltrados = registros.filter(r => {
+    if (!r.localizacao?.lat || !r.localizacao?.lng) return false;
     
-    const matchRisco = filterRisco === 'todos' || c.termometro_social === filterRisco;
+    const matchBusca = !filtros.busca || 
+      r.titulo?.toLowerCase().includes(filtros.busca.toLowerCase()) ||
+      r.local?.toLowerCase().includes(filtros.busca.toLowerCase());
     
-    return matchSearch && matchRisco;
+    const matchComunidade = filtros.comunidade === 'todas' || r.comunidade === filtros.comunidade;
+    const matchTemperatura = filtros.temperatura === 'todas' || r.temperatura_territorio === filtros.temperatura;
+    const matchTipo = filtros.tipo === 'todos' || r.tipo === filtros.tipo;
+    
+    let matchPeriodo = true;
+    if (filtros.periodo !== 'all') {
+      const dias = parseInt(filtros.periodo);
+      const dataLimite = new Date();
+      dataLimite.setDate(dataLimite.getDate() - dias);
+      const dataRegistro = new Date(r.data_registro || r.created_date);
+      matchPeriodo = dataRegistro >= dataLimite;
+    }
+    
+    return matchBusca && matchComunidade && matchTemperatura && matchTipo && matchPeriodo;
   });
 
-  const filteredRegistros = registros.filter(r => {
-    const matchData = (!filterDataInicio || r.data_registro >= filterDataInicio) &&
-                      (!filterDataFim || r.data_registro <= filterDataFim);
-    
-    const matchRisco = filterRisco === 'todos' || r.temperatura_territorio === filterRisco;
-    
-    return matchData && matchRisco && r.localizacao?.lat && r.localizacao?.lng;
+  const stakeholdersFiltrados = stakeholders.filter(s => {
+    if (!filtros.busca) return true;
+    return s.nome?.toLowerCase().includes(filtros.busca.toLowerCase());
   });
 
-  const comunidadesWithLocation = filteredComunidades.filter(c => 
-    c.localizacao?.lat && c.localizacao?.lng
-  );
+  const riscosFiltrados = riscos.filter(r => {
+    const matchComunidade = filtros.comunidade === 'todas' || r.comunidade === filtros.comunidade;
+    return matchComunidade && r.status === 'ativo';
+  });
 
-  const getRegistrosByComunidade = (comunidadeNome) => {
-    return registros.filter(r => r.comunidade === comunidadeNome);
+  const toggleCamada = (camadaId) => {
+    setCamadas(prev => ({ ...prev, [camadaId]: !prev[camadaId] }));
   };
 
-  const handleComunidadeClick = (comunidade) => {
-    setSelectedComunidade(comunidade);
-    if (comunidade.localizacao?.lat && comunidade.localizacao?.lng) {
-      setMapCenter([comunidade.localizacao.lat, comunidade.localizacao.lng]);
-      setMapZoom(12);
+  const limparFiltros = () => {
+    setFiltros({
+      busca: '',
+      comunidade: 'todas',
+      temperatura: 'todas',
+      periodo: '30',
+      tipo: 'todos'
+    });
+  };
+
+  const obterLocalizacaoAtual = () => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setMapCenter([position.coords.latitude, position.coords.longitude]);
+          setMapZoom(13);
+          toast.success('Localização obtida!');
+        },
+        (error) => {
+          toast.error('Erro ao obter localização');
+        }
+      );
+    } else {
+      toast.error('Geolocalização não disponível');
     }
   };
 
-  const getRiscoPorComunidade = (comunidadeNome) => {
-    return riscos.filter(r => r.comunidade === comunidadeNome && r.status === "ativo");
+  const handleMapClick = (latlng) => {
+    setCoordenadasSelecionadas(latlng);
+    setShowCriadorDialog(true);
+    toast.info('Ponto selecionado! Preencha os dados.');
   };
 
-  const getOportunidadesPorComunidade = (comunidadeNome) => {
-    return oportunidades.filter(o => o.comunidade === comunidadeNome);
+  const contadores = {
+    registros: registrosFiltrados.length,
+    stakeholders: stakeholdersFiltrados.filter(s => s.localizacao?.lat).length,
+    riscos: riscosFiltrados.filter(r => r.localizacao?.lat).length,
+    comunidades: comunidades.filter(c => c.localizacao?.lat).length
   };
 
   return (
     <div className="space-y-6">
       <DetectorRiscos />
-      {/* Header */}
+      
       <div>
         <h2 className="text-2xl font-bold text-slate-900">Mapa Territorial Inteligente</h2>
-        <p className="text-slate-500 mt-1">Visualize comunidades, riscos e oportunidades com análise IA</p>
+        <p className="text-slate-500 mt-1">Visualize camadas de dados interativas com geolocalização</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar */}
-        <div className="space-y-4">
-          <ControlesMapa
-            search={search}
-            setSearch={setSearch}
-            filterRisco={filterRisco}
-            setFilterRisco={setFilterRisco}
-            filterDataInicio={filterDataInicio}
-            setFilterDataInicio={setFilterDataInicio}
-            filterDataFim={filterDataFim}
-            setFilterDataFim={setFilterDataFim}
-            camadasVisiveis={camadasVisiveis}
-            setCamadasVisiveis={setCamadasVisiveis}
-          />
+      {/* Botões de Ação */}
+      <div className="flex gap-3">
+        <Button
+          onClick={obterLocalizacaoAtual}
+          variant="outline"
+          className="gap-2"
+        >
+          <Navigation className="w-4 h-4" />
+          Minha Localização
+        </Button>
+        
+        <Button
+          onClick={() => setModoGeolocalizacao(!modoGeolocalizacao)}
+          className={modoGeolocalizacao ? 'bg-[#E31E24] hover:bg-[#B01419]' : 'bg-slate-600 hover:bg-slate-700'}
+        >
+          <Target className="w-4 h-4 mr-2" />
+          {modoGeolocalizacao ? 'Modo Criação Ativo' : 'Criar Registro no Mapa'}
+        </Button>
+      </div>
 
-          {/* Legend */}
-          <Card className="p-4">
-            <h3 className="font-semibold text-sm text-slate-900 mb-3">Legenda - Termômetro Social</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className="text-slate-600">Baixo</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-amber-500" />
-                <span className="text-slate-600">Médio</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-orange-500" />
-                <span className="text-slate-600">Alto</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <span className="text-slate-600">Crítico</span>
-              </div>
-            </div>
-            <div className="mt-4 pt-3 border-t">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-4 h-4 text-red-600" />
-                <span className="text-xs font-medium">Risco Social</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Lightbulb className="w-4 h-4 text-blue-600" />
-                <span className="text-xs font-medium">Oportunidade</span>
-              </div>
-            </div>
-          </Card>
+      {modoGeolocalizacao && (
+        <Card className="p-4 bg-blue-50 border-2 border-blue-500">
+          <p className="text-sm text-blue-800 flex items-center gap-2">
+            <Target className="w-4 h-4" />
+            <strong>Modo Geolocalização Ativo:</strong> Clique em qualquer ponto do mapa para criar um novo registro
+          </p>
+        </Card>
+      )}
 
-          {/* Communities List */}
-          <Card className="p-4">
-            <h3 className="font-semibold text-sm text-slate-900 mb-3">
-              Comunidades ({filteredComunidades.length})
-            </h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {loadingComunidades ? (
-                Array(3).fill(0).map((_, i) => (
-                  <Skeleton key={i} className="h-12 rounded-lg" />
-                ))
-              ) : filteredComunidades.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-4">Nenhuma comunidade encontrada</p>
-              ) : (
-                filteredComunidades.map(comunidade => (
-                  <div
-                    key={comunidade.id}
-                    onClick={() => handleComunidadeClick(comunidade)}
-                    className={cn(
-                      "flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors",
-                      selectedComunidade?.id === comunidade.id 
-                        ? "bg-[#40916C]/10 border border-[#40916C]" 
-                        : "bg-slate-50 hover:bg-slate-100"
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-slate-400" />
-                      <span className="text-sm font-medium text-slate-700">{comunidade.nome}</span>
-                    </div>
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: termometroColors[comunidade.termometro_social] || termometroColors.baixo }}
-                    />
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-        </div>
-
-        {/* Map */}
-        <div className="lg:col-span-3">
-          <Card className="overflow-hidden h-[600px]">
-            <MapContainer
-              center={mapCenter}
-              zoom={mapZoom}
-              className="h-full w-full"
-              style={{ height: '100%', width: '100%' }}
-            >
-              <MapController center={mapCenter} zoom={mapZoom} />
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              
-              {camadasVisiveis.comunidades && comunidadesWithLocation.map(comunidade => {
-                const regs = getRegistrosByComunidade(comunidade.nome);
-                const riscosLocal = getRiscoPorComunidade(comunidade.nome);
-                const oportunidadesLocal = getOportunidadesPorComunidade(comunidade.nome);
-                const color = termometroColors[comunidade.termometro_social] || termometroColors.baixo;
-                
-                return (
-                  <React.Fragment key={comunidade.id}>
-                    <Circle
-                      center={[comunidade.localizacao.lat, comunidade.localizacao.lng]}
-                      radius={5000}
-                      pathOptions={{
-                        color: color,
-                        fillColor: color,
-                        fillOpacity: 0.3
-                      }}
-                    />
-                    <Marker 
-                      position={[comunidade.localizacao.lat, comunidade.localizacao.lng]}
-                      eventHandlers={{
-                        click: () => setSelectedComunidade(comunidade)
-                      }}
-                    >
-                      <Popup>
-                        <div className="p-2 min-w-48">
-                          <h3 className="font-semibold text-slate-900">{comunidade.nome}</h3>
-                          <p className="text-sm text-slate-500">{comunidade.municipio}, {comunidade.estado}</p>
-                          
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge 
-                              variant="secondary"
-                              style={{ 
-                                backgroundColor: `${color}20`,
-                                color: color
-                              }}
-                            >
-                              {comunidade.termometro_social || 'baixo'}
-                            </Badge>
-                          </div>
-                          
-                          <div className="mt-3 pt-3 border-t border-slate-100 space-y-1">
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <FileText className="w-4 h-4" />
-                              <span>{regs.length} registros</span>
-                            </div>
-                            {riscosLocal.length > 0 && (
-                              <div className="flex items-center gap-2 text-sm text-red-600">
-                                <AlertTriangle className="w-4 h-4" />
-                                <span>{riscosLocal.length} risco(s) ativo(s)</span>
-                              </div>
-                            )}
-                            {oportunidadesLocal.length > 0 && (
-                              <div className="flex items-center gap-2 text-sm text-blue-600">
-                                <Lightbulb className="w-4 h-4" />
-                                <span>{oportunidadesLocal.length} oportunidade(s)</span>
-                              </div>
-                            )}
-                            {comunidade.populacao_estimada && (
-                              <div className="flex items-center gap-2 text-sm text-slate-600">
-                                <Users className="w-4 h-4" />
-                                <span>{comunidade.populacao_estimada.toLocaleString()} habitantes</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  </React.Fragment>
-                );
-              })}
-
-              {/* Registros Individuais */}
-              {camadasVisiveis.registros && filteredRegistros.map(registro => {
-                const color = termometroColors[registro.temperatura_territorio] || termometroColors.baixo;
-                const riscoColor = registro.temperatura_territorio === 'critico' ? '#ef4444' : 
-                                   registro.temperatura_territorio === 'alto' ? '#f97316' :
-                                   registro.temperatura_territorio === 'medio' ? '#f59e0b' : '#22c55e';
-                
-                return (
-                  <Marker 
-                    key={registro.id}
-                    position={[registro.localizacao.lat, registro.localizacao.lng]}
-                    icon={L.divIcon({
-                      className: 'custom-marker',
-                      html: `<div style="background-color: ${riscoColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-                      iconSize: [12, 12],
-                      iconAnchor: [6, 6]
-                    })}
-                    eventHandlers={{
-                      click: () => setSelectedRegistro(registro)
-                    }}
-                  >
-                    <Popup>
-                      <div className="p-2 min-w-64">
-                        <h3 className="font-semibold text-slate-900">{registro.titulo}</h3>
-                        <p className="text-xs text-slate-500 mt-1">{new Date(registro.created_date).toLocaleDateString('pt-BR')}</p>
-                        
-                        <div className="mt-2 space-y-1">
-                          <Badge 
-                            variant="secondary"
-                            style={{ 
-                              backgroundColor: `${color}20`,
-                              color: color
-                            }}
-                          >
-                            {registro.temperatura_territorio || 'baixo'}
-                          </Badge>
-                          
-                          {registro.temas_identificados?.length > 0 && (
-                            <div className="mt-2">
-                              <p className="text-xs text-slate-500">Temas:</p>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {registro.temas_identificados.slice(0, 3).map((t, i) => (
-                                  <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {registro.demandas?.length > 0 && (
-                            <p className="text-xs text-slate-600 mt-2">
-                              {registro.demandas.length} demanda(s) registrada(s)
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
-              })}
-
-              {/* Riscos Sociais */}
-              {camadasVisiveis.riscos && riscos.filter(r => r.status === 'ativo' && r.geolocalizacao).map(risco => {
-                const coords = risco.geolocalizacao.split(',').map(c => parseFloat(c.trim()));
-                if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return null;
-                
-                const riskColor = risco.nivel === 'critico' ? '#dc2626' :
-                                 risco.nivel === 'alto' ? '#ea580c' :
-                                 risco.nivel === 'moderado' ? '#f59e0b' : '#3b82f6';
-                
-                return (
-                  <React.Fragment key={risco.id}>
-                    <Circle
-                      center={[coords[0], coords[1]]}
-                      radius={1000}
-                      pathOptions={{
-                        color: riskColor,
-                        fillColor: riskColor,
-                        fillOpacity: 0.2,
-                        weight: 2,
-                        dashArray: '5, 5'
-                      }}
-                    />
-                    <Marker 
-                      position={[coords[0], coords[1]]}
-                      icon={L.divIcon({
-                        className: 'custom-marker-risk',
-                        html: `<div style="background-color: ${riskColor}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                            <path d="M12 2L1 21h22L12 2zm0 4l8.5 15h-17L12 6zm-1 5v4h2v-4h-2zm0 6v2h2v-2h-2z"/>
-                          </svg>
-                        </div>`,
-                        iconSize: [20, 20],
-                        iconAnchor: [10, 10]
-                      })}
-                    >
-                      <Popup>
-                        <div className="p-2 min-w-64">
-                          <div className="flex items-center gap-2 mb-2">
-                            <AlertTriangle className="w-5 h-5" style={{ color: riskColor }} />
-                            <h3 className="font-semibold text-slate-900">{risco.titulo}</h3>
-                          </div>
-                          <Badge 
-                            style={{ 
-                              backgroundColor: `${riskColor}20`,
-                              color: riskColor
-                            }}
-                          >
-                            {risco.nivel.toUpperCase()}
-                          </Badge>
-                          <p className="text-sm text-slate-700 mt-2">{risco.descricao}</p>
-                          
-                          {risco.causas?.length > 0 && (
-                            <div className="mt-2">
-                              <p className="text-xs font-semibold text-slate-600">Causas:</p>
-                              <ul className="text-xs text-slate-600 list-disc list-inside">
-                                {risco.causas.slice(0, 2).map((c, i) => (
-                                  <li key={i}>{c}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {risco.acoes_preventivas?.length > 0 && (
-                            <div className="mt-2">
-                              <p className="text-xs font-semibold text-emerald-700">Ações Preventivas:</p>
-                              <ul className="text-xs text-emerald-700 list-disc list-inside">
-                                {risco.acoes_preventivas.slice(0, 2).map((a, i) => (
-                                  <li key={i}>{a}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      </Popup>
-                    </Marker>
-                  </React.Fragment>
-                );
-              })}
-            </MapContainer>
-          </Card>
-
-          {/* Selected Registro Details */}
-          {selectedRegistro && (
-            <DetalhesRegistroMapa 
-              registro={selectedRegistro} 
-              onClose={() => setSelectedRegistro(null)} 
+      <div className="relative">
+        <Card className="overflow-hidden h-[700px]">
+          <MapContainer
+            center={mapCenter}
+            zoom={mapZoom}
+            className="h-full w-full"
+            style={{ height: '100%', width: '100%' }}
+          >
+            <MapController center={mapCenter} zoom={mapZoom} />
+            <MapClickHandler 
+              onMapClick={handleMapClick} 
+              modoGeolocalizacao={modoGeolocalizacao} 
             />
-          )}
+            
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
 
-          {/* Selected Community Details */}
-          {selectedComunidade && !selectedRegistro && (
-            <Card className="mt-4 p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg text-slate-900">{selectedComunidade.nome}</h3>
-                  <p className="text-slate-500">{selectedComunidade.municipio}, {selectedComunidade.estado}</p>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setSelectedComunidade(null)}>
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                <div className="bg-slate-50 p-3 rounded-lg">
-                  <p className="text-xs text-slate-500">Termômetro</p>
-                  <p className="font-semibold capitalize" style={{ color: termometroColors[selectedComunidade.termometro_social] }}>
-                    {selectedComunidade.termometro_social || 'Baixo'}
-                  </p>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg">
-                  <p className="text-xs text-slate-500">Registros</p>
-                  <p className="font-semibold text-slate-900">
-                    {getRegistrosByComunidade(selectedComunidade.nome).length}
-                  </p>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg">
-                  <p className="text-xs text-slate-500">Tipo</p>
-                  <p className="font-semibold text-slate-900 capitalize">
-                    {selectedComunidade.tipo?.replace('_', ' ') || '-'}
-                  </p>
-                </div>
-                {selectedComunidade.populacao_estimada && (
-                  <div className="bg-slate-50 p-3 rounded-lg">
-                    <p className="text-xs text-slate-500">População</p>
-                    <p className="font-semibold text-slate-900">
-                      {selectedComunidade.populacao_estimada.toLocaleString()}
-                    </p>
-                  </div>
-                )}
-              </div>
+            <CamadaRegistros registros={registrosFiltrados} visivel={camadas.registros} />
+            <CamadaStakeholders stakeholders={stakeholdersFiltrados} visivel={camadas.stakeholders} />
+            <CamadaRiscos riscos={riscosFiltrados} visivel={camadas.riscos} />
+            <CamadaComunidades comunidades={comunidades} visivel={camadas.comunidades} />
+          </MapContainer>
 
-              {selectedComunidade.principais_temas?.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm text-slate-500 mb-2">Principais Temas</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedComunidade.principais_temas.map((tema, idx) => (
-                      <Badge key={idx} variant="secondary" className="bg-emerald-100 text-emerald-700">
-                        {tema}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </Card>
-          )}
+          <ControlesCamadas 
+            camadas={camadas} 
+            onToggleCamada={toggleCamada}
+            contadores={contadores}
+          />
+          
+          <FiltrosGeograficos 
+            filtros={filtros}
+            onFiltrosChange={setFiltros}
+            comunidades={comunidades}
+            onLimparFiltros={limparFiltros}
+          />
+        </Card>
+
+        {/* Estatísticas Rápidas */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <Card className="p-4">
+            <p className="text-xs text-slate-500">Total Registros</p>
+            <p className="text-2xl font-bold text-[#E31E24]">{registrosFiltrados.length}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-xs text-slate-500">Stakeholders</p>
+            <p className="text-2xl font-bold text-purple-600">{stakeholdersFiltrados.length}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-xs text-slate-500">Riscos Ativos</p>
+            <p className="text-2xl font-bold text-red-600">{riscosFiltrados.length}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-xs text-slate-500">Comunidades</p>
+            <p className="text-2xl font-bold text-emerald-600">{comunidades.length}</p>
+          </Card>
         </div>
       </div>
+
+      <CriadorRegistroMapa
+        open={showCriadorDialog}
+        onClose={() => {
+          setShowCriadorDialog(false);
+          setModoGeolocalizacao(false);
+          setCoordenadasSelecionadas(null);
+        }}
+        coordenadas={coordenadasSelecionadas}
+        comunidades={comunidades}
+      />
     </div>
   );
 }
