@@ -5,9 +5,11 @@ import { FileText, Download, Database, Code, Shield, Zap } from 'lucide-react';
 
 export default function DocumentacaoTecnica() {
   const baixarDocumentacao = () => {
-    const conteudo = `# Societa.ai - Documentação Técnica
+    const conteudo = `SOCIETA.AI - DOCUMENTAÇÃO TÉCNICA
 
-## 📋 Índice
+=====================================================
+
+INDICE
 1. Visão Geral
 2. Arquitetura do Sistema
 3. Stack Tecnológico
@@ -19,9 +21,9 @@ export default function DocumentacaoTecnica() {
 9. Configuração e Deploy
 10. Manutenção e Monitoramento
 
----
+=====================================================
 
-## 1. Visão Geral
+1. VISAO GERAL
 
 ### Propósito
 Societa.ai é uma plataforma de inteligência social para gestão de relacionamento comunitário empresarial. O sistema permite registrar, analisar e gerenciar interações com comunidades territoriais, identificando demandas, riscos sociais, compromissos e continuidades através de IA.
@@ -37,9 +39,9 @@ Societa.ai é uma plataforma de inteligência social para gestão de relacioname
 - 📈 Dashboard com KPIs e visualizações interativas
 - 🔗 Integrações com Google Calendar e Slack
 
----
+=====================================================
 
-## 2. Arquitetura do Sistema
+2. ARQUITETURA DO SISTEMA
 
 ### Estrutura de Pastas
 /
@@ -64,9 +66,9 @@ Usuário → Interface React → Base44 SDK → Backend as a Service
                            ↓
                     Entidades no Banco de Dados
 
----
+=====================================================
 
-## 3. Stack Tecnológico
+3. STACK TECNOLOGICO
 
 ### Frontend
 - **Framework**: React 18.2
@@ -98,9 +100,9 @@ Usuário → Interface React → Base44 SDK → Backend as a Service
   - Detecção de riscos
   - Geração de resumos
 
----
+=====================================================
 
-## 4. Modelo de Dados
+4. MODELO DE DADOS
 
 ### Entidades Principais
 
@@ -145,9 +147,9 @@ Compromissos agendados
 - titulo, data, tipo, status
 - evidencias_realizacao: Array<String>
 
----
+=====================================================
 
-## 5. Funcionalidades Principais
+5. FUNCIONALIDADES PRINCIPAIS
 
 ### Registro Unificado
 **Fluxo**:
@@ -174,9 +176,9 @@ Compromissos agendados
 - Alertas automáticos
 - Status tracking
 
----
+=====================================================
 
-## 6. Backend Functions
+6. BACKEND FUNCTIONS
 
 ### Estrutura Padrão
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
@@ -194,9 +196,9 @@ Deno.serve(async (req) => {
 - syncGoogleCalendar.js: Criar eventos no Google Calendar
 - sendSlackNotification.js: Enviar mensagens no Slack
 
----
+=====================================================
 
-## 7. Integrações Externas
+7. INTEGRACOES EXTERNAS
 
 ### Google Calendar
 - OAuth 2.0 (scopes: calendar.events, calendar.readonly)
@@ -213,9 +215,9 @@ Deno.serve(async (req) => {
 - Campos customizáveis
 - Biblioteca: xlsx@0.18.5
 
----
+=====================================================
 
-## 8. Autenticação e Permissões
+8. AUTENTICACAO E PERMISSOES
 
 ### Sistema de Roles
 - Admin: Acesso total
@@ -234,9 +236,9 @@ Deno.serve(async (req) => {
 - HistoricoPermissoes: Alterações de permissões
 - LGPD compliant
 
----
+=====================================================
 
-## 9. Configuração e Deploy
+9. CONFIGURACAO E DEPLOY
 
 ### Variáveis de Ambiente
 BASE44_APP_ID=auto
@@ -254,9 +256,9 @@ await base44.connectors.requestAuthorization({
   reason: 'Para criar eventos'
 });
 
----
+=====================================================
 
-## 10. Manutenção e Monitoramento
+10. MANUTENCAO E MONITORAMENTO
 
 ### Performance
 - TanStack Query com cache
@@ -274,9 +276,9 @@ await base44.connectors.requestAuthorization({
 - Versionamento via Git
 - Auditoria para rollback
 
----
+=====================================================
 
-## Glossário
+GLOSSARIO
 
 | Termo | Definição |
 |-------|-----------|
@@ -288,9 +290,9 @@ await base44.connectors.requestAuthorization({
 | Continuidade | Vínculo entre registros relacionados |
 | Materialidade | Temas relevantes para comunidade e empresa |
 
----
+=====================================================
 
-## Diagrama de Arquitetura
+DIAGRAMA DE ARQUITETURA
 
 ┌─────────────────────────────────────┐
 │        FRONTEND (React)              │
@@ -305,18 +307,18 @@ await base44.connectors.requestAuthorization({
 │Funcs  │   │DB    │   │APIs   │
 └───────┘   └──────┘   └───────┘
 
----
+=====================================================
 
-**Versão**: 1.0  
-**Data**: Dezembro 2025  
-**Status**: Produção
+Versão: 1.0
+Data: Dezembro 2025
+Status: Producao
 `;
 
-    const blob = new Blob([conteudo], { type: 'text/markdown;charset=utf-8' });
+    const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'DOCUMENTACAO_TECNICA_SOCIETA.md';
+    a.download = 'DOCUMENTACAO_TECNICA_SOCIETA.txt';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -352,7 +354,7 @@ await base44.connectors.requestAuthorization({
             className="bg-blue-600 hover:bg-blue-700 gap-2"
           >
             <Download className="w-5 h-5" />
-            Baixar Documentação (.md)
+            Baixar Documentação (.txt)
           </Button>
         </CardContent>
       </Card>
