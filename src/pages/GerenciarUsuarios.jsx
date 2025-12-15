@@ -54,11 +54,14 @@ import {
   UserX,
   UserCheck,
   Clock,
-  Activity
+  Activity,
+  Lock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import GerenciadorPermissoesGranular from '@/components/permissoes/GerenciadorPermissoesGranular';
+import HistoricoPermissoes from '@/components/permissoes/HistoricoPermissoes';
 
 const ROLES_CONFIG = {
   admin: {
@@ -82,6 +85,7 @@ export default function GerenciarUsuarios() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTeamsDialog, setShowTeamsDialog] = useState(false);
+  const [showPermissoesDialog, setShowPermissoesDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [activeTab, setActiveTab] = useState('usuarios');
@@ -116,6 +120,11 @@ export default function GerenciarUsuarios() {
   const { data: logs = [] } = useQuery({
     queryKey: ['logs-usuarios'],
     queryFn: () => base44.entities.LogAcesso.list('-created_date', 200)
+  });
+
+  const { data: roles = [] } = useQuery({
+    queryKey: ['roles-usuarios'],
+    queryFn: () => base44.entities.Role.list()
   });
 
   const updateUserMutation = useMutation({
@@ -288,7 +297,7 @@ export default function GerenciarUsuarios() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="usuarios">
             <Users className="w-4 h-4 mr-2" />
             Ativos ({usuariosAtivos.length})
@@ -300,6 +309,10 @@ export default function GerenciarUsuarios() {
           <TabsTrigger value="atividade">
             <Activity className="w-4 h-4 mr-2" />
             Logs
+          </TabsTrigger>
+          <TabsTrigger value="historico">
+            <Clock className="w-4 h-4 mr-2" />
+            Histórico
           </TabsTrigger>
         </TabsList>
 
@@ -354,7 +367,11 @@ export default function GerenciarUsuarios() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleEditUser(usuario)}>
                             <Edit className="w-4 h-4 mr-2" />
-                            Editar Permissões
+                            Editar Perfil
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSelectedUser(usuario); setShowPermissoesDialog(true); }}>
+                            <Lock className="w-4 h-4 mr-2" />
+                            Gerenciar Permissões
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => { setSelectedUser(usuario); setShowTeamsDialog(true); }}>
                             <Users className="w-4 h-4 mr-2" />
@@ -464,7 +481,24 @@ export default function GerenciarUsuarios() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="historico" className="space-y-3">
+          <HistoricoPermissoes />
+        </TabsContent>
       </Tabs>
+
+      {/* Dialog Gerenciar Permissões Granulares */}
+      <Dialog open={showPermissoesDialog} onOpenChange={setShowPermissoesDialog}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Permissões - {selectedUser?.full_name}</DialogTitle>
+          </DialogHeader>
+          <GerenciadorPermissoesGranular
+            usuario={selectedUser}
+            onSalvar={() => setShowPermissoesDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog Convidar */}
       <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
