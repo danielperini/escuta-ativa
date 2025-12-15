@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
+import ProcessadorCaderno from './ProcessadorCaderno';
 
 export default function EditorCadernoNota({ nota, onVoltar }) {
   const queryClient = useQueryClient();
@@ -265,7 +266,11 @@ export default function EditorCadernoNota({ nota, onVoltar }) {
         </CardContent>
       </Card>
 
-      {/* Processador removido temporariamente */}
+      {/* Processador de Arquivos */}
+      <ProcessadorCaderno
+        notaId={nota.id}
+        onProcessamentoCompleto={handleProcessamentoCompleto}
+      />
 
       {/* Busca Interna */}
       <Card className="border-2 border-blue-500">
