@@ -880,23 +880,52 @@ Extraia:
                       {arquivo.tipo === 'documento' && <FileText className="w-4 h-4 text-amber-600 flex-shrink-0" />}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-slate-900 truncate">{arquivo.nome}</p>
-                        <p className="text-xs text-slate-500 capitalize">{arquivo.tipo}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs capitalize">{arquivo.tipo}</Badge>
+                          <Badge className="text-xs bg-emerald-100 text-emerald-700">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Processado
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setArquivosProcessados(prev => prev.filter((_, i) => i !== index));
-                        setFormData(prev => ({
-                          ...prev,
-                          arquivos: prev.arquivos.filter((_, i) => i !== index)
-                        }));
-                      }}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {(arquivo.tipo === 'audio' || arquivo.tipo === 'video') && textoConsolidado && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const blob = new Blob([textoConsolidado], { type: 'text/plain;charset=utf-8' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `transcricao_${arquivo.nome.replace(/\.[^/.]+$/, '')}.txt`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          }}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <FileText className="w-4 h-4 mr-1" />
+                          Baixar .txt
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setArquivosProcessados(prev => prev.filter((_, i) => i !== index));
+                          setFormData(prev => ({
+                            ...prev,
+                            arquivos: prev.arquivos.filter((_, i) => i !== index)
+                          }));
+                        }}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
