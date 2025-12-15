@@ -26,12 +26,14 @@ export default function TranscricaoWhisper({ onTranscricaoCompleta, arquivoExter
   // Processar arquivo externo automaticamente
   React.useEffect(() => {
     if (arquivoExterno && !audioBlob) {
-      setAudioBlob(arquivoExterno);
-      setAudioURL(URL.createObjectURL(arquivoExterno));
-      // Transcrever automaticamente
+      const blob = arquivoExterno;
+      setAudioBlob(blob);
+      const url = URL.createObjectURL(blob);
+      setAudioURL(url);
+      // Transcrever automaticamente após carregar
       setTimeout(() => {
-        transcreverAudio(arquivoExterno);
-      }, 100);
+        transcreverAudio(blob);
+      }, 300);
     }
   }, [arquivoExterno]);
   
@@ -188,11 +190,6 @@ Transcreva:`;
       setTranscricaoEditavel(resultado);
       setModoEdicao(true);
 
-      // Passar transcrição automaticamente
-      if (onTranscricaoCompleta) {
-        onTranscricaoCompleta(resultado, file_url);
-      }
-
       toast.success('Áudio transcrito! Revise e edite se necessário.');
       
     } catch (error) {
@@ -239,14 +236,12 @@ Transcreva:`;
 
   const confirmarTranscricao = () => {
     if (onTranscricaoCompleta && transcricaoEditavel) {
-      onTranscricaoCompleta(transcricaoEditavel, audioURL);
+      // Passar tanto a transcrição quanto a URL do arquivo original
+      const fileUrl = audioURL;
+      onTranscricaoCompleta(transcricaoEditavel, fileUrl);
       toast.success('Transcrição adicionada ao registro!');
     }
-    setModoEdicao(false);
-    setTranscricao('');
-    setTranscricaoEditavel('');
-    setAudioBlob(null);
-    setAudioURL(null);
+    limpar();
   };
 
   const downloadTranscricao = () => {

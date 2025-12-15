@@ -690,14 +690,14 @@ Extraia:
   };
 
   const SecaoCollapsible = ({ id, titulo, icone: Icone, children, badge }) => (
-    <Card className={cn("transition-all", secaoExpandida === id && "ring-2 ring-[#40916C]")}>
+    <Card className={cn("transition-all", secaoExpandida === id && "ring-2 ring-[#E31E24]")}>
       <CardHeader 
         className="cursor-pointer hover:bg-slate-50 transition-colors"
         onClick={() => setSecaoExpandida(secaoExpandida === id ? null : id)}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Icone className="w-5 h-5 text-[#40916C]" />
+            <Icone className="w-5 h-5 text-[#E31E24]" />
             <CardTitle className="text-lg">{titulo}</CardTitle>
             {badge}
           </div>
@@ -737,11 +737,11 @@ Extraia:
           </div>
 
         {etapaAtual === 'upload' && (
-          <Card className="border-2 border-dashed border-[#40916C]/30">
+          <Card className="border-2 border-dashed border-[#E31E24]/30">
             <CardContent className="p-8">
               <div className="text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-[#40916C]/10 flex items-center justify-center mx-auto">
-                  <Upload className="w-8 h-8 text-[#40916C]" />
+                <div className="w-16 h-16 rounded-full bg-[#E31E24]/10 flex items-center justify-center mx-auto">
+                  <Upload className="w-8 h-8 text-[#E31E24]" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold">Envie arquivos ou digite</h3>
@@ -757,15 +757,15 @@ Extraia:
                           setMostrarGravador(true);
                           setEtapaAtual('texto');
                         }}
-                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#40916C] transition-all bg-gradient-to-br from-red-50 to-red-100"
+                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl hover:bg-slate-50 hover:border-[#E31E24] transition-all bg-gradient-to-br from-red-50 to-red-100"
                       >
                         <Mic className="w-8 h-8 text-red-600 mb-2 animate-pulse" />
                         <span className="text-sm font-medium">Gravar e Transcrever</span>
                         <span className="text-xs text-slate-400 mt-1">Automático</span>
                       </button>
 
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95">
-                        <Upload className="w-8 h-8 text-[#40916C] mb-2" />
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all active:scale-95">
+                        <Upload className="w-8 h-8 text-[#E31E24] mb-2" />
                         <span className="text-sm font-medium">Upload Áudio</span>
                         <span className="text-xs text-slate-400 mt-1">MP3/WhatsApp/M4A</span>
                         <input 
@@ -798,22 +798,22 @@ Extraia:
                   <div>
                     <h3 className="text-sm font-medium text-slate-700 mb-3">📷 Evidências com OCR</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl">
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95 bg-blue-50">
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all active:scale-95 bg-blue-50">
                         <Camera className="w-8 h-8 text-blue-600 mb-2" />
                         <span className="text-sm font-medium">Foto/OCR</span>
                         <span className="text-xs text-slate-400 mt-1">Extrai texto</span>
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'foto')} disabled={processando} capture="environment" />
                       </label>
 
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all active:scale-95 bg-purple-50">
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all active:scale-95 bg-purple-50">
                         <Video className="w-8 h-8 text-purple-600 mb-2" />
                         <span className="text-sm font-medium">Vídeo</span>
                         <span className="text-xs text-slate-400 mt-1">Transcreve áudio</span>
                         <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={processando} capture="environment" />
                       </label>
 
-                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#40916C] transition-all">
-                        <FileText className="w-8 h-8 text-[#40916C] mb-2" />
+                      <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 hover:border-[#E31E24] transition-all">
+                        <FileText className="w-8 h-8 text-[#E31E24] mb-2" />
                         <span className="text-sm font-medium">PDF/Doc</span>
                         <span className="text-xs text-slate-400 mt-1">Extrai texto</span>
                         <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => handleFileUpload(e, 'documento')} disabled={processando} />
@@ -834,9 +834,9 @@ Extraia:
         )}
 
         {transcricaoTempoReal && (
-          <Card className="border-2 border-[#40916C] bg-gradient-to-br from-emerald-50 to-green-50">
+          <Card className="border-2 border-[#E31E24] bg-gradient-to-br from-red-50 to-pink-50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#2D6A4F]">
+              <CardTitle className="flex items-center gap-2 text-[#E31E24]">
                 <Mic className="w-5 h-5 animate-pulse" />
                 Transcrição em Tempo Real
               </CardTitle>
@@ -871,34 +871,54 @@ Extraia:
         )}
 
         {mostrarGravador && (
-          <TranscricaoWhisper
-            arquivoExterno={arquivosProcessados.find(a => a.processando)?.arquivo}
-            onTranscricaoCompleta={async (transcricao, file_url) => {
-              // Adicionar transcrição ao texto consolidado
-              const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
-              setTextoConsolidado(prev => prev + blocoTranscricao);
-              setMostrarGravador(false);
-              
-              // Atualizar arquivo processado
-              setArquivosProcessados(prev => prev.map(a => 
-                a.processando ? { 
-                  ...a, 
-                  url: file_url, 
-                  processando: false,
-                  transcricao: transcricao
-                } : a
-              ));
-              
-              setFormData(prev => ({
-                ...prev,
-                arquivos: [...prev.arquivos.filter(a => a.url), { 
-                  url: file_url, 
-                  tipo: 'audio', 
-                  nome: arquivosProcessados.find(a => a.processando)?.nome || 'Áudio.mp3' 
-                }]
-              }));
-            }}
-          />
+          <Card className="border-2 border-[#E31E24] bg-gradient-to-br from-red-50 to-pink-50">
+            <CardHeader className="bg-red-100 border-b border-red-200">
+              <CardTitle className="flex items-center justify-between text-[#E31E24]">
+                <div className="flex items-center gap-2">
+                  <Mic className="w-5 h-5" />
+                  Transcrição de Áudio Whisper
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMostrarGravador(false)}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <TranscricaoWhisper
+                arquivoExterno={arquivosProcessados.find(a => a.processando)?.arquivo}
+                onTranscricaoCompleta={async (transcricao, file_url) => {
+                  // Adicionar transcrição ao texto consolidado
+                  const blocoTranscricao = `\n\n--- Transcrição do Áudio ---\n${transcricao}\n`;
+                  setTextoConsolidado(prev => prev + blocoTranscricao);
+                  setMostrarGravador(false);
+                  
+                  // Atualizar arquivo processado
+                  setArquivosProcessados(prev => prev.map(a => 
+                    a.processando ? { 
+                      ...a, 
+                      url: file_url, 
+                      processando: false,
+                      transcricao: transcricao
+                    } : a
+                  ));
+                  
+                  setFormData(prev => ({
+                    ...prev,
+                    arquivos: [...prev.arquivos.filter(a => a.url), { 
+                      url: file_url, 
+                      tipo: 'audio', 
+                      nome: arquivosProcessados.find(a => a.processando)?.nome || 'Áudio.mp3' 
+                    }]
+                  }));
+                }}
+              />
+            </CardContent>
+          </Card>
         )}
 
         {/* Lista de Arquivos Anexados */}
@@ -961,10 +981,17 @@ Extraia:
                         <p className="text-sm font-medium text-slate-900 truncate">{arquivo.nome}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline" className="text-xs capitalize">{arquivo.tipo}</Badge>
-                          <Badge className="text-xs bg-emerald-100 text-emerald-700">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Processado
-                          </Badge>
+                          {arquivo.processando ? (
+                            <Badge className="text-xs bg-blue-100 text-blue-700">
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              Transcrevendo...
+                            </Badge>
+                          ) : (
+                            <Badge className="text-xs bg-emerald-100 text-emerald-700">
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              Processado
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1014,9 +1041,9 @@ Extraia:
         )}
 
         {/* CAIXA DE TEXTO CONSOLIDADA */}
-        <Card className="border-2 border-[#40916C]">
-          <CardHeader className="bg-emerald-50">
-            <CardTitle className="flex items-center gap-2">
+        <Card className="border-2 border-[#E31E24]">
+          <CardHeader className="bg-red-50">
+            <CardTitle className="flex items-center gap-2 text-[#E31E24]">
               <FileText className="w-5 h-5" />
               Texto Consolidado
             </CardTitle>
@@ -1140,7 +1167,7 @@ Ou digite/cole o conteúdo diretamente..."
             <Button
               onClick={() => setEtapaAtual('formulario')}
               size="lg"
-              className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+              className="bg-[#E31E24] hover:bg-[#B01419]"
             >
               <CheckCircle className="w-5 h-5 mr-2" />
               Revisar e Completar Registro

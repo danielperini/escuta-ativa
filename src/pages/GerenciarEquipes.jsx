@@ -264,15 +264,18 @@ export default function GerenciarEquipes() {
       const linkConvite = `${window.location.origin}/aceitar-convite?token=${token}&equipe=${selectedEquipe.id}`;
       await base44.integrations.Core.SendEmail({
         to: inviteData.email,
-        subject: `Convite para equipe: ${selectedEquipe.nome}`,
+        subject: `Convite para equipe: ${selectedEquipe.nome} - Societa.ai`,
         body: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2D6A4F;">Você foi convidado para a equipe ${selectedEquipe.nome}!</h2>
+            <div style="text-align: center; margin-bottom: 30px;">
+              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/6ef53ae31_transparent-Photoroom12.png" alt="Societa.ai" style="height: 60px;" />
+            </div>
+            <h2 style="color: #E31E24;">Você foi convidado para a equipe ${selectedEquipe.nome}!</h2>
             <p><strong>Permissão:</strong> ${PERMISSOES_CONFIG[inviteData.permissao].label}</p>
             <p>${PERMISSOES_CONFIG[inviteData.permissao].descricao}</p>
             <div style="margin: 30px 0;">
               <a href="${linkConvite}" 
-                 style="background-color: #2D6A4F; color: white; padding: 12px 24px; 
+                 style="background-color: #E31E24; color: white; padding: 12px 24px; 
                         text-decoration: none; border-radius: 6px; display: inline-block;">
                 Aceitar Convite
               </a>
@@ -410,7 +413,7 @@ export default function GerenciarEquipes() {
                           <img 
                             src={equipe.foto_url} 
                             alt={equipe.nome}
-                            className="w-16 h-16 rounded-full object-cover border-2 border-[#2D6A4F]"
+                            className="w-16 h-16 rounded-full object-cover border-2 border-[#E31E24]"
                           />
                         ) : (
                           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#E31E24] to-[#FF4D52] flex items-center justify-center text-white text-xl font-bold">
@@ -602,7 +605,7 @@ export default function GerenciarEquipes() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancelar</Button>
-            <Button onClick={handleCreate} disabled={!formData.nome} className="bg-[#2D6A4F]">
+            <Button onClick={handleCreate} disabled={!formData.nome} className="bg-[#E31E24] hover:bg-[#B01419]">
               Criar Equipe
             </Button>
           </DialogFooter>
@@ -680,7 +683,7 @@ export default function GerenciarEquipes() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button>
-            <Button onClick={handleUpdate} className="bg-[#2D6A4F]">Salvar</Button>
+            <Button onClick={handleUpdate} className="bg-[#E31E24] hover:bg-[#B01419]">Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -694,7 +697,7 @@ export default function GerenciarEquipes() {
               {isAdmin(selectedEquipe) && (
                 <Button 
                   size="sm" 
-                  className="bg-[#2D6A4F]"
+                  className="bg-[#E31E24] hover:bg-[#B01419]"
                   onClick={() => {
                     setShowMembersDialog(false);
                     setShowInviteDialog(true);
@@ -718,7 +721,7 @@ export default function GerenciarEquipes() {
               return (
                 <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                   <div className="flex items-center gap-3 flex-1">
-                    <div className="w-12 h-12 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white font-semibold">
+                    <div className="w-12 h-12 rounded-full bg-[#E31E24] flex items-center justify-center text-white font-semibold">
                       {membro.nome?.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1">
@@ -878,7 +881,7 @@ export default function GerenciarEquipes() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowInviteDialog(false)}>Cancelar</Button>
-            <Button onClick={handleInviteMember} disabled={!inviteData.email} className="bg-[#2D6A4F]">
+            <Button onClick={handleInviteMember} disabled={!inviteData.email} className="bg-[#E31E24] hover:bg-[#B01419]">
               <Mail className="w-4 h-4 mr-2" />
               Enviar Convite
             </Button>
