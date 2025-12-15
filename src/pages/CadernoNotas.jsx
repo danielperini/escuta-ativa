@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Search, Trash2, ExternalLink, Calendar } from 'lucide-react';
+import { Plus, FileText, Search, Trash2, ExternalLink, Calendar, Star, Filter, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import EditorCadernoNota from '@/components/caderno/EditorCadernoNota';
@@ -25,6 +25,8 @@ export default function CadernoNotas() {
   const [busca, setBusca] = useState('');
   const [notaSelecionada, setNotaSelecionada] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [filtroFavoritas, setFiltroFavoritas] = useState(false);
+  const [tagSelecionada, setTagSelecionada] = useState(null);
 
   const { data: notas = [], isLoading } = useQuery({
     queryKey: ['caderno-notas'],
@@ -62,11 +64,38 @@ export default function CadernoNotas() {
     }
   });
 
-  const notasFiltradas = notas.filter(n => 
-    n.titulo?.toLowerCase().includes(busca.toLowerCase()) ||
-    n.texto_extraido?.toLowerCase().includes(busca.toLowerCase()) ||
-    n.tags?.some(tag => tag.toLowerCase().includes(busca.toLowerCase()))
-  );
+  const todasTags = [...new Set(notas.flatMap(n => n.tags || []))].sort();
+
+  const toggleFavorita = async (notaId, favoritaAtual) => {
+    try {
+      await base44.entities.CadernoNota.update(notaId, { 
+        favorita: !favoritaAtual,
+        ultima_modificacao: new Date().toISOString()
+      });
+      queryClient.invalidateQueries({ queryKey: ['caderno-notas'] });
+      toast.success(!favoritaAtual ? 'Nota favoritada!' : 'Removida dos favoritos');
+    } catch (error) {
+      toast.error('Erro ao atualizar nota');
+    }
+  };
+
+  const notasFiltradas = notas.filter(n => {
+    // Filtro de favoritas
+    if (filtroFavoritas && !n.favorita) return false;
+    
+    // Filtro de tag específica
+    if (tagSelecionada && !n.tags?.includes(tagSelecionada)) return false;
+    
+    // Busca texto livre
+    if (busca) {
+      const buscaLower = busca.toLowerCase();
+      return n.titulo?.toLowerCase().includes(buscaLower) ||
+             n.texto_extraido?.toLowerCase().includes(buscaLower) ||
+             n.tags?.some(tag => tag.toLowerCase().includes(buscaLower));
+    }
+    
+    return true;
+  });
 
   const getTipoIcon = (tipo) => {
     const icons = {
@@ -119,15 +148,55 @@ export default function CadernoNotas() {
         </Button>
       </div>
 
-      {/* Busca */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-        <Input
-          placeholder="Buscar notas por título, conteúdo ou tags..."
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          className="pl-10"
-        />
+      {/* Busca e Filtros */}
+      <div className="space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Input
+            placeholder="Buscar notas por título, conteúdo ou tags..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="pl-10 pr-10"
+          />
+          {busca && (
+            <button
+              onClick={() => setBusca('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          <Button
+            variant={filtroFavoritas ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFiltroFavoritas(!filtroFavoritas)}
+            className={filtroFavoritas ? "bg-amber-500 hover:bg-amber-600" : ""}
+          >
+            <Star className="w-4 h-4 mr-1" />
+            Favoritas {notas.filter(n => n.favorita).length > 0 && `(${notas.filter(n => n.favorita).length})`}
+          </Button>
+
+          {todasTags.length > 0 && (
+            <>
+              <div className="h-4 w-px bg-slate-300" />
+              <Filter className="w-4 h-4 text-slate-500" />
+              {todasTags.map(tag => (
+                <Button
+                  key={tag}
+                  variant={tagSelecionada === tag ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTagSelecionada(tagSelecionada === tag ? null : tag)}
+                  className={tagSelecionada === tag ? "bg-[#E31E24] hover:bg-[#B01419]" : ""}
+                >
+                  {tag} ({notas.filter(n => n.tags?.includes(tag)).length})
+                </Button>
+              ))}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Grid de Notas */}
@@ -160,7 +229,7 @@ export default function CadernoNotas() {
           {notasFiltradas.map(nota => (
             <Card 
               key={nota.id}
-              className="hover:shadow-lg transition-shadow cursor-pointer"
+              className={`hover:shadow-lg transition-all cursor-pointer ${nota.favorita ? 'ring-2 ring-amber-500' : ''}`}
               onClick={() => setNotaSelecionada(nota)}
             >
               <CardHeader className="pb-3">
@@ -170,18 +239,34 @@ export default function CadernoNotas() {
                     <CardTitle className="text-base truncate">
                       {nota.titulo}
                     </CardTitle>
+                    {nota.favorita && (
+                      <Star className="w-4 h-4 text-amber-500 fill-amber-500 flex-shrink-0" />
+                    )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 -mt-1 -mr-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteId(nota.id);
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorita(nota.id, nota.favorita);
+                      }}
+                    >
+                      <Star className={`w-4 h-4 ${nota.favorita ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}`} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteId(nota.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-600" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -212,15 +297,22 @@ export default function CadernoNotas() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <div className="flex items-center gap-1 text-xs text-slate-500">
-                    <Calendar className="w-3 h-3" />
-                    {format(new Date(nota.created_date), 'dd/MM/yyyy')}
+                <div className="flex items-center justify-between pt-2 border-t text-xs text-slate-500">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      Criado: {format(new Date(nota.created_date), 'dd/MM/yyyy HH:mm')}
+                    </div>
+                    {nota.ultima_modificacao && (
+                      <div className="text-slate-400">
+                        Modificado: {format(new Date(nota.ultima_modificacao), 'dd/MM/yyyy HH:mm')}
+                      </div>
+                    )}
                   </div>
                   {nota.registros_referenciados?.length > 0 && (
-                    <div className="flex items-center gap-1 text-xs text-emerald-600">
+                    <div className="flex items-center gap-1 text-emerald-600">
                       <ExternalLink className="w-3 h-3" />
-                      {nota.registros_referenciados.length} registro{nota.registros_referenciados.length > 1 ? 's' : ''}
+                      {nota.registros_referenciados.length}
                     </div>
                   )}
                 </div>
