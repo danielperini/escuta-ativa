@@ -20,6 +20,7 @@ import {
   Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { createPageUrl } from '@/utils';
 import {
   Select,
   SelectContent,
@@ -145,9 +146,20 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
       setEtapa('');
       
       if (mensagemErro.includes('não configurada')) {
-        toast.error('Configure a API Key em Configurações > Transcrição Externa', {
-          duration: 5000
-        });
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <p className="font-semibold">API Key não configurada</p>
+            <button
+              onClick={() => window.location.href = createPageUrl('ConfiguracaoTranscricao')}
+              className="text-xs underline text-left"
+            >
+              Clique aqui para configurar
+            </button>
+          </div>,
+          {
+            duration: 7000
+          }
+        );
       } else if (mensagemErro.includes('400')) {
         toast.error('Erro de validação. Verifique o formato do arquivo e tente novamente.');
       } else {
@@ -419,14 +431,30 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
 
         {/* Dica de Configuração */}
         {!arquivo && !transcricao && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <p className="text-xs text-amber-800">
-              <Settings className="w-3 h-3 inline mr-1" />
-              <strong>Primeira vez?</strong> Configure suas API Keys em{' '}
-              <a href="/Configuracoes" className="underline font-medium">
-                Configurações &gt; Transcrição Externa
-              </a>
-            </p>
+          <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Settings className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-blue-900 mb-2">
+                  Configure suas API Keys
+                </p>
+                <p className="text-xs text-blue-800 mb-3">
+                  Para usar a transcrição externa, você precisa configurar as chaves de API dos serviços:
+                </p>
+                <ul className="text-xs text-blue-700 space-y-1 mb-3 ml-4">
+                  <li>• <strong>AssemblyAI</strong> - Melhor qualidade, múltiplos idiomas</li>
+                  <li>• <strong>Google Speech-to-Text</strong> - Alternativa confiável</li>
+                </ul>
+                <Button
+                  onClick={() => window.location.href = createPageUrl('ConfiguracaoTranscricao')}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 w-full"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Ir para Configurações
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>
