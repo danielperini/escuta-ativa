@@ -611,11 +611,62 @@ export default function ComunidadesGrupos() {
               </div>
               <div className="space-y-2">
                 <Label>Município *</Label>
-                <Input
-                  value={formComunidade.municipio}
-                  onChange={(e) => setFormComunidade(prev => ({ ...prev, municipio: e.target.value }))}
-                  placeholder="Ex: Belo Horizonte"
-                />
+                <Select 
+                  value={formComunidade.municipio} 
+                  onValueChange={(v) => setFormComunidade(prev => ({ ...prev, municipio: v }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione o município" /></SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <SelectItem value="Abreu e Lima">Abreu e Lima</SelectItem>
+                    <SelectItem value="Aracaju">Aracaju</SelectItem>
+                    <SelectItem value="Barueri">Barueri</SelectItem>
+                    <SelectItem value="Belém">Belém</SelectItem>
+                    <SelectItem value="Belo Horizonte">Belo Horizonte</SelectItem>
+                    <SelectItem value="Betim">Betim</SelectItem>
+                    <SelectItem value="Brasília">Brasília</SelectItem>
+                    <SelectItem value="Cabo de Santo Agostinho">Cabo de Santo Agostinho</SelectItem>
+                    <SelectItem value="Campinas">Campinas</SelectItem>
+                    <SelectItem value="Carapicuíba">Carapicuíba</SelectItem>
+                    <SelectItem value="Contagem">Contagem</SelectItem>
+                    <SelectItem value="Curitiba">Curitiba</SelectItem>
+                    <SelectItem value="Diadema">Diadema</SelectItem>
+                    <SelectItem value="Fortaleza">Fortaleza</SelectItem>
+                    <SelectItem value="Goiânia">Goiânia</SelectItem>
+                    <SelectItem value="Guarulhos">Guarulhos</SelectItem>
+                    <SelectItem value="Ipatinga">Ipatinga</SelectItem>
+                    <SelectItem value="Jaboatão dos Guararapes">Jaboatão dos Guararapes</SelectItem>
+                    <SelectItem value="Maracanaú">Maracanaú</SelectItem>
+                    <SelectItem value="Mauá">Mauá</SelectItem>
+                    <SelectItem value="Montes Claros">Montes Claros</SelectItem>
+                    <SelectItem value="Natal">Natal</SelectItem>
+                    <SelectItem value="Olinda">Olinda</SelectItem>
+                    <SelectItem value="Osasco">Osasco</SelectItem>
+                    <SelectItem value="Parauapebas">Parauapebas</SelectItem>
+                    <SelectItem value="Paulista">Paulista</SelectItem>
+                    <SelectItem value="Porto Alegre">Porto Alegre</SelectItem>
+                    <SelectItem value="Recife">Recife</SelectItem>
+                    <SelectItem value="Ribeirão das Neves">Ribeirão das Neves</SelectItem>
+                    <SelectItem value="Rio de Janeiro">Rio de Janeiro</SelectItem>
+                    <SelectItem value="Salvador">Salvador</SelectItem>
+                    <SelectItem value="Santa Luzia">Santa Luzia</SelectItem>
+                    <SelectItem value="Santo André">Santo André</SelectItem>
+                    <SelectItem value="São Bernardo do Campo">São Bernardo do Campo</SelectItem>
+                    <SelectItem value="São Gonçalo">São Gonçalo</SelectItem>
+                    <SelectItem value="São João de Meriti">São João de Meriti</SelectItem>
+                    <SelectItem value="São Luís">São Luís</SelectItem>
+                    <SelectItem value="São Paulo">São Paulo</SelectItem>
+                    <SelectItem value="Taboão da Serra">Taboão da Serra</SelectItem>
+                    <SelectItem value="Uberlândia">Uberlândia</SelectItem>
+                    <SelectItem value="Outro">Outro (digite manualmente)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {formComunidade.municipio === 'Outro' && (
+                  <Input
+                    placeholder="Digite o município"
+                    onChange={(e) => setFormComunidade(prev => ({ ...prev, municipio: e.target.value }))}
+                    className="mt-2"
+                  />
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Estado *</Label>
@@ -725,10 +776,62 @@ export default function ComunidadesGrupos() {
               </div>
               <div className="space-y-2">
                 <Label>Município *</Label>
-                <Input
-                  value={formComunidade.municipio}
-                  onChange={(e) => setFormComunidade(prev => ({ ...prev, municipio: e.target.value }))}
-                />
+                <Select 
+                  value={formComunidade.municipio} 
+                  onValueChange={(v) => setFormComunidade(prev => ({ ...prev, municipio: v }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione o município" /></SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <SelectItem value="Abreu e Lima">Abreu e Lima</SelectItem>
+                    <SelectItem value="Aracaju">Aracaju</SelectItem>
+                    <SelectItem value="Barueri">Barueri</SelectItem>
+                    <SelectItem value="Belém">Belém</SelectItem>
+                    <SelectItem value="Belo Horizonte">Belo Horizonte</SelectItem>
+                    <SelectItem value="Betim">Betim</SelectItem>
+                    <SelectItem value="Brasília">Brasília</SelectItem>
+                    <SelectItem value="Cabo de Santo Agostinho">Cabo de Santo Agostinho</SelectItem>
+                    <SelectItem value="Campinas">Campinas</SelectItem>
+                    <SelectItem value="Carapicuíba">Carapicuíba</SelectItem>
+                    <SelectItem value="Contagem">Contagem</SelectItem>
+                    <SelectItem value="Curitiba">Curitiba</SelectItem>
+                    <SelectItem value="Diadema">Diadema</SelectItem>
+                    <SelectItem value="Fortaleza">Fortaleza</SelectItem>
+                    <SelectItem value="Goiânia">Goiânia</SelectItem>
+                    <SelectItem value="Guarulhos">Guarulhos</SelectItem>
+                    <SelectItem value="Ipatinga">Ipatinga</SelectItem>
+                    <SelectItem value="Jaboatão dos Guararapes">Jaboatão dos Guararapes</SelectItem>
+                    <SelectItem value="Maracanaú">Maracanaú</SelectItem>
+                    <SelectItem value="Mauá">Mauá</SelectItem>
+                    <SelectItem value="Montes Claros">Montes Claros</SelectItem>
+                    <SelectItem value="Natal">Natal</SelectItem>
+                    <SelectItem value="Olinda">Olinda</SelectItem>
+                    <SelectItem value="Osasco">Osasco</SelectItem>
+                    <SelectItem value="Parauapebas">Parauapebas</SelectItem>
+                    <SelectItem value="Paulista">Paulista</SelectItem>
+                    <SelectItem value="Porto Alegre">Porto Alegre</SelectItem>
+                    <SelectItem value="Recife">Recife</SelectItem>
+                    <SelectItem value="Ribeirão das Neves">Ribeirão das Neves</SelectItem>
+                    <SelectItem value="Rio de Janeiro">Rio de Janeiro</SelectItem>
+                    <SelectItem value="Salvador">Salvador</SelectItem>
+                    <SelectItem value="Santa Luzia">Santa Luzia</SelectItem>
+                    <SelectItem value="Santo André">Santo André</SelectItem>
+                    <SelectItem value="São Bernardo do Campo">São Bernardo do Campo</SelectItem>
+                    <SelectItem value="São Gonçalo">São Gonçalo</SelectItem>
+                    <SelectItem value="São João de Meriti">São João de Meriti</SelectItem>
+                    <SelectItem value="São Luís">São Luís</SelectItem>
+                    <SelectItem value="São Paulo">São Paulo</SelectItem>
+                    <SelectItem value="Taboão da Serra">Taboão da Serra</SelectItem>
+                    <SelectItem value="Uberlândia">Uberlândia</SelectItem>
+                    <SelectItem value="Outro">Outro (digite manualmente)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {formComunidade.municipio === 'Outro' && (
+                  <Input
+                    placeholder="Digite o município"
+                    onChange={(e) => setFormComunidade(prev => ({ ...prev, municipio: e.target.value }))}
+                    className="mt-2"
+                  />
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Estado *</Label>
@@ -865,11 +968,55 @@ export default function ComunidadesGrupos() {
               </div>
               <div className="space-y-2">
                 <Label>Município</Label>
-                <Input
-                  value={formGrupo.municipio}
-                  onChange={(e) => setFormGrupo(prev => ({ ...prev, municipio: e.target.value }))}
-                  placeholder="Ex: São Paulo"
-                />
+                <Select 
+                  value={formGrupo.municipio} 
+                  onValueChange={(v) => setFormGrupo(prev => ({ ...prev, municipio: v }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <SelectItem value={null}>Nenhum</SelectItem>
+                    <SelectItem value="Abreu e Lima">Abreu e Lima</SelectItem>
+                    <SelectItem value="Aracaju">Aracaju</SelectItem>
+                    <SelectItem value="Barueri">Barueri</SelectItem>
+                    <SelectItem value="Belém">Belém</SelectItem>
+                    <SelectItem value="Belo Horizonte">Belo Horizonte</SelectItem>
+                    <SelectItem value="Betim">Betim</SelectItem>
+                    <SelectItem value="Brasília">Brasília</SelectItem>
+                    <SelectItem value="Cabo de Santo Agostinho">Cabo de Santo Agostinho</SelectItem>
+                    <SelectItem value="Campinas">Campinas</SelectItem>
+                    <SelectItem value="Carapicuíba">Carapicuíba</SelectItem>
+                    <SelectItem value="Contagem">Contagem</SelectItem>
+                    <SelectItem value="Curitiba">Curitiba</SelectItem>
+                    <SelectItem value="Diadema">Diadema</SelectItem>
+                    <SelectItem value="Fortaleza">Fortaleza</SelectItem>
+                    <SelectItem value="Goiânia">Goiânia</SelectItem>
+                    <SelectItem value="Guarulhos">Guarulhos</SelectItem>
+                    <SelectItem value="Ipatinga">Ipatinga</SelectItem>
+                    <SelectItem value="Jaboatão dos Guararapes">Jaboatão dos Guararapes</SelectItem>
+                    <SelectItem value="Maracanaú">Maracanaú</SelectItem>
+                    <SelectItem value="Mauá">Mauá</SelectItem>
+                    <SelectItem value="Montes Claros">Montes Claros</SelectItem>
+                    <SelectItem value="Natal">Natal</SelectItem>
+                    <SelectItem value="Olinda">Olinda</SelectItem>
+                    <SelectItem value="Osasco">Osasco</SelectItem>
+                    <SelectItem value="Parauapebas">Parauapebas</SelectItem>
+                    <SelectItem value="Paulista">Paulista</SelectItem>
+                    <SelectItem value="Porto Alegre">Porto Alegre</SelectItem>
+                    <SelectItem value="Recife">Recife</SelectItem>
+                    <SelectItem value="Ribeirão das Neves">Ribeirão das Neves</SelectItem>
+                    <SelectItem value="Rio de Janeiro">Rio de Janeiro</SelectItem>
+                    <SelectItem value="Salvador">Salvador</SelectItem>
+                    <SelectItem value="Santa Luzia">Santa Luzia</SelectItem>
+                    <SelectItem value="Santo André">Santo André</SelectItem>
+                    <SelectItem value="São Bernardo do Campo">São Bernardo do Campo</SelectItem>
+                    <SelectItem value="São Gonçalo">São Gonçalo</SelectItem>
+                    <SelectItem value="São João de Meriti">São João de Meriti</SelectItem>
+                    <SelectItem value="São Luís">São Luís</SelectItem>
+                    <SelectItem value="São Paulo">São Paulo</SelectItem>
+                    <SelectItem value="Taboão da Serra">Taboão da Serra</SelectItem>
+                    <SelectItem value="Uberlândia">Uberlândia</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Estado</Label>
@@ -990,10 +1137,55 @@ export default function ComunidadesGrupos() {
               </div>
               <div className="space-y-2">
                 <Label>Município</Label>
-                <Input
-                  value={formGrupo.municipio}
-                  onChange={(e) => setFormGrupo(prev => ({ ...prev, municipio: e.target.value }))}
-                />
+                <Select 
+                  value={formGrupo.municipio} 
+                  onValueChange={(v) => setFormGrupo(prev => ({ ...prev, municipio: v }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <SelectItem value={null}>Nenhum</SelectItem>
+                    <SelectItem value="Abreu e Lima">Abreu e Lima</SelectItem>
+                    <SelectItem value="Aracaju">Aracaju</SelectItem>
+                    <SelectItem value="Barueri">Barueri</SelectItem>
+                    <SelectItem value="Belém">Belém</SelectItem>
+                    <SelectItem value="Belo Horizonte">Belo Horizonte</SelectItem>
+                    <SelectItem value="Betim">Betim</SelectItem>
+                    <SelectItem value="Brasília">Brasília</SelectItem>
+                    <SelectItem value="Cabo de Santo Agostinho">Cabo de Santo Agostinho</SelectItem>
+                    <SelectItem value="Campinas">Campinas</SelectItem>
+                    <SelectItem value="Carapicuíba">Carapicuíba</SelectItem>
+                    <SelectItem value="Contagem">Contagem</SelectItem>
+                    <SelectItem value="Curitiba">Curitiba</SelectItem>
+                    <SelectItem value="Diadema">Diadema</SelectItem>
+                    <SelectItem value="Fortaleza">Fortaleza</SelectItem>
+                    <SelectItem value="Goiânia">Goiânia</SelectItem>
+                    <SelectItem value="Guarulhos">Guarulhos</SelectItem>
+                    <SelectItem value="Ipatinga">Ipatinga</SelectItem>
+                    <SelectItem value="Jaboatão dos Guararapes">Jaboatão dos Guararapes</SelectItem>
+                    <SelectItem value="Maracanaú">Maracanaú</SelectItem>
+                    <SelectItem value="Mauá">Mauá</SelectItem>
+                    <SelectItem value="Montes Claros">Montes Claros</SelectItem>
+                    <SelectItem value="Natal">Natal</SelectItem>
+                    <SelectItem value="Olinda">Olinda</SelectItem>
+                    <SelectItem value="Osasco">Osasco</SelectItem>
+                    <SelectItem value="Parauapebas">Parauapebas</SelectItem>
+                    <SelectItem value="Paulista">Paulista</SelectItem>
+                    <SelectItem value="Porto Alegre">Porto Alegre</SelectItem>
+                    <SelectItem value="Recife">Recife</SelectItem>
+                    <SelectItem value="Ribeirão das Neves">Ribeirão das Neves</SelectItem>
+                    <SelectItem value="Rio de Janeiro">Rio de Janeiro</SelectItem>
+                    <SelectItem value="Salvador">Salvador</SelectItem>
+                    <SelectItem value="Santa Luzia">Santa Luzia</SelectItem>
+                    <SelectItem value="Santo André">Santo André</SelectItem>
+                    <SelectItem value="São Bernardo do Campo">São Bernardo do Campo</SelectItem>
+                    <SelectItem value="São Gonçalo">São Gonçalo</SelectItem>
+                    <SelectItem value="São João de Meriti">São João de Meriti</SelectItem>
+                    <SelectItem value="São Luís">São Luís</SelectItem>
+                    <SelectItem value="São Paulo">São Paulo</SelectItem>
+                    <SelectItem value="Taboão da Serra">Taboão da Serra</SelectItem>
+                    <SelectItem value="Uberlândia">Uberlândia</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Estado</Label>
