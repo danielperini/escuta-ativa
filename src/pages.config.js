@@ -42,6 +42,7 @@ import ConfiguracoesSistema from './pages/ConfiguracoesSistema';
 import GerenciarEquipesSimples from './pages/GerenciarEquipesSimples';
 import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import ComunidadesGrupos from './pages/ComunidadesGrupos';
+import Documentacao from './pages/Documentacao';
 import __Layout from './Layout.jsx';
 
 
@@ -90,6 +91,7 @@ export const PAGES = {
     "GerenciarEquipesSimples": GerenciarEquipesSimples,
     "GerenciarUsuarios": GerenciarUsuarios,
     "ComunidadesGrupos": ComunidadesGrupos,
+    "Documentacao": Documentacao,
 }
 
 export const pagesConfig = {
