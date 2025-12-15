@@ -113,6 +113,9 @@ export default function Dashboard() {
 
                 <div className="flex justify-start mt-8">
                     <BotaoPanicoAvancado />
+
+      {/* Assistente IA */}
+      <ChatAssistente />
                 </div>
             </div>
         </div>

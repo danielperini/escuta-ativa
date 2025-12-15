@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BarChart3, Target, TrendingUp, Users, AlertTriangle, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import GrafoRede from "../components/analise/GrafoRede";
@@ -9,60 +9,83 @@ import GraficosAnalise from "../components/analise/GraficosAnalise";
 import IndicadoresCompromissos from "../components/analise/IndicadoresCompromissos";
 import ModeloPredicaoTensao from "../components/analise/ModeloPredicaoTensao";
 import LiderancasEmergentes from "../components/analise/LiderancasEmergentes";
-
 import PainelPendencias from "../components/devolutiva/PainelPendencias";
 import IntegradorTextoIA from "../components/analise/IntegradorTextoIA";
+import DashboardTemperaturaRisco from "../components/analise/DashboardTemperaturaRisco";
 
 export default function Analise() {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen p-6" style={{ backgroundColor: '#f8f9fa' }}>
-            <div className="max-w-full mx-auto space-y-6">
-                <div className="flex items-center gap-4">
-                    <Button
-                        variant="outline"
-                        onClick={() => navigate(createPageUrl("Dashboard"))}
-                        style={{ borderColor: '#0B1E33', color: '#0B1E33' }}
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Voltar
-                    </Button>
-                    <h1 className="text-3xl font-bold" style={{ color: '#0B1E33' }}>
-                        Análise Territorial
+        <div className="space-y-6">
+            <div className="flex items-center gap-4">
+                <Button
+                    variant="outline"
+                    onClick={() => navigate(createPageUrl("Dashboard"))}
+                >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Voltar
+                </Button>
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900">
+                        Análise Territorial Avançada
                     </h1>
+                    <p className="text-slate-500">Dashboards interativos e exportação de relatórios</p>
                 </div>
-
-                <Tabs defaultValue="graficos" className="w-full">
-                    <TabsList className="grid w-full grid-cols-5">
-                        <TabsTrigger value="graficos">Gráficos</TabsTrigger>
-                        <TabsTrigger value="indicadores">Compromissos</TabsTrigger>
-                        <TabsTrigger value="pendencias">Pendências</TabsTrigger>
-                        <TabsTrigger value="liderancas">Lideranças</TabsTrigger>
-                        <TabsTrigger value="integrador">Integrador IA</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="graficos" className="mt-6">
-                        <GraficosAnalise />
-                    </TabsContent>
-
-                    <TabsContent value="indicadores" className="mt-6">
-                        <IndicadoresCompromissos />
-                    </TabsContent>
-
-                    <TabsContent value="pendencias" className="mt-6">
-                        <PainelPendencias />
-                    </TabsContent>
-
-                    <TabsContent value="liderancas" className="mt-6">
-                        <LiderancasEmergentes />
-                    </TabsContent>
-
-                    <TabsContent value="integrador" className="mt-6">
-                        <IntegradorTextoIA />
-                    </TabsContent>
-                </Tabs>
             </div>
+
+            <Tabs defaultValue="temperatura" className="w-full">
+                <TabsList className="grid w-full grid-cols-6">
+                    <TabsTrigger value="temperatura">
+                        <AlertTriangle className="w-4 h-4 mr-2" />
+                        Temperatura
+                    </TabsTrigger>
+                    <TabsTrigger value="graficos">
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        Gráficos
+                    </TabsTrigger>
+                    <TabsTrigger value="compromissos">
+                        <Target className="w-4 h-4 mr-2" />
+                        Compromissos
+                    </TabsTrigger>
+                    <TabsTrigger value="pendencias">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Pendências
+                    </TabsTrigger>
+                    <TabsTrigger value="liderancas">
+                        <Users className="w-4 h-4 mr-2" />
+                        Lideranças
+                    </TabsTrigger>
+                    <TabsTrigger value="integrador">
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Integrador IA
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="temperatura" className="mt-6">
+                    <DashboardTemperaturaRisco />
+                </TabsContent>
+
+                <TabsContent value="graficos" className="mt-6">
+                    <GraficosAnalise />
+                </TabsContent>
+
+                <TabsContent value="compromissos" className="mt-6">
+                    <IndicadoresCompromissos />
+                </TabsContent>
+
+                <TabsContent value="pendencias" className="mt-6">
+                    <PainelPendencias />
+                </TabsContent>
+
+                <TabsContent value="liderancas" className="mt-6">
+                    <LiderancasEmergentes />
+                </TabsContent>
+
+                <TabsContent value="integrador" className="mt-6">
+                    <IntegradorTextoIA />
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
