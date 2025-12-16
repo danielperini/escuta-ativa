@@ -5,7 +5,7 @@ import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, Calendar, MapPin, Users, AlertTriangle, FileText, 
-  CheckCircle, Clock, Target, Edit, Loader2, Sparkles, TrendingUp
+  CheckCircle2, Clock, Target, Edit, Loader2, Sparkles, TrendingUp
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,7 @@ const statusConfig = {
   em_aberto: { label: 'Em Aberto', color: 'bg-blue-100 text-blue-700', icon: Clock },
   pendente: { label: 'Pendente', color: 'bg-amber-100 text-amber-700', icon: AlertTriangle },
   em_andamento: { label: 'Em Andamento', color: 'bg-purple-100 text-purple-700', icon: TrendingUp },
-  concluido: { label: 'Concluído', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
+  concluido: { label: 'Concluído', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
   cancelado: { label: 'Cancelado', color: 'bg-slate-100 text-slate-700', icon: Clock }
 };
 

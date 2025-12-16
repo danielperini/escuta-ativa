@@ -9,6 +9,7 @@ import {
   Bell,
   Check,
   CheckCheck,
+  CheckCircle2,
   Trash2,
   Filter,
   AlertTriangle,
@@ -28,7 +29,7 @@ import { createPageUrl } from '@/utils';
 const ICONES_TIPOS = {
   nova_demanda: AlertTriangle,
   demanda_atrasada: Clock,
-  novo_compromisso: CheckCircle,
+  novo_compromisso: CheckCircle2,
   compromisso_atrasado: AlertTriangle,
   nova_agenda: Calendar,
   agenda_atrasada: Clock,

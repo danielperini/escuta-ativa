@@ -18,7 +18,7 @@ export default function Landing() {
         <div className="flex justify-center">
           <img 
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/0e1bf5b7b_ChatGPTImage11dedezde202515_14_03.png"
-            alt="Escuta Ativa"
+            alt="societa.ai"
             className="h-32 object-contain drop-shadow-2xl"
           />
         </div>
@@ -26,12 +26,9 @@ export default function Landing() {
         {/* Title */}
         <div className="space-y-4">
           <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight">
-            Escuta Ativa
+            societa.ai
           </h1>
           <div className="h-1 w-24 bg-[#74C69D] mx-auto rounded-full" />
-          <p className="text-xl md:text-2xl text-[#D8F3DC] font-light">
-            A Voz da Comunidade
-          </p>
         </div>
 
         {/* Subtitle */}
