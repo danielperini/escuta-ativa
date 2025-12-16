@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
-import { Upload, FileText, AlertTriangle, Check, X, Loader2 } from "lucide-react";
+import { Upload, FileText, AlertTriangle, CheckCircle2, X, Loader2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export default function ImportadorCSV({ tipo, onConcluir }) {
@@ -239,7 +239,7 @@ export default function ImportadorCSV({ tipo, onConcluir }) {
                                     </>
                                 ) : (
                                     <>
-                                        <Check className="w-4 h-4 mr-2" />
+                                        <CheckCircle2 className="w-4 h-4 mr-2" />
                                         Importar {itensSelecionados.length} Selecionados
                                     </>
                                 )}
