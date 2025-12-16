@@ -1234,7 +1234,7 @@ Extraia:
               size="lg"
               className="bg-[#E31E24] hover:bg-[#B01419]"
             >
-              <CheckCircle className="w-5 h-5 mr-2" />
+              <CheckCircle2 className="w-5 h-5 mr-2" />
               Revisar e Completar Registro
             </Button>
           </div>
