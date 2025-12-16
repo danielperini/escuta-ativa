@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ArrowRight, Check, X, FileText } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, X, FileText } from "lucide-react";
 
 export default function ResolvedorConflitos({ conflitos, onResolver }) {
     const [decisoes, setDecisoes] = useState({});
@@ -71,7 +71,7 @@ export default function ResolvedorConflitos({ conflitos, onResolver }) {
                                     {conflito.valor_antigo || '(vazio)'}
                                 </p>
                                 {decisoes[conflito.campo] === 'antigo' && (
-                                    <Check className="w-4 h-4 text-blue-600 mt-2" />
+                                    <CheckCircle2 className="w-4 h-4 text-blue-600 mt-2" />
                                 )}
                             </div>
 
@@ -92,7 +92,7 @@ export default function ResolvedorConflitos({ conflitos, onResolver }) {
                                     {conflito.valor_novo || '(vazio)'}
                                 </p>
                                 {decisoes[conflito.campo] === 'novo' && (
-                                    <Check className="w-4 h-4 text-green-600 mt-2" />
+                                    <CheckCircle2 className="w-4 h-4 text-green-600 mt-2" />
                                 )}
                             </div>
                         </div>
@@ -118,7 +118,7 @@ export default function ResolvedorConflitos({ conflitos, onResolver }) {
                         disabled={conflitos.length !== Object.keys(decisoes).length}
                         className="flex-1 bg-green-600 hover:bg-green-700"
                     >
-                        <Check className="w-4 h-4 mr-2" />
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
                         Confirmar Resoluções ({Object.keys(decisoes).length}/{conflitos.length})
                     </Button>
                     <Button variant="outline" onClick={() => onResolver(null)}>
