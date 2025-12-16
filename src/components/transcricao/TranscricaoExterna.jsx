@@ -44,7 +44,7 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
   const [erro, setErro] = useState(null);
   
   // Configurações (carregadas do usuário)
-  const [servico, setServico] = useState('assemblyai');
+  const [servico, setServico] = useState('openai');
   const [idioma, setIdioma] = useState('pt');
   const [identificarFalantes, setIdentificarFalantes] = useState(false);
   const [analiseSentimento, setAnaliseSentimento] = useState(false);
@@ -57,20 +57,8 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
         const user = await base44.auth.me();
         const transcricaoConfig = user?.configuracoes?.transcricao_externa;
         
-        if (transcricaoConfig) {
-          // Definir idioma e opções baseado no serviço selecionado
-          if (servico === 'assemblyai' && transcricaoConfig.assemblyai_config) {
-            setIdioma(transcricaoConfig.assemblyai_config.idioma || 'pt');
-            setIdentificarFalantes(transcricaoConfig.assemblyai_config.speaker_labels || false);
-            setAnaliseSentimento(transcricaoConfig.assemblyai_config.sentiment_analysis || false);
-          } else if (servico === 'openai' && transcricaoConfig.openai_config) {
-            setIdioma(transcricaoConfig.openai_config.idioma || 'pt');
-          } else if (servico === 'google' && transcricaoConfig.google_config) {
-            setIdioma(transcricaoConfig.google_config.idioma || 'pt-BR');
-            setIdentificarFalantes(transcricaoConfig.google_config.enableSpeakerDiarization || false);
-          } else if (servico === 'tldv' && transcricaoConfig.tldv_config) {
-            setIdioma(transcricaoConfig.tldv_config.idioma || 'pt');
-          }
+        if (transcricaoConfig?.openai_config) {
+          setIdioma(transcricaoConfig.openai_config.idioma || 'pt');
         }
       } catch (error) {
         console.warn('Não foi possível carregar configurações do usuário:', error);
@@ -135,7 +123,7 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
       };
 
       setProgresso(50);
-      setEtapa(`Transcrevendo com ${servico === 'assemblyai' ? 'AssemblyAI' : 'Google Speech'}...`);
+      setEtapa('Transcrevendo com OpenAI Whisper...');
 
       const response = await base44.functions.invoke('transcricaoExterna', {
         file_url: servico === 'tldv' ? urlArquivo : file_url,
@@ -241,28 +229,10 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="assemblyai">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-purple-600" />
-                    AssemblyAI (Recomendado)
-                  </div>
-                </SelectItem>
                 <SelectItem value="openai">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-green-600" />
                     OpenAI Whisper
-                  </div>
-                </SelectItem>
-                <SelectItem value="google">
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-blue-600" />
-                    Google Speech-to-Text
-                  </div>
-                </SelectItem>
-                <SelectItem value="tldv">
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-purple-600" />
-                    tldv.io (Reuniões/URLs)
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -305,33 +275,8 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
           )}
         </div>
 
-        {/* URL para tldv.io */}
-        {servico === 'tldv' && !transcricao && (
-          <div className="border-2 border-purple-300 rounded-lg p-4">
-            <Label className="text-sm font-medium mb-2 block">URL da Gravação/Reunião</Label>
-            <Input
-              type="url"
-              placeholder="https://exemplo.com/gravacao.mp4"
-              value={urlArquivo}
-              onChange={(e) => setUrlArquivo(e.target.value)}
-              className="mb-3"
-            />
-            <p className="text-xs text-slate-500 mb-3">
-              Cole a URL pública da gravação. Formatos suportados: MP3, MP4, WAV, M4A, MKV, MOV, AVI, WMA, FLAC
-            </p>
-            <Button
-              onClick={iniciarTranscricao}
-              disabled={processando || !urlArquivo}
-              className="w-full bg-purple-600 hover:bg-purple-700"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Importar e Transcrever
-            </Button>
-          </div>
-        )}
-
         {/* Upload de Arquivo */}
-        {servico !== 'tldv' && !arquivo && !transcricao && (
+        {!arquivo && !transcricao && (
           <div className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
             <label className="cursor-pointer">
               <div className="flex flex-col items-center gap-3">
@@ -343,7 +288,7 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
                     Selecione áudio ou vídeo
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
-                    {servico === 'tldv' ? 'Cole a URL da gravação ou reunião abaixo' : 'MP3, WAV, M4A, OGG, OPUS, MP4, MOV, WEBM (até 500MB)'}
+                    MP3, WAV, M4A, OGG, OPUS, MP4, MOV, WEBM (até 500MB)
                   </p>
                 </div>
               </div>
@@ -510,10 +455,10 @@ export default function TranscricaoExterna({ onTranscricaoCompleta, onTranscrica
                   Para usar a transcrição externa, você precisa configurar as chaves de API dos serviços:
                 </p>
                 <ul className="text-xs text-blue-700 space-y-1 mb-3 ml-4">
-                  <li>• <strong>AssemblyAI</strong> - Melhor qualidade, múltiplos idiomas</li>
-                  <li>• <strong>OpenAI Whisper</strong> - Excelente precisão, 99+ idiomas</li>
-                  <li>• <strong>Google Speech-to-Text</strong> - Alternativa confiável</li>
-                  <li>• <strong>tldv.io</strong> - Importa reuniões de URLs públicas</li>
+                  <li>• <strong>OpenAI Whisper</strong> - Excelente precisão em 99+ idiomas</li>
+                  <li>• 🎯 Alta acurácia em português brasileiro</li>
+                  <li>• ⚡ Processamento rápido e confiável</li>
+                  <li>• 💰 Custo acessível ($0.006/minuto)</li>
                 </ul>
                 <Button
                   onClick={() => window.location.href = createPageUrl('ConfiguracaoTranscricao')}

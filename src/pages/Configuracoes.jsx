@@ -349,7 +349,7 @@ export default function Configuracoes() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <p className="text-sm text-gray-600">
-                        Configure serviços profissionais de transcrição de áudio/vídeo (AssemblyAI, Google Speech-to-Text)
+                      Configure o serviço OpenAI Whisper para transcrição profissional de áudio/vídeo
                     </p>
                     <Link to={createPageUrl('ConfiguracaoTranscricao')}>
                         <Button className="w-full bg-blue-600 hover:bg-blue-700 gap-2">
