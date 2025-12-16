@@ -45,7 +45,6 @@ import ComunidadesGrupos from './pages/ComunidadesGrupos';
 import Documentacao from './pages/Documentacao';
 import CadernoNotas from './pages/CadernoNotas';
 import CentralAnalise from './pages/CentralAnalise';
-import CentralNotificacoes from './pages/CentralNotificacoes';
 import Integracoes from './pages/Integracoes';
 import VisaoGeral from './pages/VisaoGeral';
 import __Layout from './Layout.jsx';
@@ -99,7 +98,6 @@ export const PAGES = {
     "Documentacao": Documentacao,
     "CadernoNotas": CadernoNotas,
     "CentralAnalise": CentralAnalise,
-    "CentralNotificacoes": CentralNotificacoes,
     "Integracoes": Integracoes,
     "VisaoGeral": VisaoGeral,
 }
