@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Check, X, Clock } from "lucide-react";
+import { MessageSquare, CheckCircle2, X, Clock } from "lucide-react";
 import {
     Select,
     SelectContent,
@@ -87,13 +87,13 @@ export default function RegistroDevolutiva({ atividade, onFechar, onSalvar }) {
                             <SelectContent>
                                 <SelectItem value="atendida">
                                     <div className="flex items-center gap-2">
-                                        <Check className="w-4 h-4 text-green-600" />
+                                        <CheckCircle2 className="w-4 h-4 text-green-600" />
                                         Atendida (Demanda resolvida)
                                     </div>
                                 </SelectItem>
                                 <SelectItem value="parcialmente_atendida">
                                     <div className="flex items-center gap-2">
-                                        <Check className="w-4 h-4 text-amber-600" />
+                                        <CheckCircle2 className="w-4 h-4 text-amber-600" />
                                         Parcialmente Atendida
                                     </div>
                                 </SelectItem>
@@ -118,7 +118,7 @@ export default function RegistroDevolutiva({ atividade, onFechar, onSalvar }) {
                             onClick={handleSalvar}
                             className="flex-1 bg-green-600 hover:bg-green-700"
                         >
-                            <Check className="w-4 h-4 mr-2" />
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
                             Confirmar Devolutiva
                         </Button>
                         <Button variant="outline" onClick={onFechar}>
