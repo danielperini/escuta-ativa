@@ -43,7 +43,6 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
   { name: 'Registros', href: 'Registros', icon: FileText },
-  { name: 'Caderno de Notas', href: 'CadernoNotas', icon: FileText },
   { name: 'Agenda', href: 'Agenda', icon: CalendarDays },
   { name: 'Mapa', href: 'Mapa', icon: MapPin },
   { name: 'Materialidade', href: 'Materialidade', icon: Target },
@@ -54,8 +53,7 @@ const navigation = [
   { name: 'Comunidades e Grupos', href: 'ComunidadesGrupos', icon: Home },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
   { name: 'Equipes', href: 'GerenciarEquipes', icon: Users },
-  { name: 'Usuários', href: 'GerenciarUsuarios', icon: User },
-  { name: 'Configurações', href: 'Configuracoes', icon: Settings }
+  { name: 'Usuários', href: 'GerenciarUsuarios', icon: User }
   ];
 
 export default function Layout({ children, currentPageName }) {
