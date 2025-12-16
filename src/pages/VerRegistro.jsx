@@ -18,7 +18,7 @@ import {
   Download,
   Sparkles,
   Loader2,
-  CheckCircle,
+  CheckCircle2,
   Clock,
   AlertTriangle,
   ExternalLink,
@@ -32,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { BotoesExportacao } from "@/components/registro/ExportadorPDF";
 import GeradorRelatorioCompleto from "@/components/registro/GeradorRelatorioCompleto";
+import GoogleMapsViewer from "@/components/integracao/GoogleMapsViewer";
 import { gerarCodigoUnico } from "@/components/codigos/GeradorCodigoUnico";
 
 const tipoConfig = {
@@ -62,6 +63,21 @@ export default function VerRegistro() {
   const queryClient = useQueryClient();
   const [isGeneratingAta, setIsGeneratingAta] = useState(false);
   const [mostrarGerador, setMostrarGerador] = useState(false);
+
+  const getNotaColor = (nota) => {
+    if (nota >= 4) return 'bg-emerald-100 text-emerald-700 border-emerald-300';
+    if (nota >= 3) return 'bg-blue-100 text-blue-700 border-blue-300';
+    if (nota >= 2) return 'bg-amber-100 text-amber-700 border-amber-300';
+    return 'bg-red-100 text-red-700 border-red-300';
+  };
+
+  const getNotaLabel = (nota) => {
+    if (nota === 5) return 'Completo';
+    if (nota >= 4) return 'Bom';
+    if (nota >= 3) return 'Utilizável';
+    if (nota >= 2) return 'Frágil';
+    return 'Crítico';
+  };
 
   const { data: registro, isLoading } = useQuery({
     queryKey: ['registro', registroId],
@@ -195,6 +211,22 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
                 </span>
               )}
             </div>
+
+            {/* Metadados de Autoria */}
+            <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t text-xs text-slate-500">
+              {registro.created_by && (
+                <span>Criado por: <span className="font-medium text-slate-700">{registro.created_by}</span></span>
+              )}
+              {registro.created_date && (
+                <span>em {format(new Date(registro.created_date), "dd/MM/yyyy 'às' HH:mm")}</span>
+              )}
+              {registro.updated_date && registro.updated_date !== registro.created_date && (
+                <>
+                  <span>•</span>
+                  <span>Última atualização: {format(new Date(registro.updated_date), "dd/MM/yyyy 'às' HH:mm")}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -215,6 +247,33 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
           </Link>
         </div>
       </div>
+
+      {/* Nota de Qualidade */}
+      {registro.nota_qualidade !== undefined && (
+        <Card className={cn("border-2", getNotaColor(registro.nota_qualidade))}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-medium">Nota de Qualidade do Registro</p>
+                {registro.observacao_validacao && (
+                  <p className="text-xs mt-1 opacity-80">
+                    {registro.observacao_validacao}
+                  </p>
+                )}
+                {registro.validado_em && (
+                  <p className="text-xs mt-1 opacity-70">
+                    Validado em {format(new Date(registro.validado_em), "dd/MM/yyyy 'às' HH:mm")}
+                  </p>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold">{registro.nota_qualidade}/5</div>
+                <div className="text-sm font-medium mt-1">{getNotaLabel(registro.nota_qualidade)}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
@@ -270,7 +329,7 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
                     {demanda.status && (
                       <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
                         {demanda.status === 'concluida' ? (
-                          <CheckCircle className="w-4 h-4 text-emerald-500" />
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                         ) : (
                           <Clock className="w-4 h-4" />
                         )}
@@ -288,7 +347,7 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-500" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                   Compromissos Assumidos
                 </CardTitle>
               </CardHeader>
@@ -421,6 +480,16 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
             </Card>
           )}
 
+          {/* Mapa de Localização */}
+          {(registro.localizacao?.lat || registro.local) && (
+            <GoogleMapsViewer
+              endereco={registro.local}
+              lat={registro.localizacao?.lat}
+              lng={registro.localizacao?.lng}
+              titulo="Local do Registro"
+            />
+          )}
+
           {/* Arquivos */}
           {registro.arquivos?.length > 0 && (
             <Card>
@@ -451,7 +520,7 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
                     {arquivo.transcricao && (
                       <div className="mt-2 ml-8 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                         <p className="text-xs font-semibold text-emerald-900 mb-1">
-                          <CheckCircle className="w-3 h-3 inline mr-1" />
+                          <CheckCircle2 className="w-3 h-3 inline mr-1" />
                           Transcrição PT-BR:
                         </p>
                         <p className="text-xs text-slate-700 whitespace-pre-wrap">{arquivo.transcricao}</p>
@@ -464,6 +533,54 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
           )}
         </div>
       </div>
+
+      {/* Histórico de Atualizações */}
+      {registro.auditoria?.historico_alteracoes && registro.auditoria.historico_alteracoes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              📜 Histórico de Atualizações
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {registro.auditoria.historico_alteracoes.map((alteracao, idx) => (
+                <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-slate-900">
+                        {alteracao.tipo_operacao || 'Atualização'}
+                      </span>
+                      {alteracao.data_alteracao && (
+                        <span className="text-xs text-slate-500">
+                          {format(new Date(alteracao.data_alteracao), "dd/MM/yyyy 'às' HH:mm")}
+                        </span>
+                      )}
+                    </div>
+                    {alteracao.campo_alterado && (
+                      <p className="text-xs text-slate-600">
+                        Campo: <span className="font-medium">{alteracao.campo_alterado}</span>
+                      </p>
+                    )}
+                    {alteracao.valor_anterior && alteracao.valor_novo && (
+                      <div className="text-xs text-slate-600 mt-1">
+                        <span className="line-through text-red-500">{alteracao.valor_anterior}</span>
+                        {' → '}
+                        <span className="text-emerald-600 font-medium">{alteracao.valor_novo}</span>
+                      </div>
+                    )}
+                    {alteracao.usuario_responsavel && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        Por: {alteracao.usuario_responsavel}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Gerador de Relatório */}
       <GeradorRelatorioCompleto 
