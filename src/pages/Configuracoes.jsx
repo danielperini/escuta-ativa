@@ -112,7 +112,8 @@ export default function Configuracoes() {
         { id: 'kpis', nome: 'Indicadores-Chave (KPIs)', icon: LayoutDashboard },
         { id: 'demandas_recorrentes', nome: 'Demandas Recorrentes', icon: Bell },
         { id: 'devolutivas', nome: 'Monitor de Devolutivas', icon: Clock },
-        { id: 'voz_comunidade', nome: 'Voz da Comunidade', icon: User }
+        { id: 'voz_comunidade', nome: 'Voz da Comunidade', icon: User },
+        { id: 'dicas_relacionamento', nome: 'Dicas de Relacionamento', icon: User }
     ];
 
     if (isLoading) {

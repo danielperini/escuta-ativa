@@ -16,6 +16,7 @@ import VozComunidade from "@/components/dashboard/VozComunidade";
 import MonitorDemandasRecorrentes from "@/components/atores/MonitorDemandasRecorrentes";
 import MonitorDevolutivas from "@/components/devolutiva/MonitorDevolutivas";
 import BotaoPanicoAvancado from "@/components/dashboard/BotaoPanicoAvancado";
+import WidgetDicasRelacionamento from "@/components/dashboard/WidgetDicasRelacionamento";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function Dashboard() {
 
     const widgetsAtivos = user?.configuracoes?.widgets_dashboard || [
         'kpis', 'graficos', 'demandas_recorrentes', 'devolutivas', 
-        'voz_comunidade', 'proximas_agendas', 'riscos_ativos'
+        'voz_comunidade', 'proximas_agendas', 'riscos_ativos', 'dicas_relacionamento'
     ];
 
     const [widgets, setWidgets] = useState(widgetsAtivos);
@@ -182,6 +183,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {widgets.includes('proximas_agendas') && <WidgetProximasAgendas />}
                     {widgets.includes('riscos_ativos') && <WidgetRiscosAtivos />}
+                    {widgets.includes('dicas_relacionamento') && <WidgetDicasRelacionamento />}
                     {widgets.includes('demandas_recorrentes') && (
                         <div className="lg:col-span-2">
                             <MonitorDemandasRecorrentes />
@@ -202,14 +204,6 @@ export default function Dashboard() {
                 {/* Botões de Ação */}
                 <div className="flex flex-wrap gap-3">
                     <BotaoPanicoAvancado />
-                    <Button
-                        variant="outline"
-                        onClick={() => navigate(createPageUrl("DicasRelacionamento"))}
-                        className="gap-2"
-                    >
-                        <Heart className="w-4 h-4" />
-                        Dicas de Relacionamento
-                    </Button>
                 </div>
             </div>
         </div>
