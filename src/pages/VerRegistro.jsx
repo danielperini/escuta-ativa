@@ -18,7 +18,7 @@ import {
   Download,
   Sparkles,
   Loader2,
-  CheckCircle2,
+  CheckCircle,
   Clock,
   AlertTriangle,
   ExternalLink,
@@ -32,7 +32,6 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { BotoesExportacao } from "@/components/registro/ExportadorPDF";
 import GeradorRelatorioCompleto from "@/components/registro/GeradorRelatorioCompleto";
-import GoogleMapsViewer from "@/components/integracao/GoogleMapsViewer";
 import { gerarCodigoUnico } from "@/components/codigos/GeradorCodigoUnico";
 
 const tipoConfig = {
@@ -271,7 +270,7 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
                     {demanda.status && (
                       <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
                         {demanda.status === 'concluida' ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          <CheckCircle className="w-4 h-4 text-emerald-500" />
                         ) : (
                           <Clock className="w-4 h-4" />
                         )}
@@ -289,7 +288,7 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  <CheckCircle className="w-5 h-5 text-emerald-500" />
                   Compromissos Assumidos
                 </CardTitle>
               </CardHeader>
@@ -422,16 +421,6 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
             </Card>
           )}
 
-          {/* Mapa de Localização */}
-          {(registro.localizacao?.lat || registro.local) && (
-            <GoogleMapsViewer
-              endereco={registro.local}
-              lat={registro.localizacao?.lat}
-              lng={registro.localizacao?.lng}
-              titulo="Local do Registro"
-            />
-          )}
-
           {/* Arquivos */}
           {registro.arquivos?.length > 0 && (
             <Card>
@@ -462,7 +451,7 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
                     {arquivo.transcricao && (
                       <div className="mt-2 ml-8 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                         <p className="text-xs font-semibold text-emerald-900 mb-1">
-                          <CheckCircle2 className="w-3 h-3 inline mr-1" />
+                          <CheckCircle className="w-3 h-3 inline mr-1" />
                           Transcrição PT-BR:
                         </p>
                         <p className="text-xs text-slate-700 whitespace-pre-wrap">{arquivo.transcricao}</p>

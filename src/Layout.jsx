@@ -21,8 +21,7 @@ import {
         User,
         Shield,
         Home,
-        Sparkles,
-        CheckCircle2
+        Sparkles
       } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -41,7 +40,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { Plug } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -58,8 +56,7 @@ const navigation = [
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
   { name: 'Central de Análise', href: 'CentralAnalise', icon: Sparkles },
   { name: 'Equipes', href: 'GerenciarEquipes', icon: Users },
-  { name: 'Usuários', href: 'GerenciarUsuarios', icon: User },
-  { name: 'Integrações', href: 'Integracoes', icon: Plug }
+  { name: 'Usuários', href: 'GerenciarUsuarios', icon: User }
   ];
 
 export default function Layout({ children, currentPageName }) {

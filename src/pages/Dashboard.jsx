@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, FileText, Calendar, AlertTriangle, Users, Target, TrendingUp, Heart, Shield, CheckCircle2 } from "lucide-react";
+import { Plus, FileText, Calendar, AlertTriangle, Users, Target, TrendingUp, Heart, Shield, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -216,15 +216,15 @@ export default function Dashboard() {
                                 </p>
                                 <ul className="space-y-2 text-sm text-purple-700">
                                     <li className="flex items-start gap-2">
-                                        <CheckCircle2 className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+                                        <CheckCircle className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
                                         <span>Respeitar a autonomia e decisões das comunidades</span>
                                     </li>
                                     <li className="flex items-start gap-2">
-                                        <CheckCircle2 className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+                                        <CheckCircle className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
                                         <span>Garantir transparência em todas as interações</span>
                                     </li>
                                     <li className="flex items-start gap-2">
-                                        <CheckCircle2 className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+                                        <CheckCircle className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
                                         <span>Manter confidencialidade de informações sensíveis</span>
                                     </li>
                                 </ul>

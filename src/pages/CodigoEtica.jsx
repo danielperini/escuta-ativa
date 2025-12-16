@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { ArrowLeft, Shield, Heart, Lock, FileCheck, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Shield, Heart, Lock, FileCheck, AlertCircle, CheckCircle } from "lucide-react";
 
 export default function CodigoEtica() {
     const navigate = useNavigate();
@@ -20,7 +20,7 @@ export default function CodigoEtica() {
             descricao: "Agir com transparência em todas as interações, comunicando claramente os objetivos, processos e uso das informações coletadas."
         },
         {
-            icon: CheckCircle2,
+            icon: CheckCircle,
             titulo: "Consentimento Informado",
             descricao: "Obter consentimento claro e informado antes de registrar conversas, coletar dados sensíveis ou capturar imagens/vídeos."
         },
@@ -166,7 +166,7 @@ export default function CodigoEtica() {
                         <ul className="space-y-2">
                             {lgpdOrientacoes.map((orientacao, index) => (
                                 <li key={index} className="text-gray-600 flex gap-2">
-                                    <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#F2B632' }} />
+                                    <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#F2B632' }} />
                                     {orientacao}
                                 </li>
                             ))}

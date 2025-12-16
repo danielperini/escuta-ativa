@@ -46,7 +46,6 @@ import Documentacao from './pages/Documentacao';
 import CadernoNotas from './pages/CadernoNotas';
 import CentralAnalise from './pages/CentralAnalise';
 import CentralNotificacoes from './pages/CentralNotificacoes';
-import Integracoes from './pages/Integracoes';
 import __Layout from './Layout.jsx';
 
 
@@ -99,7 +98,6 @@ export const PAGES = {
     "CadernoNotas": CadernoNotas,
     "CentralAnalise": CentralAnalise,
     "CentralNotificacoes": CentralNotificacoes,
-    "Integracoes": Integracoes,
 }
 
 export const pagesConfig = {
