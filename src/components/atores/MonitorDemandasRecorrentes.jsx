@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, TrendingUp, AlertCircle, X } from "lucide-react";
+import { Bell, TrendingUp, AlertCircle, X, CheckCircle2 } from "lucide-react";
 import AutomacaoCompromissos from "./AutomacaoCompromissos";
 
 export default function MonitorDemandasRecorrentes() {
