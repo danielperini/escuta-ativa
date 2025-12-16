@@ -79,15 +79,18 @@ export default function TabelaRegistros({ registros, onExcluir }) {
         ) : (
           registrosPaginados.map(registro => (
             <Card key={registro.id} className="p-4">
-              <Link to={createPageUrl('VerRegistro') + `?id=${registro.id}`}>
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-1">{registro.titulo}</h3>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <Calendar className="w-3 h-3" />
-                      {new Date(registro.created_date || registro.data_registro).toLocaleDateString('pt-BR')}
-                    </div>
+              <div className="space-y-3">
+                <div>
+                  <Link to={createPageUrl('VerRegistro') + `?id=${registro.id}`}>
+                    <h3 className="font-semibold text-slate-900 mb-1 hover:text-[#2D6A4F] transition-colors cursor-pointer">
+                      {registro.titulo}
+                    </h3>
+                  </Link>
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Calendar className="w-3 h-3" />
+                    {new Date(registro.created_date || registro.data_registro).toLocaleDateString('pt-BR')}
                   </div>
+                </div>
                   
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
@@ -136,28 +139,26 @@ export default function TabelaRegistros({ registros, onExcluir }) {
                       )}
                     </div>
                   )}
-                  
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <Link 
-                      to={createPageUrl('RegistroUnificado') + `?editar=${registro.id}`}
-                      className="text-sm text-blue-600 hover:text-blue-700"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Editar
-                    </Link>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onExcluir(registro.id);
-                      }}
-                      className="text-sm text-red-600 hover:text-red-700"
-                    >
-                      Excluir
-                    </button>
-                  </div>
+                
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <Link 
+                    to={createPageUrl('RegistroUnificado') + `?editar=${registro.id}`}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    Editar
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onExcluir(registro.id);
+                    }}
+                    className="text-sm text-red-600 hover:text-red-700"
+                  >
+                    Excluir
+                  </button>
                 </div>
-              </Link>
+              </div>
             </Card>
           ))
         )}
