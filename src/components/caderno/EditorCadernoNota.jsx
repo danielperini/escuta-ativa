@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 import ProcessadorCaderno from './ProcessadorCaderno';
-import TranscricaoExterna from '@/components/transcricao/TranscricaoExterna';
+import TranscricaoNavegador from '@/components/transcricao/TranscricaoNavegador';
 
 export default function EditorCadernoNota({ nota, onVoltar }) {
   const queryClient = useQueryClient();
@@ -273,31 +273,23 @@ export default function EditorCadernoNota({ nota, onVoltar }) {
         onProcessamentoCompleto={handleProcessamentoCompleto}
       />
 
-      {/* Transcrição Externa */}
-      <TranscricaoExterna
-        onTranscricaoCompleta={(transcricao, audioUrl, metadata) => {
-          const servicoNome = metadata?.servico || 'Serviço Externo';
-          const blocoTexto = `\n\n--- 🌐 ${servicoNome} ---\n${transcricao}\n`;
+      {/* Voz Clara - Transcrição no Navegador */}
+      <TranscricaoNavegador
+        onTranscricaoCompleta={(transcricao) => {
+          const blocoTexto = `\n\n--- 🎙️ VOZ CLARA ---\n${transcricao}\n`;
           setTextoExtraido(prev => prev + blocoTexto);
-          setArquivos(prev => [...prev, {
-            url: audioUrl,
-            nome: `Transcrição_${servicoNome}_${Date.now()}.txt`,
-            tipo: 'audio',
-            tamanho: transcricao.length,
-            metadata
-          }]);
           
           saveMutation.mutate({
             titulo,
             texto_extraido: textoExtraido + blocoTexto,
-            arquivos: [...arquivos, {
-              url: audioUrl,
-              nome: `Transcrição_${servicoNome}_${Date.now()}.txt`,
-              tipo: 'audio',
-              tamanho: transcricao.length,
-              metadata
-            }],
             status: 'pronto'
+          });
+        }}
+        onTranscricaoTempoReal={(texto) => {
+          // Preview em tempo real sem salvar ainda
+          setTextoExtraido(prev => {
+            const textoLimpo = prev.replace(/\n\n--- 🎙️ Gravando \(Voz Clara\).*?\n[\s\S]*?(?=\n\n---|$)/g, '');
+            return textoLimpo + `\n\n--- 🎙️ Gravando (Voz Clara) ---\n${texto}\n`;
           });
         }}
       />
