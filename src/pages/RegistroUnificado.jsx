@@ -404,9 +404,39 @@ RETORNE: Apenas o texto extraído formatado, sem comentários ou explicações.`
     try {
       // USAR PROCESSAMENTO EM LOTE ÚNICO
       const analiseCompleta = await processarRegistroCompleto(textoConsolidado, formData.comunidade);
-      
-      // Popular formData com análise completa
-      const demandasProcessadas = (analiseCompleta.demandas || []).map(d => ({
+
+          // Extrair município e estado do texto se não estiverem preenchidos
+          let municipioExtraido = formData.localizacao?.municipio;
+          let estadoExtraido = formData.localizacao?.estado;
+
+          if (!municipioExtraido && textoConsolidado) {
+            try {
+              const localizacaoIA = await base44.integrations.Core.InvokeLLM({
+                prompt: `Identifique o município e estado (UF) mencionados neste texto:
+
+      ${textoConsolidado.substring(0, 2000)}
+
+      Retorne APENAS o município e UF. Se não encontrar, retorne null.`,
+                response_json_schema: {
+                  type: "object",
+                  properties: {
+                    municipio: { type: "string" },
+                    estado: { type: "string" }
+                  }
+                }
+              });
+
+              if (localizacaoIA?.municipio) {
+                municipioExtraido = localizacaoIA.municipio;
+                estadoExtraido = localizacaoIA.estado;
+              }
+            } catch (error) {
+              console.error('Erro ao extrair município:', error);
+            }
+          }
+
+          // Popular formData com análise completa
+          const demandasProcessadas = (analiseCompleta.demandas || []).map(d => ({
         descricao: d.descricao,
         urgencia: d.urgencia || 'media',
         status: 'pendente',
@@ -439,7 +469,10 @@ RETORNE: Apenas o texto extraído formatado, sem comentários ou explicações.`
         compromissos: compromissosProcessados,
         proximos_passos: analiseCompleta.proximos_passos || [],
         resumo_automatico: analiseCompleta.identificacao?.resumo || '',
-        localizacao: analiseCompleta.localizacao || null,
+        localizacao: {
+          municipio: municipioExtraido || analiseCompleta.localizacao?.municipio || '',
+          estado: estadoExtraido || analiseCompleta.localizacao?.estado || ''
+        },
         auditoria: {
           ...prev.auditoria,
           analise_lote_unico: analiseCompleta
@@ -579,10 +612,10 @@ Extraia:
   };
 
   const handleFinalizar = async () => {
-    if (!formData.titulo || !formData.localizacao?.municipio) {
-      alert('Preencha título e município');
-      return;
-    }
+    // Removido validação de campos obrigatórios
+      if (!formData.titulo) {
+        formData.titulo = `Registro ${new Date().toLocaleDateString('pt-BR')}`;
+      }
     
     // Detectar duplicatas
     const duplicatas = await detectarDuplicatas();
@@ -1465,12 +1498,12 @@ Extraia:
             <CardContent>
           <div className="space-y-4">
             <div>
-              <Label>Título *</Label>
+              <Label>Título</Label>
               <Input value={formData.titulo} onChange={(e) => setFormData(p => ({ ...p, titulo: e.target.value }))} placeholder="Ex: Reunião com Associação" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Tipo *</Label>
+                <Label>Tipo</Label>
                 <Select value={formData.tipo} onValueChange={(v) => setFormData(p => ({ ...p, tipo: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -1493,7 +1526,7 @@ Extraia:
                 </Select>
               </div>
               <div>
-                <Label>Município *</Label>
+                <Label>Município (preenchido automaticamente)</Label>
                 <Input 
                   value={formData.localizacao?.municipio || ''} 
                   onChange={(e) => setFormData(p => ({ 
