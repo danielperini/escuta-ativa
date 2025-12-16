@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Plus, FileText } from 'lucide-react';
+import ExportadorDados from '@/components/shared/ExportadorDados';
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
@@ -148,6 +149,19 @@ export default function Registros() {
           </p>
         </div>
         <div className="flex gap-2">
+          <ExportadorDados
+            dados={filteredRegistros}
+            colunas={[
+              { key: 'titulo', label: 'Título' },
+              { key: 'tipo', label: 'Tipo' },
+              { key: 'comunidade', label: 'Comunidade' },
+              { key: 'data_registro', label: 'Data' },
+              { key: 'status', label: 'Status' },
+              { key: 'temperatura_territorio', label: 'Temperatura' }
+            ]}
+            nomeArquivo="registros"
+            titulo="Relatório de Registros"
+          />
           <Link to={createPageUrl('RegistroUnificado')}>
             <Button className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2">
               <Plus className="w-4 h-4" />

@@ -21,7 +21,8 @@ import {
         User,
         Shield,
         Home,
-        Sparkles
+        Sparkles,
+        CheckCircle2
       } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -40,10 +41,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
+import { Plug } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
+  { name: 'Visão Geral', href: 'VisaoGeral', icon: BarChart3 },
   { name: 'Registros', href: 'Registros', icon: FileText },
   { name: 'Agenda', href: 'Agenda', icon: CalendarDays },
   { name: 'Mapa', href: 'Mapa', icon: MapPin },
@@ -56,7 +59,8 @@ const navigation = [
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
   { name: 'Central de Análise', href: 'CentralAnalise', icon: Sparkles },
   { name: 'Equipes', href: 'GerenciarEquipes', icon: Users },
-  { name: 'Usuários', href: 'GerenciarUsuarios', icon: User }
+  { name: 'Usuários', href: 'GerenciarUsuarios', icon: User },
+  { name: 'Integrações', href: 'Integracoes', icon: Plug }
   ];
 
 export default function Layout({ children, currentPageName }) {

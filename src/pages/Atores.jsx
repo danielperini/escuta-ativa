@@ -65,6 +65,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import Pagination from '@/components/shared/Pagination';
+import ExportadorDados from '@/components/shared/ExportadorDados';
 
 const tipoConfig = {
   lideranca: { label: 'Liderança', color: 'bg-purple-100 text-purple-700' },
@@ -190,6 +191,20 @@ export default function Atores() {
           <p className="text-slate-500 mt-1">{atores.length} atores mapeados</p>
         </div>
         <div className="flex gap-2">
+          <ExportadorDados
+            dados={filteredAtores}
+            colunas={[
+              { key: 'nome', label: 'Nome' },
+              { key: 'tipo', label: 'Tipo' },
+              { key: 'comunidade', label: 'Comunidade' },
+              { key: 'cargo', label: 'Cargo' },
+              { key: 'organizacao', label: 'Organização' },
+              { key: 'nivel_influencia', label: 'Influência' },
+              { key: 'nivel_atividade', label: 'Atividade' }
+            ]}
+            nomeArquivo="atores"
+            titulo="Relatório de Atores"
+          />
           <Button 
             variant="outline"
             onClick={() => refetchAtores()}
