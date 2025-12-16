@@ -90,6 +90,8 @@ export default function GerenciarUsuarios() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [activeTab, setActiveTab] = useState('usuarios');
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [agruparPorEquipe, setAgruparPorEquipe] = useState(false);
 
   const [inviteData, setInviteData] = useState({
     email: '',
@@ -200,13 +202,20 @@ export default function GerenciarUsuarios() {
         `
       });
 
-      // Registrar log de convite
+      // Registrar log de auditoria detalhado
       await base44.entities.LogAcesso.create({
         usuario_email: currentUser?.email,
         usuario_nome: currentUser?.full_name,
-        acao: 'criacao',
-        dispositivo: `Convite enviado para ${inviteData.email}`,
-        navegador: navigator.userAgent.split(') ')[1]?.split(' ')[0]
+        acao: 'convite_enviado',
+        dispositivo: `Convite enviado para ${inviteData.email} (${inviteData.full_name})`,
+        navegador: navigator.userAgent.split(') ')[1]?.split(' ')[0],
+        detalhes: JSON.stringify({
+          email_convidado: inviteData.email,
+          nome_convidado: inviteData.full_name,
+          role: inviteData.role,
+          equipes: inviteData.equipes_vincular,
+          timestamp: new Date().toISOString()
+        })
       });
 
       queryClient.invalidateQueries({ queryKey: ['logs-usuarios'] });
@@ -238,8 +247,30 @@ export default function GerenciarUsuarios() {
 
   const handleUpdateUser = async () => {
     try {
+      const alteracoes = [];
+      if (editData.role !== selectedUser.role) alteracoes.push(`Role: ${selectedUser.role} → ${editData.role}`);
+      if (editData.ativo !== selectedUser.ativo) alteracoes.push(`Status: ${selectedUser.ativo ? 'Ativo' : 'Inativo'} → ${editData.ativo ? 'Ativo' : 'Inativo'}`);
+
       await base44.entities.User.update(selectedUser.id, editData);
+      
+      // Log de auditoria detalhado
+      await base44.entities.LogAcesso.create({
+        usuario_email: currentUser?.email,
+        usuario_nome: currentUser?.full_name,
+        acao: 'usuario_editado',
+        dispositivo: `Usuário ${selectedUser.full_name} editado`,
+        navegador: navigator.userAgent.split(') ')[1]?.split(' ')[0],
+        detalhes: JSON.stringify({
+          usuario_editado: selectedUser.email,
+          alteracoes: alteracoes,
+          dados_anteriores: { role: selectedUser.role, ativo: selectedUser.ativo },
+          dados_novos: editData,
+          timestamp: new Date().toISOString()
+        })
+      });
+
       queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['logs-usuarios'] });
       setShowEditDialog(false);
       toast.success('Usuário atualizado!');
     } catch (error) {
@@ -250,7 +281,23 @@ export default function GerenciarUsuarios() {
   const handleDeleteUser = async () => {
     try {
       await base44.entities.User.update(deleteTarget.id, { ativo: false });
+      
+      // Log de auditoria
+      await base44.entities.LogAcesso.create({
+        usuario_email: currentUser?.email,
+        usuario_nome: currentUser?.full_name,
+        acao: 'usuario_desativado',
+        dispositivo: `Usuário ${deleteTarget.full_name} desativado`,
+        navegador: navigator.userAgent.split(') ')[1]?.split(' ')[0],
+        detalhes: JSON.stringify({
+          usuario_desativado: deleteTarget.email,
+          nome: deleteTarget.full_name,
+          timestamp: new Date().toISOString()
+        })
+      });
+
       queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['logs-usuarios'] });
       setShowDeleteDialog(false);
       toast.success('Usuário desativado!');
     } catch (error) {
@@ -280,6 +327,82 @@ export default function GerenciarUsuarios() {
 
   const isCurrentUserAdmin = currentUser?.role === 'admin';
 
+  const toggleSelectUser = (userId) => {
+    setSelectedUsers(prev =>
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUsers.length === usuariosAtivos.filter(u => u.id !== currentUser?.id).length) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(usuariosAtivos.filter(u => u.id !== currentUser?.id).map(u => u.id));
+    }
+  };
+
+  const handleAcoesEmLote = async (acao) => {
+    if (selectedUsers.length === 0) {
+      toast.error('Selecione pelo menos um usuário');
+      return;
+    }
+
+    try {
+      const usuarios = usuariosAtivos.filter(u => selectedUsers.includes(u.id));
+      
+      for (const usuario of usuarios) {
+        if (acao === 'desativar') {
+          await base44.entities.User.update(usuario.id, { ativo: false });
+        } else if (acao === 'ativar') {
+          await base44.entities.User.update(usuario.id, { ativo: true });
+        } else if (acao === 'admin') {
+          await base44.entities.User.update(usuario.id, { role: 'admin' });
+        } else if (acao === 'user') {
+          await base44.entities.User.update(usuario.id, { role: 'user' });
+        }
+      }
+
+      // Log de auditoria em lote
+      await base44.entities.LogAcesso.create({
+        usuario_email: currentUser?.email,
+        usuario_nome: currentUser?.full_name,
+        acao: `acao_lote_${acao}`,
+        dispositivo: `Ação em lote: ${acao} para ${selectedUsers.length} usuário(s)`,
+        navegador: navigator.userAgent.split(') ')[1]?.split(' ')[0],
+        detalhes: JSON.stringify({
+          acao: acao,
+          usuarios_afetados: usuarios.map(u => ({ id: u.id, email: u.email, nome: u.full_name })),
+          quantidade: selectedUsers.length,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['logs-usuarios'] });
+      setSelectedUsers([]);
+      toast.success(`${selectedUsers.length} usuário(s) atualizados!`);
+    } catch (error) {
+      toast.error('Erro ao executar ação em lote');
+    }
+  };
+
+  // Agrupar usuários por equipe
+  const usuariosPorEquipe = agruparPorEquipe
+    ? usuariosAtivos.reduce((acc, usuario) => {
+        const equipesDoUsuario = getEquipesDoUsuario(usuario);
+        if (equipesDoUsuario.length === 0) {
+          if (!acc['sem_equipe']) acc['sem_equipe'] = [];
+          acc['sem_equipe'].push(usuario);
+        } else {
+          equipesDoUsuario.forEach(equipe => {
+            if (!acc[equipe.nome]) acc[equipe.nome] = [];
+            acc[equipe.nome].push(usuario);
+          });
+        }
+        return acc;
+      }, {})
+    : null;
+
   return (
     <div className="space-y-6 pb-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -288,24 +411,82 @@ export default function GerenciarUsuarios() {
           <p className="text-slate-500 mt-1">Controle de acesso e permissões da plataforma</p>
         </div>
         {isCurrentUserAdmin && (
-          <Button onClick={() => setShowInviteDialog(true)} className="bg-[#E31E24] hover:bg-[#B01419]">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Convidar Usuário
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowInviteDialog(true)} className="bg-[#E31E24] hover:bg-[#B01419]">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Convidar Usuário
+            </Button>
+          </div>
         )}
       </div>
 
       <Card className="p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            placeholder="Buscar por nome ou email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Buscar por nome ou email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button
+            variant={agruparPorEquipe ? "default" : "outline"}
+            onClick={() => setAgruparPorEquipe(!agruparPorEquipe)}
+            className="gap-2"
+          >
+            <Users className="w-4 h-4" />
+            Agrupar por Equipe
+          </Button>
         </div>
       </Card>
+
+      {/* Ações em Lote */}
+      {isCurrentUserAdmin && selectedUsers.length > 0 && (
+        <Card className="p-4 bg-gradient-to-r from-blue-50 to-emerald-50 border-2 border-blue-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Badge className="bg-blue-600">{selectedUsers.length} selecionados</Badge>
+              <p className="text-sm font-medium text-slate-700">Ações em Lote:</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleAcoesEmLote('admin')}
+              >
+                <Shield className="w-4 h-4 mr-1" />
+                Tornar Admin
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleAcoesEmLote('user')}
+              >
+                <User className="w-4 h-4 mr-1" />
+                Tornar Usuário
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={() => handleAcoesEmLote('desativar')}
+              >
+                <UserX className="w-4 h-4 mr-1" />
+                Desativar
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedUsers([])}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
@@ -332,7 +513,136 @@ export default function GerenciarUsuarios() {
         </TabsList>
 
         <TabsContent value="usuarios" className="space-y-3">
-          {usuariosAtivos.map(usuario => {
+          {/* Checkbox Selecionar Todos */}
+          {isCurrentUserAdmin && usuariosAtivos.length > 1 && (
+            <Card className="p-3 bg-slate-50">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedUsers.length === usuariosAtivos.filter(u => u.id !== currentUser?.id).length && usuariosAtivos.filter(u => u.id !== currentUser?.id).length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <label className="text-sm font-medium text-slate-700 cursor-pointer" onClick={toggleSelectAll}>
+                  Selecionar todos ({usuariosAtivos.filter(u => u.id !== currentUser?.id).length} usuários)
+                </label>
+              </div>
+            </Card>
+          )}
+
+          {agruparPorEquipe && usuariosPorEquipe ? (
+            Object.entries(usuariosPorEquipe).map(([nomeEquipe, usuariosEquipe]) => (
+              <div key={nomeEquipe} className="space-y-3">
+                <div className="flex items-center gap-2 mt-4">
+                  <Badge variant="outline" className="text-sm">
+                    {nomeEquipe === 'sem_equipe' ? 'Sem Equipe' : nomeEquipe}
+                  </Badge>
+                  <span className="text-xs text-slate-500">{usuariosEquipe.length} usuário(s)</span>
+                </div>
+                {usuariosEquipe.map(usuario => {
+                  const RoleIcon = ROLES_CONFIG[usuario.role]?.icon || User;
+                  const equipesUsuario = getEquipesDoUsuario(usuario);
+
+                  return (
+                    <Card key={usuario.id} className="hover:shadow-md transition-all">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          {isCurrentUserAdmin && usuario.id !== currentUser?.id && (
+                            <Checkbox
+                              checked={selectedUsers.includes(usuario.id)}
+                              onCheckedChange={() => toggleSelectUser(usuario.id)}
+                              className="mr-3"
+                            />
+                          )}
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#E31E24] to-[#FF4D52] flex items-center justify-center text-white text-xl font-bold">
+                              {usuario.full_name?.substring(0, 2).toUpperCase() || 'U'}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-slate-900">{usuario.full_name}</p>
+                                {usuario.id === currentUser?.id && (
+                                  <Badge variant="outline" className="text-xs">Você</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-slate-500">{usuario.email}</p>
+                              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                <Badge className={ROLES_CONFIG[usuario.role]?.color || 'bg-slate-100'}>
+                                  <RoleIcon className="w-3 h-3 mr-1" />
+                                  {ROLES_CONFIG[usuario.role]?.label || 'Usuário'}
+                                </Badge>
+                                {usuario.papeis && usuario.papeis.length > 0 && (
+                                  <Badge className="bg-purple-100 text-purple-700 text-xs">
+                                    <Shield className="w-3 h-3 mr-1" />
+                                    {usuario.papeis.length} papel(eis)
+                                  </Badge>
+                                )}
+                                {equipesUsuario.length > 0 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    <Users className="w-3 h-3 mr-1" />
+                                    {equipesUsuario.length} equipe(s)
+                                  </Badge>
+                                )}
+                                {usuario.created_date && (
+                                  <span className="text-xs text-slate-400">
+                                    Desde {format(new Date(usuario.created_date), 'dd/MM/yyyy', { locale: ptBR })}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {isCurrentUserAdmin && usuario.id !== currentUser?.id && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEditUser(usuario)}>
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Editar Perfil
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { setSelectedUser(usuario); setShowPermissoesDialog(true); }}>
+                                  <Lock className="w-4 h-4 mr-2" />
+                                  Gerenciar Permissões
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { setSelectedUser(usuario); setShowTeamsDialog(true); }}>
+                                  <Users className="w-4 h-4 mr-2" />
+                                  Gerenciar Equipes
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="text-red-600"
+                                  onClick={() => { setDeleteTarget(usuario); setShowDeleteDialog(true); }}
+                                >
+                                  <UserX className="w-4 h-4 mr-2" />
+                                  Desativar Usuário
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
+
+                        {equipesUsuario.length > 0 && (
+                          <div className="mt-3 pt-3 border-t">
+                            <p className="text-xs font-medium text-slate-600 mb-2">Equipes:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {equipesUsuario.map(eq => (
+                                <Badge key={eq.id} variant="outline" className="text-xs">
+                                  {eq.nome}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ))
+          ) : (
+            usuariosAtivos.map(usuario => {
             const RoleIcon = ROLES_CONFIG[usuario.role]?.icon || User;
             const equipesUsuario = getEquipesDoUsuario(usuario);
 
@@ -340,6 +650,13 @@ export default function GerenciarUsuarios() {
               <Card key={usuario.id} className="hover:shadow-md transition-all">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
+                    {isCurrentUserAdmin && usuario.id !== currentUser?.id && (
+                      <Checkbox
+                        checked={selectedUsers.includes(usuario.id)}
+                        onCheckedChange={() => toggleSelectUser(usuario.id)}
+                        className="mr-3"
+                      />
+                    )}
                     <div className="flex items-center gap-4 flex-1">
                       <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#E31E24] to-[#FF4D52] flex items-center justify-center text-white text-xl font-bold">
                         {usuario.full_name?.substring(0, 2).toUpperCase() || 'U'}
@@ -426,7 +743,8 @@ export default function GerenciarUsuarios() {
                 </CardContent>
               </Card>
             );
-          })}
+          })
+          )}
         </TabsContent>
 
         <TabsContent value="inativos" className="space-y-3">
@@ -477,26 +795,59 @@ export default function GerenciarUsuarios() {
                 {logs.length === 0 ? (
                   <p className="text-center text-slate-500 py-8">Nenhuma atividade registrada</p>
                 ) : (
-                  logs.slice(0, 50).map((log, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg text-sm">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-[#E31E24] flex items-center justify-center text-white font-semibold">
-                          {log.usuario_nome?.substring(0, 2).toUpperCase()}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900">{log.usuario_nome}</p>
-                          <p className="text-xs text-slate-500">{log.usuario_email}</p>
+                  logs.slice(0, 100).map((log, idx) => {
+                    const detalhes = log.detalhes ? JSON.parse(log.detalhes) : null;
+                    
+                    return (
+                      <div key={idx} className="p-4 bg-slate-50 rounded-lg border-l-4 border-l-[#E31E24]">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3 flex-1">
+                            <div className="w-10 h-10 rounded-full bg-[#E31E24] flex items-center justify-center text-white font-semibold shrink-0">
+                              {log.usuario_nome?.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-semibold text-slate-900">{log.usuario_nome}</p>
+                                <Badge variant="outline" className="text-xs">
+                                  {log.acao?.replace(/_/g, ' ')}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-slate-600 mb-2">{log.dispositivo}</p>
+                              <p className="text-xs text-slate-500">{log.usuario_email}</p>
+                              
+                              {detalhes && (
+                                <div className="mt-2 p-2 bg-white rounded border text-xs">
+                                  {detalhes.alteracoes && (
+                                    <div className="mb-1">
+                                      <strong>Alterações:</strong>
+                                      <ul className="ml-4 mt-1 list-disc">
+                                        {detalhes.alteracoes.map((alt, i) => (
+                                          <li key={i}>{alt}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  {detalhes.quantidade && (
+                                    <p><strong>Quantidade:</strong> {detalhes.quantidade} usuário(s)</p>
+                                  )}
+                                  {detalhes.role && (
+                                    <p><strong>Nível de acesso:</strong> {detalhes.role}</p>
+                                  )}
+                                  {detalhes.email_convidado && (
+                                    <p><strong>Email convidado:</strong> {detalhes.email_convidado}</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-slate-500 shrink-0">
+                            <Clock className="w-3 h-3" />
+                            {format(new Date(log.created_date), 'dd/MM HH:mm', { locale: ptBR })}
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="text-xs">{log.acao}</Badge>
-                        <div className="flex items-center gap-1 text-xs text-slate-500">
-                          <Clock className="w-3 h-3" />
-                          {format(new Date(log.created_date), 'dd/MM HH:mm', { locale: ptBR })}
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </CardContent>
