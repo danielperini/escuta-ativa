@@ -209,11 +209,21 @@ export default function GerenciarUsuarios() {
         navegador: navigator.userAgent.split(') ')[1]?.split(' ')[0]
       });
 
+      queryClient.invalidateQueries({ queryKey: ['logs-usuarios'] });
       setShowInviteDialog(false);
       setInviteData({ email: '', full_name: '', role: 'user', equipes_vincular: [] });
-      toast.success('Convite enviado! O usuário receberá um email.');
+      
+      // Mensagem de sucesso detalhada
+      toast.success(`✅ Convite enviado para ${inviteData.full_name}!`, {
+        description: `Um email foi enviado para ${inviteData.email} com as instruções de acesso.`,
+        duration: 5000
+      });
     } catch (error) {
-      toast.error('Erro ao enviar convite: ' + error.message);
+      console.error('Erro ao enviar convite:', error);
+      toast.error(`❌ Erro ao enviar convite: ${error.message}`, {
+        description: 'Verifique o email e tente novamente.',
+        duration: 5000
+      });
     }
   };
 
