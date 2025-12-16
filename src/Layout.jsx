@@ -3,28 +3,29 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { 
-        LayoutDashboard, 
-        FileText, 
-        MapPin, 
-        Users as UsersIcon,
-        Users, 
-        Target, 
-        MessageCircle,
-        CheckSquare,
-        Settings,
-        Menu,
-        X,
-        LogOut,
-        ChevronDown,
-        CalendarDays,
-        BarChart3,
-        User,
-        Shield,
-        Home,
-        Sparkles,
-        CheckCircle2,
-        Plug
-      } from 'lucide-react';
+          LayoutDashboard, 
+          FileText, 
+          MapPin, 
+          Users as UsersIcon,
+          Users, 
+          Target, 
+          MessageCircle,
+          CheckSquare,
+          Settings,
+          Menu,
+          X,
+          LogOut,
+          ChevronDown,
+          CalendarDays,
+          BarChart3,
+          User,
+          Shield,
+          Home,
+          Sparkles,
+          CheckCircle2,
+          Plug,
+          CheckCircle
+        } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
 import NotificationGenerator from "@/components/NotificationGenerator";
