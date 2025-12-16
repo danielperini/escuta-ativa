@@ -111,7 +111,7 @@ export default function VozComunidade() {
     return acc;
   }, {});
 
-  // Get relevant speeches - APENAS declarações diretas de pessoas (não atas)
+  // FILTRO: APENAS falas reais da comunidade (declarações diretas de pessoas)
   const falas30Dias = registros
     .filter(r => {
       const dataRegistro = r.created_date || r.data_registro;
@@ -120,27 +120,46 @@ export default function VozComunidade() {
       
       if (daysDiff > 30 || !r.transcricao || r.transcricao.length < 100) return false;
       
-      // FILTRO RIGOROSO: Excluir atas e documentos formais
       const tituloLower = (r.titulo || '').toLowerCase();
-      const transcricaoLower = r.transcricao.toLowerCase();
-      const inicio = r.transcricao.substring(0, 150).toLowerCase();
+      const transcricao = r.transcricao || '';
+      const transcricaoLower = transcricao.toLowerCase();
+      const primeiras300 = transcricao.substring(0, 300);
+      const primeiras300Lower = primeiras300.toLowerCase();
       
-      const eAta = 
+      // ❌ EXCLUIR TUDO QUE FOR:
+      // - Ata formal (estrutura administrativa)
+      // - Relato institucional
+      // - Documento com cabeçalho formal
+      // - Texto formatado com ** (markdown de atas)
+      const eDocumentoFormal = 
         tituloLower.includes('ata') ||
         tituloLower.includes('reunião') ||
-        tituloLower.includes('relato') ||
-        inicio.includes('ata de') ||
-        inicio.includes('reunião') ||
-        inicio.includes('data:') ||
-        inicio.includes('horário:') ||
-        inicio.includes('participantes:') ||
-        transcricaoLower.includes('governador valadares') && inicio.includes('**');
+        tituloLower.includes('relato de') ||
+        primeiras300Lower.includes('ata de') ||
+        primeiras300Lower.includes('reunião') ||
+        primeiras300Lower.includes('data:') ||
+        primeiras300Lower.includes('horário:') ||
+        primeiras300Lower.includes('local:') ||
+        primeiras300Lower.includes('participantes:') ||
+        primeiras300Lower.includes('município:') ||
+        primeiras300Lower.includes('duração:') ||
+        primeiras300.includes('**') ||
+        /^(data|horário|local|participantes):/mi.test(primeiras300) ||
+        transcricaoLower.includes('ata de reunião') ||
+        transcricaoLower.includes('relato de impactos');
       
-      // ACEITAR: Apenas falas diretas, conversas, declarações
+      if (eDocumentoFormal) return false;
+      
+      // ✅ ACEITAR APENAS SE:
+      // - Tipo correto (conversa ou visita)
+      // - Tem participante identificado
+      // - Não é documento formal
       const eFalaReal = 
-        r.participantes && r.participantes.length > 0 &&
-        !eAta &&
-        (r.tipo === 'conversa_campo' || r.tipo === 'visita');
+        (r.tipo === 'conversa_campo' || r.tipo === 'visita') &&
+        r.participantes && 
+        r.participantes.length > 0 &&
+        r.participantes[0] !== 'Participantes' && // Excluir genérico
+        !r.participantes[0].toLowerCase().includes('aproximadamente'); // Excluir contagem
       
       return eFalaReal;
     })
@@ -204,53 +223,83 @@ export default function VozComunidade() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <MessageCircle className="w-5 h-5 text-[#40916C]" />
-              Falas Relevantes (últimos 30 dias)
+              Voz da Comunidade - Falas Reais
             </CardTitle>
+            <p className="text-xs text-slate-500 mt-1">Declarações diretas das pessoas, sem filtros institucionais</p>
           </CardHeader>
           <CardContent className="space-y-3">
-            {paginatedFalas.map(registro => (
-              <div 
-                key={registro.id}
-                className="p-4 bg-slate-50 rounded-lg border-l-4 border-l-[#40916C] hover:bg-slate-100 transition-colors cursor-pointer"
-                onClick={() => window.location.href = createPageUrl(`VerRegistro?id=${registro.id}`)}
-              >
-                <div className="flex items-start gap-3 mb-2">
-                  <MessageCircle className="w-4 h-4 text-[#40916C] flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm text-slate-700 italic">
-                      "{registro.transcricao?.substring(0, 300)}..."
-                    </p>
-                    {registro.participantes?.[0] && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        — {registro.participantes[0]}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
-                  {registro.comunidade && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {registro.comunidade}
-                    </span>
-                  )}
-                  {registro.participantes?.[0] && (
-                    <span className="flex items-center gap-1">
-                      <Users className="w-3 h-3" />
-                      {registro.participantes[0]}
-                    </span>
-                  )}
-                  {registro.sentimento && (
-                    <Badge variant="outline" className={cn("text-xs", sentimentoConfig[registro.sentimento]?.color)}>
-                      {sentimentoConfig[registro.sentimento]?.label}
-                    </Badge>
-                  )}
-                  <span>
-                    {format(new Date(registro.created_date || registro.data_registro), "dd/MM/yyyy", { locale: ptBR })}
-                  </span>
-                </div>
+            {paginatedFalas.length === 0 ? (
+              <div className="text-center py-8 text-slate-500 text-sm">
+                <MessageCircle className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                <p>Não há falas diretas da comunidade registradas ainda.</p>
+                <p className="text-xs mt-1">Registre conversas de campo ou visitas com transcrições para visualizá-las aqui.</p>
               </div>
-            ))}
+            ) : (
+              paginatedFalas.map(registro => {
+                const falaLimpa = registro.transcricao?.trim() || '';
+                const temas = registro.temas_identificados?.slice(0, 2) || [];
+                
+                return (
+                  <div 
+                    key={registro.id}
+                    className="p-4 bg-white rounded-lg border-l-4 border-l-[#40916C] shadow-sm hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => window.location.href = createPageUrl(`VerRegistro?id=${registro.id}`)}
+                  >
+                    <div className="space-y-3">
+                      {/* Fala literal */}
+                      <div className="flex items-start gap-3">
+                        <MessageCircle className="w-4 h-4 text-[#40916C] flex-shrink-0 mt-1" />
+                        <p className="text-sm text-slate-800 leading-relaxed italic">
+                          "{falaLimpa.substring(0, 280)}..."
+                        </p>
+                      </div>
+
+                      {/* Informações do contexto */}
+                      <div className="flex flex-wrap items-center gap-3 text-xs border-t pt-3">
+                        {/* Quem disse */}
+                        {registro.participantes?.[0] && (
+                          <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                            <Users className="w-3.5 h-3.5 text-[#40916C]" />
+                            {registro.participantes[0]}
+                          </div>
+                        )}
+
+                        {/* Localidade */}
+                        {registro.comunidade && (
+                          <div className="flex items-center gap-1 text-slate-600">
+                            <MapPin className="w-3 h-3" />
+                            {registro.comunidade}
+                          </div>
+                        )}
+
+                        {/* Temas relacionados */}
+                        {temas.length > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            {temas.map((tema, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs bg-slate-50">
+                                {tema}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Sentimento */}
+                        {registro.sentimento && (
+                          <Badge variant="outline" className={cn("text-xs", sentimentoConfig[registro.sentimento]?.color)}>
+                            {sentimentoConfig[registro.sentimento]?.label}
+                          </Badge>
+                        )}
+
+                        {/* Data */}
+                        <span className="text-slate-500 ml-auto">
+                          {format(new Date(registro.created_date || registro.data_registro), "dd/MM/yyyy", { locale: ptBR })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
             {falas30Dias.length > itemsPerPageFalas && (
               <div className="pt-4 border-t">
                 <Pagination
