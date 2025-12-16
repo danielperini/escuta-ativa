@@ -1,63 +1,62 @@
-import React from "react";
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { AlertTriangle } from "lucide-react";
+import { CheckCircle2 } from 'lucide-react';
 
 export default function Welcome() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const handlePanico = async () => {
-        if (window.confirm("⚠️ Você está prestes a acionar o BOTÃO DE PÂNICO. Deseja continuar?")) {
-            // Enviar alerta de pânico
-            alert("Alerta de emergência enviado!");
-            // Aqui seria a integração real com WhatsApp e e-mail
-        }
-    };
+  useEffect(() => {
+    // Auto-redirect após 3 segundos
+    const timer = setTimeout(() => {
+      navigate(createPageUrl('Dashboard'));
+    }, 3000);
 
-    return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0B1E33' }}>
-            <div className="flex-1 flex items-center justify-center p-6">
-                <div className="max-w-2xl w-full text-center">
-                    <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 space-y-6">
-                        <div className="flex justify-center mb-6">
-                            <img 
-                                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/efb30c403_ChatGPTImage11dedezde202511_08_47.png"
-                                alt="Escuta Ativa"
-                                className="h-32 object-contain"
-                            />
-                        </div>
-                        
-                        <h1 className="text-3xl md:text-4xl font-bold leading-tight" style={{ color: '#0B1E33' }}>
-                            Seja bem-vindo à Escuta Ativa — Inteligência Aplicada ao Território
-                        </h1>
-                        
-                        <p className="text-lg text-gray-600">
-                            Ferramenta de diálogo social, ética e participação.
-                        </p>
-                        
-                        <Button
-                            onClick={() => navigate(createPageUrl("Dashboard"))}
-                            size="lg"
-                            className="w-full text-white font-semibold text-lg py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 mt-6"
-                            style={{ backgroundColor: '#F2B632' }}
-                        >
-                            Entrar
-                        </Button>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="p-4 flex justify-center">
-                <Button
-                    onClick={handlePanico}
-                    variant="outline"
-                    className="bg-red-600 hover:bg-red-700 text-white border-0 px-6 py-3 rounded-lg"
-                >
-                    <AlertTriangle className="w-4 h-4 mr-2" />
-                    Botão de Pânico
-                </Button>
-            </div>
+    return () => clearTimeout(timer);
+  }, [navigate]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-red-50">
+      <div className="text-center space-y-6 p-8">
+        <div className="mb-6">
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/8a81a6207_transparent-Photoroom12.png"
+            alt="societa.ai"
+            className="h-20 mx-auto object-contain mb-4"
+          />
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#E31E24] to-[#B01419] bg-clip-text text-transparent">
+            societa.ai
+          </h1>
+          <p className="text-slate-600 text-lg mt-2">Versão 2.1</p>
         </div>
-    );
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-emerald-600">
+            <CheckCircle2 className="w-5 h-5" />
+            <span>Matriz de Macrotemas implementada</span>
+          </div>
+          <div className="flex items-center gap-2 text-emerald-600">
+            <CheckCircle2 className="w-5 h-5" />
+            <span>Cálculo automático de risco social</span>
+          </div>
+          <div className="flex items-center gap-2 text-emerald-600">
+            <CheckCircle2 className="w-5 h-5" />
+            <span>Performance otimizada</span>
+          </div>
+        </div>
+
+        <Button 
+          onClick={() => navigate(createPageUrl('Dashboard'))}
+          className="bg-[#E31E24] hover:bg-[#B01419] mt-6"
+        >
+          Acessar Dashboard
+        </Button>
+
+        <p className="text-xs text-slate-400 mt-4">
+          Redirecionando automaticamente...
+        </p>
+      </div>
+    </div>
+  );
 }

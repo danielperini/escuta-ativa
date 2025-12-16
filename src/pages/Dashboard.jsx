@@ -38,22 +38,30 @@ export default function Dashboard() {
     // Dados para KPIs e Gráficos
     const { data: registros = [] } = useQuery({
         queryKey: ['registros-dashboard'],
-        queryFn: () => base44.entities.Registro.list('-created_date', 1000)
+        queryFn: () => base44.entities.Registro.list('-created_date', 100),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false
     });
 
     const { data: agendas = [] } = useQuery({
         queryKey: ['agendas-dashboard'],
-        queryFn: () => base44.entities.Agenda.list()
+        queryFn: () => base44.entities.Agenda.list('-data', 50),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false
     });
 
     const { data: riscos = [] } = useQuery({
         queryKey: ['riscos-dashboard'],
-        queryFn: () => base44.entities.RiscoSocial.list()
+        queryFn: () => base44.entities.RiscoSocial.filter({ status: 'ativo' }),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false
     });
 
     const { data: casos = [] } = useQuery({
         queryKey: ['casos-dashboard'],
-        queryFn: () => base44.entities.Caso.list()
+        queryFn: () => base44.entities.Caso.list('-created_date', 50),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false
     });
 
     // Cálculos de KPIs

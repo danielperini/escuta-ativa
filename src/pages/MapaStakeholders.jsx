@@ -34,7 +34,9 @@ export default function MapaStakeholders() {
 
   const { data: stakeholders = [], isLoading } = useQuery({
     queryKey: ['stakeholders-mapa'],
-    queryFn: () => base44.entities.Stakeholder.list()
+    queryFn: () => base44.entities.Stakeholder.list(),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const { data: registros = [] } = useQuery({

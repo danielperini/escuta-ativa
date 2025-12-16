@@ -105,17 +105,18 @@ export default function Layout({ children, currentPageName }) {
       <DetectorRiscos />
       <MonitorDevolutivas />
       <style>{`
-        :root {
-          --societa-red: #E31E24;
-          --societa-red-dark: #B01419;
-          --societa-red-light: #FF4D52;
-          --societa-black: #000000;
-          --societa-gray: #1a1a1a;
-          --societa-pink: #FF9999;
-          --amber-500: #F59E0B;
-          --amber-600: #D97706;
-          --social-blue: #3B82F6;
-          --social-purple: #8B5CF6;
+      /* societa.ai v2.1 - Sistema consolidado de escuta social */
+      :root {
+        --societa-red: #E31E24;
+        --societa-red-dark: #B01419;
+        --societa-red-light: #FF4D52;
+        --societa-black: #000000;
+        --societa-gray: #1a1a1a;
+        --societa-pink: #FF9999;
+        --amber-500: #F59E0B;
+        --amber-600: #D97706;
+        --social-blue: #3B82F6;
+        --social-purple: #8B5CF6;
           
           ${tema === 'escuro' ? `
             --bg-main: #1e293b;
