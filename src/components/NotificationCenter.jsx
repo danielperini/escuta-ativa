@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, X, Check, AlertCircle, Users, Building2, FileText, CheckCircle2 } from "lucide-react";
+import { Bell, X, CheckCircle2, AlertCircle, Users, Building2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -119,7 +119,7 @@ export default function NotificationCenter() {
                             variant="ghost"
                             onClick={() => marcarTodasLidasMutation.mutate()}
                         >
-                            <Check className="w-4 h-4 mr-1" />
+                            <CheckCircle2 className="w-4 h-4 mr-1" />
                             Marcar todas lidas
                         </Button>
                     )}
