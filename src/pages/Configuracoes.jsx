@@ -116,6 +116,21 @@ export default function Configuracoes() {
         { id: 'dicas_relacionamento', nome: 'Dicas de Relacionamento', icon: User }
     ];
 
+    const togglePainel = (painel) => {
+        const paineis = formData.configuracoes.paineis_dashboard;
+        const novoPaineis = paineis.includes(painel)
+            ? paineis.filter(p => p !== painel)
+            : [...paineis, painel];
+        
+        setFormData({
+            ...formData,
+            configuracoes: {
+                ...formData.configuracoes,
+                paineis_dashboard: novoPaineis
+            }
+        });
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-96">
