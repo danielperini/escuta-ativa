@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { TrendingUp, TrendingDown, Users, FileText, CheckCircle2, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, FileText, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const COLORS = ['#2D6A4F', '#E31E24', '#F59E0B', '#3B82F6', '#8B5CF6', '#EC4899'];
