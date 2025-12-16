@@ -23,8 +23,7 @@ import {
           Home,
           Sparkles,
           CheckCircle2,
-          Plug,
-          CheckCircle
+          Plug
         } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
