@@ -10,7 +10,7 @@ import {
   Filter,
   Clock,
   AlertTriangle,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
   MoreVertical,
   Edit,
@@ -65,7 +65,7 @@ import { cn } from "@/lib/utils";
 const statusConfig = {
   pendente: { label: 'Pendente', color: 'bg-slate-100 text-slate-700', icon: Clock },
   em_andamento: { label: 'Em andamento', color: 'bg-blue-100 text-blue-700', icon: Clock },
-  concluido: { label: 'Concluído', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
+  concluido: { label: 'Concluído', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
   atrasado: { label: 'Atrasado', color: 'bg-red-100 text-red-700', icon: AlertTriangle },
   cancelado: { label: 'Cancelado', color: 'bg-slate-100 text-slate-500', icon: XCircle }
 };
@@ -394,7 +394,7 @@ export default function Compromissos() {
                         className="text-emerald-600 border-emerald-200 hover:bg-emerald-50"
                         onClick={() => handleQuickStatusChange(compromisso, 'concluido')}
                       >
-                        <CheckCircle className="w-4 h-4 mr-1" />
+                        <CheckCircle2 className="w-4 h-4 mr-1" />
                         Resolvido
                       </Button>
                     )}
