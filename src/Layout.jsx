@@ -26,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
 import NotificationGenerator from "@/components/NotificationGenerator";
+import GeradorNotificacoesInteligente from "@/components/notificacoes/GeradorNotificacoesInteligente";
 import BuscaInteligenteCodigo from "@/components/codigos/BuscaInteligenteCodigo";
 import MonitorAgendaAtraso from "@/components/agenda/MonitorAgendaAtraso";
 import DetectorRiscos from "@/components/mapa/DetectorRiscos";
