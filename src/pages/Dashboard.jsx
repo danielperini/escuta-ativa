@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, FileText, Calendar, AlertTriangle, Users, Target, TrendingUp } from "lucide-react";
+import { Plus, FileText, Calendar, AlertTriangle, Users, Target, TrendingUp, Heart } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { subDays, format } from 'date-fns';
@@ -202,6 +202,14 @@ export default function Dashboard() {
                 {/* Botões de Ação */}
                 <div className="flex flex-wrap gap-3">
                     <BotaoPanicoAvancado />
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate(createPageUrl("DicasRelacionamento"))}
+                        className="gap-2"
+                    >
+                        <Heart className="w-4 h-4" />
+                        Dicas de Relacionamento
+                    </Button>
                 </div>
             </div>
         </div>
