@@ -9,7 +9,7 @@ import {
   Search, 
   Clock,
   AlertTriangle,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
   MoreVertical,
   Edit,
@@ -70,7 +70,7 @@ const statusConfig = {
   em_aberto: { label: 'Em Aberto', color: 'bg-amber-100 text-amber-700', icon: Clock },
   pendente: { label: 'Pendente', color: 'bg-slate-100 text-slate-700', icon: Clock },
   em_andamento: { label: 'Em Andamento', color: 'bg-blue-100 text-blue-700', icon: Clock },
-  concluido: { label: 'Concluído', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
+  concluido: { label: 'Concluído', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
   cancelado: { label: 'Cancelado', color: 'bg-slate-100 text-slate-500', icon: XCircle }
 };
 
@@ -408,7 +408,7 @@ export default function Casos() {
                         className="text-emerald-600 border-emerald-200 hover:bg-emerald-50"
                         onClick={() => quickStatusMutation.mutate({ id: caso.id, status: 'concluido' })}
                       >
-                        <CheckCircle className="w-4 h-4 mr-1" />
+                        <CheckCircle2 className="w-4 h-4 mr-1" />
                         Concluir
                       </Button>
                     )}
