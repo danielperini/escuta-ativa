@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, MapPin, Calendar, Users, ThermometerSun, MessageSquare, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react';
+import { X, MapPin, Calendar, Users, ThermometerSun, MessageSquare, AlertTriangle, CheckCircle2, ExternalLink } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 
@@ -132,7 +132,7 @@ export default function DetalhesRegistroMapa({ registro, onClose }) {
       {registro.compromissos?.length > 0 && (
         <div className="mb-4">
           <p className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1">
-            <CheckCircle className="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             Compromissos ({registro.compromissos.length})
           </p>
           <div className="space-y-2">
