@@ -44,6 +44,7 @@ import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import ComunidadesGrupos from './pages/ComunidadesGrupos';
 import Documentacao from './pages/Documentacao';
 import CadernoNotas from './pages/CadernoNotas';
+import CentralAnalise from './pages/CentralAnalise';
 import __Layout from './Layout.jsx';
 
 
@@ -94,6 +95,7 @@ export const PAGES = {
     "ComunidadesGrupos": ComunidadesGrupos,
     "Documentacao": Documentacao,
     "CadernoNotas": CadernoNotas,
+    "CentralAnalise": CentralAnalise,
 }
 
 export const pagesConfig = {

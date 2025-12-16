@@ -3,25 +3,26 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { 
-  LayoutDashboard, 
-  FileText, 
-  MapPin, 
-  Users as UsersIcon,
-  Users, 
-  Target, 
-  MessageCircle,
-  CheckSquare,
-  Settings,
-  Menu,
-  X,
-  LogOut,
-  ChevronDown,
-  CalendarDays,
-  BarChart3,
-  User,
-  Shield,
-  Home
-} from 'lucide-react';
+        LayoutDashboard, 
+        FileText, 
+        MapPin, 
+        Users as UsersIcon,
+        Users, 
+        Target, 
+        MessageCircle,
+        CheckSquare,
+        Settings,
+        Menu,
+        X,
+        LogOut,
+        ChevronDown,
+        CalendarDays,
+        BarChart3,
+        User,
+        Shield,
+        Home,
+        Sparkles
+      } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
 import NotificationGenerator from "@/components/NotificationGenerator";
@@ -52,6 +53,7 @@ const navigation = [
   { name: 'Casos', href: 'Casos', icon: CheckSquare },
   { name: 'Comunidades e Grupos', href: 'ComunidadesGrupos', icon: Home },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
+  { name: 'Central de Análise', href: 'CentralAnalise', icon: Sparkles },
   { name: 'Equipes', href: 'GerenciarEquipes', icon: Users },
   { name: 'Usuários', href: 'GerenciarUsuarios', icon: User }
   ];
