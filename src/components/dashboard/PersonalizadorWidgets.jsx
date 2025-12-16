@@ -23,7 +23,8 @@ const widgetsDisponiveis = [
   { id: 'voz_comunidade', nome: 'Voz da Comunidade', descricao: 'Citações relevantes' },
   { id: 'temperatura', nome: 'Temperatura Social', descricao: 'Mapa de calor territorial' },
   { id: 'proximas_agendas', nome: 'Próximas Agendas', descricao: 'Compromissos agendados' },
-  { id: 'riscos_ativos', nome: 'Riscos Ativos', descricao: 'Alertas de riscos sociais' }
+  { id: 'riscos_ativos', nome: 'Riscos Ativos', descricao: 'Alertas de riscos sociais' },
+  { id: 'dicas_relacionamento', nome: 'Dicas de Relacionamento', descricao: 'Conselhos práticos' }
 ];
 
 export default function PersonalizadorWidgets({ widgetsAtivos = [], onWidgetsChange }) {
