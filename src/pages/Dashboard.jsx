@@ -214,6 +214,7 @@ export default function Dashboard() {
 
                     {/* Widget Código de Conduta */}
                     {user?.configuracoes?.exibir_tutorial !== false && (
+                        {user?.configuracoes?.exibir_tutorial !== false && (
                         <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-purple-900">
@@ -246,6 +247,7 @@ export default function Dashboard() {
                                 </Link>
                             </CardContent>
                         </Card>
+                        )}
                     )}
                 </div>
 
