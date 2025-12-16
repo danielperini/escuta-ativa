@@ -58,7 +58,7 @@ import GravadorAudioCompleto from '@/components/registro/GravadorAudioCompleto';
 import TranscricaoWhisper from '@/components/registro/TranscricaoWhisper';
 import ProcessadorMultimidia from '@/components/registro/ProcessadorMultimidia';
 import AnalisadorIAConteudo from '@/components/registro/AnalisadorIAConteudo';
-import TranscricaoExterna from '@/components/transcricao/TranscricaoExterna';
+import TranscricaoNavegador from '@/components/transcricao/TranscricaoNavegador';
 import { processarRegistroCompleto, alimentarModulos } from '@/components/registro/ProcessadorIALote';
 import TranscricaoNativa from '@/components/registro/TranscricaoNativa';
 import SugestoesIARegistro from '@/components/registro/SugestoesIARegistro';
