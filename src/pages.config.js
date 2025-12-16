@@ -44,7 +44,6 @@ import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import ComunidadesGrupos from './pages/ComunidadesGrupos';
 import Documentacao from './pages/Documentacao';
 import CadernoNotas from './pages/CadernoNotas';
-import ConfiguracaoTranscricao from './pages/ConfiguracaoTranscricao';
 import __Layout from './Layout.jsx';
 
 
@@ -95,7 +94,6 @@ export const PAGES = {
     "ComunidadesGrupos": ComunidadesGrupos,
     "Documentacao": Documentacao,
     "CadernoNotas": CadernoNotas,
-    "ConfiguracaoTranscricao": ConfiguracaoTranscricao,
 }
 
 export const pagesConfig = {

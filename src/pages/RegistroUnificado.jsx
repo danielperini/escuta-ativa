@@ -903,33 +903,17 @@ Extraia:
          />
         )}
 
-        {/* Transcrição Externa com AssemblyAI/Google */}
-        <TranscricaoExterna
-         onTranscricaoCompleta={(transcricao, audioUrl, metadata) => {
-           const servicoNome = metadata?.servico || 'Serviço Externo';
-           const blocoTexto = `\n\n--- 🌐 ${servicoNome.toUpperCase()} ---\n${transcricao}\n`;
+        {/* Transcrição Web Speech API (Navegador) */}
+        <TranscricaoNavegador
+         onTranscricaoCompleta={(transcricao) => {
+           const blocoTexto = `\n\n--- 🎙️ VOZ CLARA (NAVEGADOR) ---\n${transcricao}\n`;
            setTextoConsolidado(prev => prev + blocoTexto);
-           setArquivosProcessados(prev => [...prev, {
-             url: audioUrl,
-             tipo: 'audio',
-             nome: `Transcrição_${servicoNome}_${Date.now()}.txt`,
-             metadata
-           }]);
-           setFormData(prev => ({
-             ...prev,
-             arquivos: [...prev.arquivos, {
-               url: audioUrl,
-               tipo: 'audio',
-               nome: `Transcrição_${servicoNome}_${Date.now()}.txt`,
-               metadata
-             }]
-           }));
-           toast.success(`Transcrição via ${servicoNome} concluída!`);
+           toast.success('Transcrição via navegador concluída!');
          }}
          onTranscricaoTempoReal={(texto) => {
            setTextoConsolidado(prev => {
-             const textoLimpo = prev.replace(/\n\n--- ⏳.*?\n/g, '');
-             return textoLimpo + `\n\n--- ⏳ Processando via API externa ---\n${texto}\n`;
+             const textoLimpo = prev.replace(/\n\n--- 🎙️ Gravando \(Voz Clara\).*?\n[\s\S]*?(?=\n\n---|$)/g, '');
+             return textoLimpo + `\n\n--- 🎙️ Gravando (Voz Clara) ---\n${texto}\n`;
            });
          }}
         />

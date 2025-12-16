@@ -43,6 +43,7 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
   { name: 'Registros', href: 'Registros', icon: FileText },
+  { name: 'Caderno de Notas', href: 'CadernoNotas', icon: FileText },
   { name: 'Agenda', href: 'Agenda', icon: CalendarDays },
   { name: 'Mapa', href: 'Mapa', icon: MapPin },
   { name: 'Materialidade', href: 'Materialidade', icon: Target },
@@ -53,7 +54,8 @@ const navigation = [
   { name: 'Comunidades e Grupos', href: 'ComunidadesGrupos', icon: Home },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
   { name: 'Equipes', href: 'GerenciarEquipes', icon: Users },
-  { name: 'Usuários', href: 'GerenciarUsuarios', icon: User }
+  { name: 'Usuários', href: 'GerenciarUsuarios', icon: User },
+  { name: 'Configurações', href: 'Configuracoes', icon: Settings }
   ];
 
 export default function Layout({ children, currentPageName }) {
@@ -200,13 +202,6 @@ export default function Layout({ children, currentPageName }) {
             >
               <User className="w-5 h-5" />
               Meu Perfil
-            </Link>
-            <Link
-              to={createPageUrl('Configuracoes')}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white text-sm font-medium transition-all"
-            >
-              <Settings className="w-5 h-5" />
-              Configurações
             </Link>
           </div>
         </div>
