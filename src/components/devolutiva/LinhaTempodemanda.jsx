@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Clock, MessageSquare, Link2, CheckCircle, AlertCircle } from "lucide-react";
+import { Clock, MessageSquare, Link2, CheckCircle2, AlertCircle } from "lucide-react";
 import moment from "moment";
 
 export default function LinhaTempodemanda({ atividadeId }) {
@@ -80,7 +80,7 @@ export default function LinhaTempodemanda({ atividadeId }) {
                 titulo: 'Devolutiva Realizada',
                 descricao: atividade.conteudo_devolutiva,
                 resultado: atividade.resultado_devolutiva,
-                icon: CheckCircle,
+                icon: CheckCircle2,
                 cor: 'green'
             });
         } else if (atividade.demanda_requer_devolutiva) {
