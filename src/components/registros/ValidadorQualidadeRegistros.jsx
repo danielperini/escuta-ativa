@@ -45,15 +45,39 @@ export default function ValidadorQualidadeRegistros({ registros }) {
     'Base administrativa'
   ];
 
-  const higienizarComunidade = (comunidade) => {
+  const reunioesOnlineOuGrupos = [
+    'Microsoft Teams',
+    'Google Meet',
+    'Zoom',
+    'Plataforma digital',
+    'Reunião online',
+    'Virtual',
+    'Videoconferência',
+    'Grupo de trabalho',
+    'Comissão',
+    'Equipe'
+  ];
+
+  const higienizarComunidade = (comunidade, contexto = '') => {
+    // Se não tem comunidade ou é null/vazio
     if (!comunidade || comunidade.trim() === '' || comunidade === 'null' || comunidade === 'NULL') {
-      return 'Não identificado';
+      return 'Sem Registro';
     }
     
     const comunidadeLower = comunidade.toLowerCase().trim();
+    const contextoLower = contexto?.toLowerCase() || '';
+    
+    // Verifica se é reunião online ou grupo não comunitário
+    for (const termo of reunioesOnlineOuGrupos) {
+      if (comunidadeLower.includes(termo.toLowerCase()) || contextoLower.includes(termo.toLowerCase())) {
+        return 'Comunidade Geral';
+      }
+    }
+    
+    // Verifica se é valor inválido (sistemas, órgãos, etc)
     for (const invalida of comunidadesInvalidas) {
       if (comunidadeLower.includes(invalida.toLowerCase())) {
-        return 'Não identificado';
+        return 'Sem Registro';
       }
     }
     
@@ -65,9 +89,10 @@ export default function ValidadorQualidadeRegistros({ registros }) {
     let penalidades = [];
     
     // Verificar comunidade (higienizada)
-    const comunidadeHigienizada = higienizarComunidade(analise.comunidade || registro.comunidade);
-    const houveErroConceitual = comunidadeHigienizada === 'Não identificado' && 
-                                 (registro.comunidade && registro.comunidade !== 'Não identificado');
+    const contexto = `${registro.tipo || ''} ${registro.titulo || ''} ${registro.descricao || ''}`;
+    const comunidadeHigienizada = higienizarComunidade(analise.comunidade || registro.comunidade, contexto);
+    const houveErroConceitual = (comunidadeHigienizada === 'Sem Registro' || comunidadeHigienizada === 'Comunidade Geral') && 
+                                 (registro.comunidade && registro.comunidade !== 'Sem Registro' && registro.comunidade !== 'Comunidade Geral');
     
     // Município identificado
     if (analise.municipio && analise.municipio !== 'Não identificado') nota += 1;
@@ -87,7 +112,11 @@ export default function ValidadorQualidadeRegistros({ registros }) {
     // Penalizar por erro conceitual de comunidade
     if (houveErroConceitual) {
       nota = Math.max(0, nota - 1);
-      penalidades.push('Erro conceitual: comunidade não territorial');
+      if (comunidadeHigienizada === 'Sem Registro') {
+        penalidades.push('Erro conceitual: valor inválido em comunidade territorial');
+      } else if (comunidadeHigienizada === 'Comunidade Geral') {
+        penalidades.push('Ajustado: reunião online/grupo não territorial');
+      }
     }
     
     return { nota, penalidades };
@@ -170,7 +199,8 @@ export default function ValidadorQualidadeRegistros({ registros }) {
       const analise = await processarRegistro(registro);
       
       // Higienizar comunidade
-      const comunidadeHigienizada = higienizarComunidade(registro.comunidade);
+      const contexto = `${registro.tipo || ''} ${registro.titulo || ''} ${registro.descricao || ''}`;
+      const comunidadeHigienizada = higienizarComunidade(registro.comunidade, contexto);
       
       // Calcular nota de qualidade
       const { nota, penalidades } = calcularNotaQualidade(registro, analise);
@@ -268,7 +298,7 @@ export default function ValidadorQualidadeRegistros({ registros }) {
             <div className="p-4 bg-purple-50 rounded-lg">
               <p className="text-sm text-purple-900 font-medium mb-2">O que será validado:</p>
               <ul className="text-xs text-purple-700 space-y-1">
-                <li>✓ Comunidade (remover valores inválidos: Microsoft Teams, null, sistemas, órgãos)</li>
+                <li>✓ Comunidade → "Sem Registro" (valores inválidos) ou "Comunidade Geral" (reuniões online/grupos)</li>
                 <li>✓ Município e Estado (corrigir NULL/vazios)</li>
                 <li>✓ Tipo de Demanda (classificar automaticamente)</li>
                 <li>✓ Encaminhamentos (identificar se houve)</li>
