@@ -21,7 +21,8 @@ import {
         User,
         Shield,
         Home,
-        Sparkles
+        Sparkles,
+        CheckCircle2
       } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
