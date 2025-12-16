@@ -387,10 +387,25 @@ export default function Documentacao() {
   const [search, setSearch] = useState('');
   const [activeSection, setActiveSection] = useState('introducao');
 
-  const filteredSections = sections.filter(s => 
-    s.title.toLowerCase().includes(search.toLowerCase()) ||
-    s.content.description.toLowerCase().includes(search.toLowerCase())
-  );
+  React.useEffect(() => {
+    const hash = window.location.hash.substring(1);
+    if (hash && sections.find(s => s.id === hash)) {
+      setActiveSection(hash);
+    }
+  }, []);
+
+  const handleSectionChange = (sectionId) => {
+    setActiveSection(sectionId);
+    window.location.hash = sectionId;
+  };
+
+  const filteredSections = sections.filter(s => {
+    const matchTitle = s.title.toLowerCase().includes(search.toLowerCase());
+    const matchDescription = s.content.description.toLowerCase().includes(search.toLowerCase());
+    const matchFeatures = (s.content.features || []).some(f => f.toLowerCase().includes(search.toLowerCase()));
+    const matchHowTo = (s.content.howTo || []).some(h => h.toLowerCase().includes(search.toLowerCase()));
+    return matchTitle || matchDescription || matchFeatures || matchHowTo;
+  });
 
   const currentSection = sections.find(s => s.id === activeSection);
 
@@ -433,22 +448,22 @@ export default function Documentacao() {
               </CardHeader>
               <CardContent className="space-y-1">
                 {filteredSections.map(section => {
-                  const Icon = section.icon;
-                  return (
-                    <button
-                      key={section.id}
-                      onClick={() => setActiveSection(section.id)}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
-                        activeSection === section.id
-                          ? "bg-[#E31E24] text-white"
-                          : "hover:bg-slate-100 text-slate-700"
-                      )}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {section.title}
-                    </button>
-                  );
+                const Icon = section.icon;
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => handleSectionChange(section.id)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
+                      activeSection === section.id
+                        ? "bg-[#E31E24] text-white"
+                        : "hover:bg-slate-100 text-slate-700"
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {section.title}
+                  </button>
+                );
                 })}
               </CardContent>
             </Card>
@@ -498,12 +513,12 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
-                      {currentSection.content.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm">
-                          <CheckSquare className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
+                        {(currentSection.content.features || []).map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <CheckSquare className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
                     </ul>
                   </CardContent>
                 </Card>
@@ -519,7 +534,7 @@ export default function Documentacao() {
                     </CardHeader>
                     <CardContent>
                       <ol className="space-y-3">
-                        {currentSection.content.howTo.map((step, idx) => (
+                        {(currentSection.content.howTo || []).map((step, idx) => (
                           <li key={idx} className="flex items-start gap-3">
                             <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E31E24] text-white flex items-center justify-center text-xs font-medium">
                               {idx + 1}
