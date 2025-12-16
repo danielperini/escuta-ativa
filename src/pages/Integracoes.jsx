@@ -28,7 +28,7 @@ import {
   MessageSquare,
   Users,
   Key,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
   AlertTriangle,
   Settings,
@@ -263,7 +263,7 @@ export default function Integracoes() {
                       </div>
                       {isAtiva && (
                         <Badge className="bg-emerald-600">
-                          <CheckCircle className="w-3 h-3 mr-1" />
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
                           Ativa
                         </Badge>
                       )}
@@ -304,6 +304,12 @@ export default function Integracoes() {
             integracoes.filter(i => i.ativa).map(integracao => {
               const integracaoInfo = INTEGRACOES_DISPONIVEIS.find(d => d.provedor === integracao.provedor);
               const Icon = integracaoInfo?.icon || Plug;
+              const statusColors = {
+                ativa: 'bg-emerald-600',
+                erro: 'bg-red-600',
+                desativada: 'bg-slate-600',
+                configurando: 'bg-blue-600'
+              };
 
               return (
                 <Card key={integracao.id}>
@@ -316,11 +322,7 @@ export default function Integracoes() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-semibold text-slate-900">{integracao.nome}</h3>
-                            <Badge className={cn(
-                              integracao.status === 'ativa' ? 'bg-emerald-600' :
-                              integracao.status === 'erro' ? 'bg-red-600' :
-                              'bg-slate-600'
-                            )}>
+                            <Badge className={statusColors[integracao.status] || 'bg-slate-600'}>
                               {integracao.status}
                             </Badge>
                           </div>
@@ -461,7 +463,7 @@ export default function Integracoes() {
               Cancelar
             </Button>
             <Button onClick={configurarIntegracao} className="bg-[#E31E24] hover:bg-[#B01419]">
-              <CheckCircle className="w-4 h-4 mr-2" />
+              <CheckCircle2 className="w-4 h-4 mr-2" />
               Salvar e Ativar
             </Button>
           </DialogFooter>
