@@ -29,8 +29,45 @@ export default function ValidadorQualidadeRegistros({ registros }) {
   const [resultado, setResultado] = useState(null);
   const queryClient = useQueryClient();
 
+  const comunidadesInvalidas = [
+    'Microsoft Teams',
+    'null',
+    'NULL',
+    'Área de travessia sobre o rio/açude',
+    'Unidade da empresa',
+    'Sede da empresa',
+    'Secretaria Municipal de Obras',
+    'Escritório',
+    'Plataforma digital',
+    'Órgão público',
+    'Instalação operacional',
+    'Sistema',
+    'Base administrativa'
+  ];
+
+  const higienizarComunidade = (comunidade) => {
+    if (!comunidade || comunidade.trim() === '' || comunidade === 'null' || comunidade === 'NULL') {
+      return 'Não identificado';
+    }
+    
+    const comunidadeLower = comunidade.toLowerCase().trim();
+    for (const invalida of comunidadesInvalidas) {
+      if (comunidadeLower.includes(invalida.toLowerCase())) {
+        return 'Não identificado';
+      }
+    }
+    
+    return comunidade;
+  };
+
   const calcularNotaQualidade = (registro, analise) => {
     let nota = 0;
+    let penalidades = [];
+    
+    // Verificar comunidade (higienizada)
+    const comunidadeHigienizada = higienizarComunidade(analise.comunidade || registro.comunidade);
+    const houveErroConceitual = comunidadeHigienizada === 'Não identificado' && 
+                                 (registro.comunidade && registro.comunidade !== 'Não identificado');
     
     // Município identificado
     if (analise.municipio && analise.municipio !== 'Não identificado') nota += 1;
@@ -47,7 +84,13 @@ export default function ValidadorQualidadeRegistros({ registros }) {
     // Encaminhamento informado
     if (analise.encaminhamento && analise.encaminhamento !== 'Não identificado') nota += 1;
     
-    return nota;
+    // Penalizar por erro conceitual de comunidade
+    if (houveErroConceitual) {
+      nota = Math.max(0, nota - 1);
+      penalidades.push('Erro conceitual: comunidade não territorial');
+    }
+    
+    return { nota, penalidades };
   };
 
   const processarRegistro = async (registro) => {
@@ -126,11 +169,15 @@ export default function ValidadorQualidadeRegistros({ registros }) {
       // Processar com IA
       const analise = await processarRegistro(registro);
       
+      // Higienizar comunidade
+      const comunidadeHigienizada = higienizarComunidade(registro.comunidade);
+      
       // Calcular nota de qualidade
-      const nota = calcularNotaQualidade(registro, analise);
+      const { nota, penalidades } = calcularNotaQualidade(registro, analise);
       
       // Preparar atualização
       const atualizacao = {
+        comunidade: comunidadeHigienizada,
         localizacao: {
           ...registro.localizacao,
           municipio: analise.municipio,
@@ -141,7 +188,9 @@ export default function ValidadorQualidadeRegistros({ registros }) {
         descricao_encaminhamento: analise.descricao_encaminhamento,
         nota_qualidade: nota,
         validado_em: new Date().toISOString(),
-        observacao_validacao: analise.observacao_tecnica
+        observacao_validacao: penalidades.length > 0 
+          ? `${analise.observacao_tecnica || ''} ${penalidades.join('; ')}`.trim()
+          : analise.observacao_tecnica
       };
 
       // Atualizar registro
@@ -152,16 +201,19 @@ export default function ValidadorQualidadeRegistros({ registros }) {
           id: registro.id,
           titulo: registro.titulo,
           antes: {
+            comunidade: registro.comunidade || 'NULL',
             municipio: registro.localizacao?.municipio || 'NULL',
             estado: registro.localizacao?.estado || 'NULL',
             tipo_demanda: registro.tipo_demanda || 'NULL'
           },
           depois: {
+            comunidade: comunidadeHigienizada,
             municipio: analise.municipio,
             estado: analise.estado,
             tipo_demanda: analise.tipo_demanda
           },
           nota: nota,
+          penalidades: penalidades,
           status: 'sucesso'
         });
       } catch (error) {
@@ -216,10 +268,11 @@ export default function ValidadorQualidadeRegistros({ registros }) {
             <div className="p-4 bg-purple-50 rounded-lg">
               <p className="text-sm text-purple-900 font-medium mb-2">O que será validado:</p>
               <ul className="text-xs text-purple-700 space-y-1">
+                <li>✓ Comunidade (remover valores inválidos: Microsoft Teams, null, sistemas, órgãos)</li>
                 <li>✓ Município e Estado (corrigir NULL/vazios)</li>
                 <li>✓ Tipo de Demanda (classificar automaticamente)</li>
                 <li>✓ Encaminhamentos (identificar se houve)</li>
-                <li>✓ Nota de Qualidade (0-5 baseado em completude)</li>
+                <li>✓ Nota de Qualidade (0-5 com penalização por erros conceituais)</li>
               </ul>
             </div>
 
@@ -290,6 +343,14 @@ export default function ValidadorQualidadeRegistros({ registros }) {
                   
                   {r.status === 'sucesso' ? (
                     <div className="space-y-1 text-slate-600">
+                      {r.antes.comunidade !== r.depois.comunidade && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3 h-3" />
+                          <span className="line-through text-red-500">{r.antes.comunidade}</span>
+                          <ArrowRight className="w-3 h-3" />
+                          <span className="font-medium text-purple-600">{r.depois.comunidade}</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2">
                         <MapPin className="w-3 h-3" />
                         <span>{r.antes.municipio}</span>
@@ -302,6 +363,11 @@ export default function ValidadorQualidadeRegistros({ registros }) {
                         <ArrowRight className="w-3 h-3" />
                         <span className="font-medium text-purple-600">{r.depois.tipo_demanda}</span>
                       </div>
+                      {r.penalidades && r.penalidades.length > 0 && (
+                        <div className="text-xs text-amber-600 mt-1">
+                          ⚠️ {r.penalidades.join('; ')}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-red-600">Erro: {r.erro}</p>
