@@ -32,7 +32,6 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { BotoesExportacao } from "@/components/registro/ExportadorPDF";
 import GeradorRelatorioCompleto from "@/components/registro/GeradorRelatorioCompleto";
-import GoogleMapsViewer from "@/components/integracao/GoogleMapsViewer";
 import { gerarCodigoUnico } from "@/components/codigos/GeradorCodigoUnico";
 
 const tipoConfig = {
@@ -481,13 +480,23 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
           )}
 
           {/* Mapa de Localização */}
-          {(registro.localizacao?.lat || registro.local) && (
-            <GoogleMapsViewer
-              endereco={registro.local}
-              lat={registro.localizacao?.lat}
-              lng={registro.localizacao?.lng}
-              titulo="Local do Registro"
-            />
+          {registro.localizacao?.lat && registro.localizacao?.lng && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  Local do Registro
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-slate-100 rounded-lg p-3 text-sm text-slate-700">
+                  {registro.local && <p className="font-medium mb-1">{registro.local}</p>}
+                  <p className="text-xs text-slate-500">
+                    Coordenadas: {registro.localizacao.lat.toFixed(6)}, {registro.localizacao.lng.toFixed(6)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Arquivos */}
