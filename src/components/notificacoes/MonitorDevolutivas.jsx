@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Clock, CheckCircle, X } from "lucide-react";
+import { AlertTriangle, Clock, CheckCircle2, X } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -147,7 +147,7 @@ export default function MonitorDevolutivas() {
                                                 status: 'atendida'
                                             })}
                                         >
-                                            <CheckCircle className="w-3 h-3 mr-1" />
+                                            <CheckCircle2 className="w-3 h-3 mr-1" />
                                             Atendida
                                         </Button>
                                     </div>
