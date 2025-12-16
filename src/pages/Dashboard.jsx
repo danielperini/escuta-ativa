@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, FileText, Calendar, AlertTriangle, Users, Target, TrendingUp, Heart } from "lucide-react";
+import { Plus, FileText, Calendar, AlertTriangle, Users, Target, TrendingUp, Heart, Shield, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { subDays, format } from 'date-fns';
@@ -198,6 +199,42 @@ export default function Dashboard() {
                         <div className="lg:col-span-2">
                             <VozComunidade />
                         </div>
+                    )}
+
+                    {/* Widget Código de Conduta */}
+                    {user?.configuracoes?.exibir_tutorial !== false && (
+                        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-purple-900">
+                                    <Shield className="w-5 h-5" />
+                                    Código de Conduta
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <p className="text-sm text-purple-800">
+                                    Diretrizes éticas para relacionamento comunitário:
+                                </p>
+                                <ul className="space-y-2 text-sm text-purple-700">
+                                    <li className="flex items-start gap-2">
+                                        <CheckCircle className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+                                        <span>Respeitar a autonomia e decisões das comunidades</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <CheckCircle className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+                                        <span>Garantir transparência em todas as interações</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <CheckCircle className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+                                        <span>Manter confidencialidade de informações sensíveis</span>
+                                    </li>
+                                </ul>
+                                <Link to={createPageUrl('CodigoEtica')}>
+                                    <Button variant="outline" className="w-full mt-2 border-purple-300 hover:bg-purple-100">
+                                        Ver Código Completo
+                                    </Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
                     )}
                 </div>
 
