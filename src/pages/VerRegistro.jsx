@@ -32,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { BotoesExportacao } from "@/components/registro/ExportadorPDF";
 import GeradorRelatorioCompleto from "@/components/registro/GeradorRelatorioCompleto";
+import GoogleMapsViewer from "@/components/integracao/GoogleMapsViewer";
 import { gerarCodigoUnico } from "@/components/codigos/GeradorCodigoUnico";
 
 const tipoConfig = {
@@ -419,6 +420,16 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
                 </ul>
               </CardContent>
             </Card>
+          )}
+
+          {/* Mapa de Localização */}
+          {(registro.localizacao?.lat || registro.local) && (
+            <GoogleMapsViewer
+              endereco={registro.local}
+              lat={registro.localizacao?.lat}
+              lng={registro.localizacao?.lng}
+              titulo="Local do Registro"
+            />
           )}
 
           {/* Arquivos */}
