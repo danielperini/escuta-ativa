@@ -118,13 +118,31 @@ export default function VozComunidade() {
       if (!dataRegistro) return false;
       const daysDiff = Math.floor((new Date() - new Date(dataRegistro)) / (1000 * 60 * 60 * 24));
       
-      // FILTRO: Apenas registros com transcrição (falas reais de pessoas)
-      // NÃO incluir descrições genéricas ou atas
-      const temFalaReal = r.transcricao && 
-                          r.transcricao.length > 50 && 
-                          !r.titulo?.toLowerCase().includes('ata');
+      if (daysDiff > 30 || !r.transcricao || r.transcricao.length < 100) return false;
       
-      return daysDiff <= 30 && temFalaReal;
+      // FILTRO RIGOROSO: Excluir atas e documentos formais
+      const tituloLower = (r.titulo || '').toLowerCase();
+      const transcricaoLower = r.transcricao.toLowerCase();
+      const inicio = r.transcricao.substring(0, 150).toLowerCase();
+      
+      const eAta = 
+        tituloLower.includes('ata') ||
+        tituloLower.includes('reunião') ||
+        tituloLower.includes('relato') ||
+        inicio.includes('ata de') ||
+        inicio.includes('reunião') ||
+        inicio.includes('data:') ||
+        inicio.includes('horário:') ||
+        inicio.includes('participantes:') ||
+        transcricaoLower.includes('governador valadares') && inicio.includes('**');
+      
+      // ACEITAR: Apenas falas diretas, conversas, declarações
+      const eFalaReal = 
+        r.participantes && r.participantes.length > 0 &&
+        !eAta &&
+        (r.tipo === 'conversa_campo' || r.tipo === 'visita');
+      
+      return eFalaReal;
     })
     .map(r => ({
       ...r,
