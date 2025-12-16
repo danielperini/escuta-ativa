@@ -176,14 +176,6 @@ export default function Casos() {
   const processedCasos = React.useMemo(() => {
     return casos.map(c => {
       const isAtrasado = c.prazo && isPast(new Date(c.prazo)) && !['concluido', 'cancelado'].includes(c.status);
-      
-      // Auto-atualizar prioridade se atrasado
-      if (isAtrasado && c.prioridade !== 'urgente') {
-        quickStatusMutation.mutate({ id: c.id, status: c.status, prioridade: 'urgente' }, { 
-          onSuccess: () => {} 
-        });
-      }
-      
       return { ...c, isAtrasado };
     });
   }, [casos]);

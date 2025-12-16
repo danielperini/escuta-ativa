@@ -30,8 +30,12 @@ export default function SegmentacaoAvancada({ stakeholders, onSegmentacaoChange 
   const todosTemasUnicos = React.useMemo(() => {
     const temas = new Set();
     stakeholders.forEach(s => {
-      s.temas_recorrentes?.forEach(t => temas.add(t));
-      s.areas_interesse?.forEach(a => temas.add(a));
+      if (s.temas_recorrentes && Array.isArray(s.temas_recorrentes)) {
+        s.temas_recorrentes.forEach(t => temas.add(t));
+      }
+      if (s.areas_interesse && Array.isArray(s.areas_interesse)) {
+        s.areas_interesse.forEach(a => temas.add(a));
+      }
     });
     return Array.from(temas).sort();
   }, [stakeholders]);
@@ -49,7 +53,7 @@ export default function SegmentacaoAvancada({ stakeholders, onSegmentacaoChange 
       }
 
       // Filtro de score
-      if (s.score_influencia < segmentacao.score_minimo) {
+      if ((s.score_influencia || 0) < segmentacao.score_minimo) {
         return false;
       }
 
@@ -60,7 +64,9 @@ export default function SegmentacaoAvancada({ stakeholders, onSegmentacaoChange 
 
       // Filtro de temas
       if (segmentacao.temas_interesse.length > 0) {
-        const temasStakeholder = [...(s.temas_recorrentes || []), ...(s.areas_interesse || [])];
+        const temasRecorrentes = Array.isArray(s.temas_recorrentes) ? s.temas_recorrentes : [];
+        const areasInteresse = Array.isArray(s.areas_interesse) ? s.areas_interesse : [];
+        const temasStakeholder = [...temasRecorrentes, ...areasInteresse];
         const temAlgumTema = segmentacao.temas_interesse.some(t => temasStakeholder.includes(t));
         if (!temAlgumTema) return false;
       }

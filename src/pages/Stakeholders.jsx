@@ -169,7 +169,9 @@ export default function Stakeholders() {
   const todasTags = React.useMemo(() => {
     const tags = new Set();
     stakeholders.forEach(s => {
-      s.segmentos?.forEach(tag => tags.add(tag));
+      if (s.segmentos && Array.isArray(s.segmentos)) {
+        s.segmentos.forEach(tag => tags.add(tag));
+      }
     });
     return Array.from(tags).sort();
   }, [stakeholders]);
