@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from '@/api/base44Client';
-import { Sparkles, Users, Check, X, Loader2, Plus } from 'lucide-react';
+import { Sparkles, Users, CheckCircle2, X, Loader2, Plus } from 'lucide-react';
 
 export default function DetectorAtores({ registro, onAtoresVinculados }) {
   const [detectando, setDetectando] = useState(false);
@@ -284,7 +284,7 @@ Se não encontrar NENHUM ator específico, retorne participantes genéricos como
                         }`}
                       >
                         {atoresSelecionados.includes(ator.ator_id) ? (
-                          <Check className="w-4 h-4" />
+                          <CheckCircle2 className="w-4 h-4" />
                         ) : (
                           <X className="w-4 h-4" />
                         )}
@@ -328,7 +328,7 @@ Se não encontrar NENHUM ator específico, retorne participantes genéricos como
           disabled={atoresSelecionados.length === 0}
           className="w-full bg-[#2D6A4F]"
         >
-          <Check className="w-4 h-4 mr-2" />
+          <CheckCircle2 className="w-4 h-4 mr-2" />
           Vincular {atoresSelecionados.length} Ator(es) ao Registro
         </Button>
       </CardContent>

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
-import { Sparkles, Calendar, Check, X } from "lucide-react";
+import { Sparkles, Calendar, CheckCircle2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -129,7 +129,7 @@ export default function AutomacaoCompromissos({ demanda, onConfirmar, onCancelar
                                 onClick={criarCompromisso}
                                 className="flex-1 bg-green-600 hover:bg-green-700"
                             >
-                                <Check className="w-4 h-4 mr-2" />
+                                <CheckCircle2 className="w-4 h-4 mr-2" />
                                 Confirmar e Criar Compromisso
                             </Button>
                             <Button
