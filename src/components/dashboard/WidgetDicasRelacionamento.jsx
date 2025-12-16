@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Lightbulb, Users, MessageCircle, Shield, CheckCircle } from 'lucide-react';
+import { Heart, Lightbulb, Users, MessageCircle, Shield, CheckCircle2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 
 export default function WidgetDicasRelacionamento() {
@@ -30,7 +30,7 @@ export default function WidgetDicasRelacionamento() {
       cor: "text-emerald-600"
     },
     {
-      icon: CheckCircle,
+      icon: CheckCircle2,
       titulo: "Comprometa-se",
       descricao: "Apenas prometa o que pode cumprir. Faça devolutivas dentro do prazo estabelecido.",
       cor: "text-amber-600"
