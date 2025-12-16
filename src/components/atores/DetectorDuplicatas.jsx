@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
-import { AlertTriangle, Link2, X, Check, Eye } from "lucide-react";
+import { AlertTriangle, Link2, X, CheckCircle2, Eye } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -147,7 +147,7 @@ IMPORTANTE: Seja rigoroso. É melhor alertar demais do que permitir duplicatas.
                             </p>
                             <div className="flex gap-3">
                                 <Button onClick={() => onConfirmar({ tipo: 'criar_novo', dados: dadosNovo })} className="flex-1 bg-green-600 hover:bg-green-700">
-                                    <Check className="w-4 h-4 mr-2" />
+                                    <CheckCircle2 className="w-4 h-4 mr-2" />
                                     Confirmar Novo Cadastro
                                 </Button>
                                 <Button variant="outline" onClick={onCancelar}>
