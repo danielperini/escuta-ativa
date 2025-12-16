@@ -111,20 +111,28 @@ export default function VozComunidade() {
     return acc;
   }, {});
 
-  // Get relevant speeches - prioritize critical/materiality themes
+  // Get relevant speeches - APENAS declarações diretas de pessoas (não atas)
   const falas30Dias = registros
     .filter(r => {
       const dataRegistro = r.created_date || r.data_registro;
       if (!dataRegistro) return false;
       const daysDiff = Math.floor((new Date() - new Date(dataRegistro)) / (1000 * 60 * 60 * 24));
-      return daysDiff <= 30 && (r.transcricao || r.descricao);
+      
+      // FILTRO: Apenas registros com transcrição (falas reais de pessoas)
+      // NÃO incluir descrições genéricas ou atas
+      const temFalaReal = r.transcricao && 
+                          r.transcricao.length > 50 && 
+                          !r.titulo?.toLowerCase().includes('ata');
+      
+      return daysDiff <= 30 && temFalaReal;
     })
     .map(r => ({
       ...r,
       relevancia: (
         (r.temperatura_territorio === 'critico' ? 10 : r.temperatura_territorio === 'alto' ? 5 : 0) +
         (r.demandas?.some(d => d.urgencia === 'critica' || d.urgencia === 'alta') ? 5 : 0) +
-        (r.temas_identificados?.length > 0 ? 2 : 0)
+        (r.temas_identificados?.length > 0 ? 2 : 0) +
+        (r.participantes?.length > 0 ? 3 : 0) // Priorizar quando há participante identificado
       )
     }))
     .sort((a, b) => b.relevancia - a.relevancia);
@@ -190,9 +198,16 @@ export default function VozComunidade() {
               >
                 <div className="flex items-start gap-3 mb-2">
                   <MessageCircle className="w-4 h-4 text-[#40916C] flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-slate-700 italic flex-1">
-                    "{(registro.transcricao || registro.descricao || registro.titulo)?.substring(0, 300)}..."
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-sm text-slate-700 italic">
+                      "{registro.transcricao?.substring(0, 300)}..."
+                    </p>
+                    {registro.participantes?.[0] && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        — {registro.participantes[0]}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
                   {registro.comunidade && (
