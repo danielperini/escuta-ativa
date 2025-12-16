@@ -53,6 +53,7 @@ import ResumoTemas from "@/components/analise/ResumoTemas";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Pagination from '@/components/shared/Pagination';
 import DetalhesTemaMaterialidade from '@/components/materialidade/DetalhesTemaMaterialidade';
+import MatrizMacrotemas from '@/components/materialidade/MatrizMacrotemas';
 
 const categoriaColors = {
   ambiental: 'bg-emerald-100 text-emerald-700',
@@ -293,12 +294,17 @@ export default function Materialidade() {
 
       <ComparadorPeriodos />
 
-      <Tabs defaultValue="matriz" className="space-y-6">
-        <TabsList className="grid w-full max-w-lg grid-cols-3">
-          <TabsTrigger value="matriz">Matriz</TabsTrigger>
+      <Tabs defaultValue="macrotemas" className="space-y-6">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4">
+          <TabsTrigger value="macrotemas">🎯 Macrotemas</TabsTrigger>
+          <TabsTrigger value="matriz">Matriz Original</TabsTrigger>
           <TabsTrigger value="resumo">Resumo IA</TabsTrigger>
           <TabsTrigger value="lista">Lista</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="macrotemas">
+          <MatrizMacrotemas />
+        </TabsContent>
 
         <TabsContent value="matriz" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
