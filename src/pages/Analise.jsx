@@ -12,6 +12,7 @@ import LiderancasEmergentes from "../components/analise/LiderancasEmergentes";
 import PainelPendencias from "../components/devolutiva/PainelPendencias";
 import IntegradorTextoIA from "../components/analise/IntegradorTextoIA";
 import DashboardTemperaturaRisco from "../components/analise/DashboardTemperaturaRisco";
+import RiscosSociais from "../components/analise/RiscosSociais";
 
 export default function Analise() {
     const navigate = useNavigate();
@@ -35,10 +36,14 @@ export default function Analise() {
             </div>
 
             <Tabs defaultValue="temperatura" className="w-full">
-                <TabsList className="grid w-full grid-cols-6">
+                <TabsList className="grid w-full grid-cols-7">
                     <TabsTrigger value="temperatura">
                         <AlertTriangle className="w-4 h-4 mr-2" />
                         Temperatura
+                    </TabsTrigger>
+                    <TabsTrigger value="riscos">
+                        <Target className="w-4 h-4 mr-2" />
+                        Riscos Sociais
                     </TabsTrigger>
                     <TabsTrigger value="graficos">
                         <BarChart3 className="w-4 h-4 mr-2" />
@@ -64,6 +69,10 @@ export default function Analise() {
 
                 <TabsContent value="temperatura" className="mt-6">
                     <DashboardTemperaturaRisco />
+                </TabsContent>
+
+                <TabsContent value="riscos" className="mt-6">
+                    <RiscosSociais />
                 </TabsContent>
 
                 <TabsContent value="graficos" className="mt-6">

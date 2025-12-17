@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Lightbulb, Users, MessageCircle, Shield, CheckCircle2 } from 'lucide-react';
+import { Heart, Lightbulb, Users, MessageCircle, Shield, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default function WidgetDicasRelacionamento() {
+  const [indiceAtual, setIndiceAtual] = useState(0);
+  
   const dicas = [
     {
       icon: Heart,
@@ -43,17 +46,53 @@ export default function WidgetDicasRelacionamento() {
     }
   ];
 
+  const avancar = () => {
+    setIndiceAtual((prev) => (prev + 2) % dicas.length);
+  };
+
+  const voltar = () => {
+    setIndiceAtual((prev) => (prev - 2 + dicas.length) % dicas.length);
+  };
+
+  const dicasExibidas = [
+    dicas[indiceAtual],
+    dicas[(indiceAtual + 1) % dicas.length]
+  ];
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Heart className="w-5 h-5 text-[#E31E24]" />
-          Dicas de Relacionamento
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Heart className="w-5 h-5 text-[#E31E24]" />
+            Dicas de Relacionamento
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={voltar}
+              className="h-8 w-8"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-xs text-slate-500">
+              {Math.floor(indiceAtual / 2) + 1}/{Math.ceil(dicas.length / 2)}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={avancar}
+              className="h-8 w-8"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-3">
-          {dicas.map((dica, idx) => {
+          {dicasExibidas.map((dica, idx) => {
             const Icon = dica.icon;
             return (
               <div
