@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { defaultQueryConfig } from '@/utils/queryConfig';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Plus, FileText } from 'lucide-react';
@@ -63,12 +65,14 @@ export default function Registros() {
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
-    queryFn: () => base44.entities.Comunidade.list()
+    queryFn: () => base44.entities.Comunidade.list(),
+    ...defaultQueryConfig
   });
 
   const { data: temas = [] } = useQuery({
     queryKey: ['temas'],
-    queryFn: () => base44.entities.Tema.list()
+    queryFn: () => base44.entities.Tema.list(),
+    ...defaultQueryConfig
   });
 
   const deleteMutation = useMutation({
@@ -79,7 +83,7 @@ export default function Registros() {
     }
   });
 
-  const filteredRegistros = registros.filter(r => {
+  const filteredRegistros = useMemo(() => registros.filter(r => {
     // Busca texto livre
     if (filtros.busca) {
       const busca = filtros.busca.toLowerCase();
@@ -127,7 +131,7 @@ export default function Registros() {
     if (filtros.dataFim && r.data_registro > filtros.dataFim) return false;
 
     return true;
-    });
+    }), [registros, filtros]);
 
     const totalPages = Math.ceil(filteredRegistros.length / itemsPerPage);
     const paginatedRegistros = filteredRegistros.slice(
@@ -140,7 +144,8 @@ export default function Registros() {
     }, [filtros.busca, filtros.comunidade, filtros.tipo, filtros.status, filtros.temperatura, filtros.sentimento, filtros.tema, filtros.municipio, filtros.dataInicio, filtros.dataFim]);
 
     return (
-      <div className="space-y-4 md:space-y-6 pb-4">
+      <ErrorBoundary>
+        <div className="space-y-4 md:space-y-6 pb-4">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
         <div>
@@ -247,6 +252,7 @@ export default function Registros() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

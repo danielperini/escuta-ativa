@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { defaultQueryConfig } from '@/utils/queryConfig';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -84,10 +86,10 @@ export default function VerRegistro() {
   const { data: registro, isLoading } = useQuery({
     queryKey: ['registro', registroId],
     queryFn: async () => {
+      if (!registroId) return null;
       const registros = await base44.entities.Registro.filter({ id: registroId });
       const reg = registros[0];
       
-      // Gerar código único se não existir
       if (reg && !reg.codigo_unico) {
         const codigo = await gerarCodigoUnico('RE', reg.comunidade);
         await base44.entities.Registro.update(reg.id, { codigo_unico: codigo });
@@ -96,7 +98,8 @@ export default function VerRegistro() {
       
       return reg;
     },
-    enabled: !!registroId
+    enabled: !!registroId,
+    ...defaultQueryConfig
   });
 
   const updateMutation = useMutation({
@@ -175,7 +178,8 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
   const sentimento = sentimentoConfig[registro.sentimento];
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <ErrorBoundary>
+      <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4 flex-1">
@@ -594,6 +598,7 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
         open={mostrarAvaliacaoQualidade}
         onOpenChange={setMostrarAvaliacaoQualidade}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
