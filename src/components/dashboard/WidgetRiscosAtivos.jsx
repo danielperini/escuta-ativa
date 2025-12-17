@@ -6,8 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, TrendingUp, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Link, useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function WidgetRiscosAtivos() {
+  const navigate = useNavigate();
+  
   const { data: riscos = [] } = useQuery({
     queryKey: ['riscos-ativos-widget'],
     queryFn: async () => {
@@ -34,10 +38,10 @@ export default function WidgetRiscosAtivos() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link to={createPageUrl('Analise')} className="flex items-center gap-2 hover:text-red-600 transition-colors cursor-pointer">
             <AlertTriangle className="w-5 h-5 text-red-600" />
             Riscos Sociais Ativos
-          </div>
+          </Link>
           {total > 0 && (
             <div className="flex items-center gap-2">
               {criticos > 0 && (
@@ -67,10 +71,11 @@ export default function WidgetRiscosAtivos() {
             {riscos.map(risco => (
               <div 
                 key={risco.id} 
+                onClick={() => navigate(createPageUrl('Analise') + '?tab=riscos&id=' + risco.id)}
                 className="p-4 rounded-lg border-2 hover:shadow-md transition-all cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-medium text-slate-900 flex-1 pr-2">{risco.titulo}</h4>
+                  <h4 className="font-medium text-slate-900 flex-1 pr-2 hover:text-blue-600">{risco.titulo}</h4>
                   <Badge className={getCor(risco.nivel)} variant="outline">
                     {risco.nivel}
                   </Badge>

@@ -28,8 +28,14 @@ export default function GraficosKPIAvancados({ registros = [], atores = [], risc
     return acc;
   }, {});
 
+  const tipoLabels = {
+    pessoa: 'Stakeholders',
+    entidade: 'Organizações',
+    outro: 'Outros'
+  };
+
   const dadosAtores = Object.entries(atoresPorTipo).map(([tipo, count]) => ({
-    name: tipo.charAt(0).toUpperCase() + tipo.slice(1),
+    name: tipoLabels[tipo] || tipo.charAt(0).toUpperCase() + tipo.slice(1),
     value: count
   }));
 

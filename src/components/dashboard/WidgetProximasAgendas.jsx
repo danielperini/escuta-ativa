@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Users, Clock } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function WidgetProximasAgendas() {
   const { data: agendas = [] } = useQuery({
@@ -33,13 +35,15 @@ export default function WidgetProximasAgendas() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-blue-600" />
-          Próximas Agendas
-          {agendas.length > 0 && (
-            <Badge variant="secondary">{agendas.length}</Badge>
-          )}
-        </CardTitle>
+        <Link to={createPageUrl('Agenda')}>
+          <CardTitle className="flex items-center gap-2 hover:text-blue-600 transition-colors cursor-pointer">
+            <Calendar className="w-5 h-5 text-blue-600" />
+            Próximas Agendas
+            {agendas.length > 0 && (
+              <Badge variant="secondary">{agendas.length}</Badge>
+            )}
+          </CardTitle>
+        </Link>
       </CardHeader>
       <CardContent>
         {agendas.length === 0 ? (
@@ -51,12 +55,14 @@ export default function WidgetProximasAgendas() {
             {agendas.map(agenda => {
               const dias = getDiasRestantes(agenda.data);
               return (
-                <div 
+                <Link 
                   key={agenda.id} 
-                  className="p-4 rounded-lg border-2 bg-slate-50 hover:bg-slate-100 transition-colors"
+                  to={createPageUrl('Agenda') + `?id=${agenda.id}`}
+                  className="block"
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium text-slate-900 flex-1">{agenda.titulo}</h4>
+                  <div className="p-4 rounded-lg border-2 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-medium text-slate-900 flex-1 hover:text-blue-600">{agenda.titulo}</h4>
                     <Badge className={getCorUrgencia(dias)} variant="outline">
                       <Clock className="w-3 h-3 mr-1" />
                       {dias === 0 ? 'Hoje' : dias === 1 ? 'Amanhã' : `${dias}d`}
@@ -87,10 +93,11 @@ export default function WidgetProximasAgendas() {
                     )}
                   </div>
 
-                  <Badge variant="outline" className="mt-2 text-xs capitalize">
-                    {agenda.tipo}
-                  </Badge>
-                </div>
+                    <Badge variant="outline" className="mt-2 text-xs capitalize">
+                      {agenda.tipo}
+                    </Badge>
+                  </div>
+                </Link>
               );
             })}
           </div>
