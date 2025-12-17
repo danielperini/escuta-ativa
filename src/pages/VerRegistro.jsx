@@ -264,9 +264,44 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
         </div>
         </div>
 
-      {/* Nota de Qualidade */}
+      {/* Nota de Qualidade - Destacada */}
       {registro.avaliacao_qualidade?.nota_final && (
-        <BadgeQualidade avaliacao={registro.avaliacao_qualidade} />
+        <div className="bg-gradient-to-r from-blue-50 to-emerald-50 border-2 border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-blue-600" />
+              <h3 className="font-semibold text-slate-900">Avaliação de Qualidade</h3>
+            </div>
+            <div className="text-3xl font-bold text-blue-600">
+              {registro.avaliacao_qualidade.nota_final.toFixed(1)}/10
+            </div>
+          </div>
+          <BadgeQualidade avaliacao={registro.avaliacao_qualidade} />
+        </div>
+      )}
+
+      {/* Alerta se não tiver avaliação */}
+      {!registro.avaliacao_qualidade?.nota_final && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-amber-900">Registro sem avaliação de qualidade</p>
+                <p className="text-xs text-amber-700 mt-1">
+                  Avalie este registro para garantir a confiabilidade dos dados
+                </p>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => setMostrarAvaliacaoQualidade(true)}
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                Avaliar Agora
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
