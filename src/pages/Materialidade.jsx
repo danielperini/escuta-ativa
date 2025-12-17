@@ -294,10 +294,10 @@ export default function Materialidade() {
 
       <ComparadorPeriodos />
 
-      <Tabs defaultValue="macrotemas" className="space-y-6">
+      <Tabs defaultValue="matriz" className="space-y-6">
         <TabsList className="grid w-full max-w-2xl grid-cols-4">
-          <TabsTrigger value="macrotemas">🎯 Macrotemas</TabsTrigger>
-          <TabsTrigger value="matriz">Matriz Original</TabsTrigger>
+          <TabsTrigger value="matriz">Matriz</TabsTrigger>
+          <TabsTrigger value="macrotemas">Macrotemas</TabsTrigger>
           <TabsTrigger value="resumo">Resumo IA</TabsTrigger>
           <TabsTrigger value="lista">Lista</TabsTrigger>
         </TabsList>
