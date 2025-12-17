@@ -14,6 +14,10 @@ import PersonalizadorWidgets from "@/components/dashboard/PersonalizadorWidgets"
 import WidgetProximasAgendas from "@/components/dashboard/WidgetProximasAgendas";
 import WidgetRiscosAtivos from "@/components/dashboard/WidgetRiscosAtivos";
 import VozComunidade from "@/components/dashboard/VozComunidade";
+import WidgetTemperaturaTerritorial from "@/components/dashboard/WidgetTemperaturaTerritorial";
+import WidgetRedeStakeholders from "@/components/dashboard/WidgetRedeStakeholders";
+import WidgetStakeholdersRiscos from "@/components/dashboard/WidgetStakeholdersRiscos";
+import ExportadorDashboard from "@/components/dashboard/ExportadorDashboard";
 import MonitorDemandasRecorrentes from "@/components/atores/MonitorDemandasRecorrentes";
 import MonitorDevolutivas from "@/components/devolutiva/MonitorDevolutivas";
 import BotaoPanicoAvancado from "@/components/dashboard/BotaoPanicoAvancado";
@@ -32,7 +36,8 @@ export default function Dashboard() {
         'kpis', 'graficos', 'demandas_recorrentes', 'devolutivas', 
         'voz_comunidade', 'proximas_agendas', 'riscos_ativos', 'dicas_relacionamento',
         'comunidades_ativas', 'temas_prioritarios', 'stakeholders_engajados',
-        'temperatura_territorio', 'compromissos_atrasados', 'atividade_recente'
+        'temperatura_territorio', 'compromissos_atrasados', 'atividade_recente',
+        'temperatura_territorial', 'rede_stakeholders', 'stakeholders_riscos'
     ];
 
     const [widgets, setWidgets] = useState(widgetsAtivos);
@@ -138,6 +143,14 @@ export default function Dashboard() {
                         <p className="text-slate-500 mt-1">Visão geral do sistema</p>
                     </div>
                     <div className="flex gap-3">
+                        <ExportadorDashboard
+                            dados={{
+                                registros,
+                                compromissos,
+                                riscos,
+                                stakeholders
+                            }}
+                        />
                         <PersonalizadorWidgets 
                             widgetsAtivos={widgets}
                             onWidgetsChange={setWidgets}
@@ -220,8 +233,11 @@ export default function Dashboard() {
 
                 {/* Widgets em Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {widgets.includes('temperatura_territorial') && <WidgetTemperaturaTerritorial />}
+                    {widgets.includes('rede_stakeholders') && <WidgetRedeStakeholders />}
                     {widgets.includes('proximas_agendas') && <WidgetProximasAgendas />}
                     {widgets.includes('riscos_ativos') && <WidgetRiscosAtivos />}
+                    {widgets.includes('stakeholders_riscos') && <WidgetStakeholdersRiscos />}
                     {widgets.includes('dicas_relacionamento') && <WidgetDicasRelacionamento />}
 
                         {/* Novos Widgets */}
