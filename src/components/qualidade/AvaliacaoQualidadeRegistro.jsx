@@ -28,22 +28,23 @@ import { toast } from 'sonner';
 
 const TIPOS_FONTE = {
   documento_formal: { label: 'Documento Formal', forca: 'forte', peso: 1.0 },
-  ata_reuniao: { label: 'Ata de Reunião', forca: 'forte', peso: 0.95 },
-  relato_presencial: { label: 'Relato Presencial Estruturado', forca: 'forte', peso: 0.9 },
-  fala_direta: { label: 'Fala Direta Contextualizada', forca: 'forte', peso: 0.85 },
-  reuniao_online: { label: 'Reunião Online Registrada', forca: 'intermediaria', peso: 0.7 },
-  audio_contexto: { label: 'Áudio com Contexto Claro', forca: 'intermediaria', peso: 0.65 },
-  email_identificado: { label: 'E-mail Identificado', forca: 'intermediaria', peso: 0.6 },
-  whatsapp_grupo: { label: 'WhatsApp em Grupo', forca: 'fraca', peso: 0.4 },
-  audio_sem_contexto: { label: 'Áudio sem Contexto', forca: 'fraca', peso: 0.35 },
-  relato_indireto: { label: 'Relato Indireto/Informal', forca: 'fraca', peso: 0.3 }
+  ata_reuniao: { label: 'Ata de Reunião', forca: 'forte', peso: 1.0 },
+  evidencia_documental: { label: 'Evidência Documental', forca: 'forte', peso: 1.0 },
+  relato_presencial: { label: 'Relato Presencial Estruturado', forca: 'forte', peso: 1.0 },
+  fala_direta: { label: 'Fala Direta Contextualizada', forca: 'forte', peso: 1.0 },
+  reuniao_online: { label: 'Reunião Online Registrada', forca: 'intermediaria', peso: 0.85 },
+  audio_contexto: { label: 'Áudio com Contexto Claro', forca: 'intermediaria', peso: 0.85 },
+  email_identificado: { label: 'E-mail Identificado', forca: 'intermediaria', peso: 0.85 },
+  whatsapp_grupo: { label: 'WhatsApp em Grupo', forca: 'fraca', peso: 0.65 },
+  audio_sem_contexto: { label: 'Áudio sem Contexto', forca: 'fraca', peso: 0.65 },
+  relato_indireto: { label: 'Relato Indireto/Informal', forca: 'fraca', peso: 0.65 }
 };
 
 const CRITICIDADE_CONFIG = {
-  baixa: { label: 'Baixa', pesoRevisao: 0.15 },
-  media: { label: 'Média', pesoRevisao: 0.30 },
-  alta: { label: 'Alta', pesoRevisao: 0.40 },
-  critica: { label: 'Crítica', pesoRevisao: 0.50 }
+  baixa: { label: 'Pouco Crítico', pesoRevisao: 0.15 },
+  media: { label: 'Médio/Crítico', pesoRevisao: 0.50 },
+  alta: { label: 'Médio/Crítico', pesoRevisao: 0.50 },
+  critica: { label: 'Crítico', pesoRevisao: 0.50 }
 };
 
 export default function AvaliacaoQualidadeRegistro({ open, onOpenChange, registro }) {
@@ -54,44 +55,49 @@ export default function AvaliacaoQualidadeRegistro({ open, onOpenChange, registr
     revisao_humana_certificada: false,
     justificativa_revisao: '',
     componentes: {
-      clareza: 5,
-      identificacao_territorial: 5,
-      tipo_demanda: 5,
-      encaminhamentos: 5,
-      responsavel_identificado: 5
+      comunidade_classificada: 2,
+      municipio_estado: 2,
+      tipo_demanda: 2,
+      encaminhamento: 2,
+      responsavel_humano: 2
     }
   });
 
   const calcularNota = () => {
     const { componentes, tipo_fonte, criticidade_caso, revisao_humana_certificada } = avaliacao;
     
-    // Nota base (média dos componentes, normalizada para 10)
-    const notaBase = (
-      componentes.clareza +
-      componentes.identificacao_territorial +
+    // NOTA BASE (0-10): soma dos 5 critérios (cada um vale 2 pontos)
+    const notaBase = 
+      componentes.comunidade_classificada +
+      componentes.municipio_estado +
       componentes.tipo_demanda +
-      componentes.encaminhamentos +
-      componentes.responsavel_identificado
-    ) / 5;
+      componentes.encaminhamento +
+      componentes.responsavel_humano;
 
-    // Peso da fonte
+    // PESO DA FONTE (0.65, 0.85 ou 1.00)
     const pesoFonte = TIPOS_FONTE[tipo_fonte].peso;
     
-    // Peso da revisão humana (varia conforme criticidade)
+    // NOTA AJUSTADA = NOTA BASE × PESO FONTE
+    const notaAjustada = notaBase * pesoFonte;
+
+    // BÔNUS REVISÃO HUMANA = NOTA AJUSTADA × PESO (0.15 ou 0.50)
     const pesoRevisao = revisao_humana_certificada 
       ? CRITICIDADE_CONFIG[criticidade_caso].pesoRevisao 
       : 0;
+    const bonusRevisao = notaAjustada * pesoRevisao;
 
-    // Cálculo final: nota_base * peso_fonte + bônus de revisão
-    const notaComFonte = notaBase * pesoFonte;
-    const bonusRevisao = revisao_humana_certificada ? (10 - notaComFonte) * pesoRevisao : 0;
-    const notaFinal = Math.min(10, notaComFonte + bonusRevisao);
+    // NOTA FINAL = NOTA AJUSTADA + BÔNUS (limitada a 1-10)
+    let notaFinal = notaAjustada + bonusRevisao;
+    if (notaFinal > 10) notaFinal = 10;
+    if (notaFinal < 1) notaFinal = 1;
 
     return {
       nota_final: Math.round(notaFinal * 10) / 10,
       nota_base: Math.round(notaBase * 10) / 10,
+      nota_ajustada: Math.round(notaAjustada * 10) / 10,
       peso_fonte: pesoFonte,
-      peso_revisao_humana: pesoRevisao
+      peso_revisao_humana: pesoRevisao,
+      bonus_revisao: Math.round(bonusRevisao * 10) / 10
     };
   };
 
@@ -152,8 +158,8 @@ export default function AvaliacaoQualidadeRegistro({ open, onOpenChange, registr
                     <span className="text-lg text-slate-500">/10</span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
-                    Base: {notas.nota_base} • Fonte: {(notas.peso_fonte * 100).toFixed(0)}% • 
-                    Revisão: {(notas.peso_revisao_humana * 100).toFixed(0)}%
+                    Base: {notas.nota_base} → Ajustada: {notas.nota_ajustada} → 
+                    Bônus: +{notas.bonus_revisao}
                   </p>
                 </div>
                 <div className="text-right">
@@ -213,22 +219,25 @@ export default function AvaliacaoQualidadeRegistro({ open, onOpenChange, registr
             </div>
           </div>
 
-          {/* Componentes da Nota Base */}
+          {/* Componentes da Nota Base (cada critério vale 2 pontos) */}
           <div className="space-y-4">
-            <Label className="text-base font-semibold">Componentes da Avaliação</Label>
+            <Label className="text-base font-semibold">Critérios da Nota Base (cada vale 2 pontos)</Label>
+            <p className="text-xs text-slate-500">
+              Marque 2 se o critério está presente e completo, 0 se ausente
+            </p>
             
             {Object.entries({
-              clareza: 'Clareza das Informações',
-              identificacao_territorial: 'Identificação Territorial',
-              tipo_demanda: 'Tipo de Demanda Identificado',
-              encaminhamentos: 'Encaminhamentos Registrados',
-              responsavel_identificado: 'Responsável Identificado'
+              comunidade_classificada: 'Comunidade corretamente classificada',
+              municipio_estado: 'Município e Estado identificados',
+              tipo_demanda: 'Tipo de demanda definido',
+              encaminhamento: 'Encaminhamento identificado',
+              responsavel_humano: 'Responsável humano (criação/atualização)'
             }).map(([key, label]) => (
               <div key={key} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm">{label}</Label>
                   <span className="text-sm font-medium text-slate-700">
-                    {avaliacao.componentes[key]}/10
+                    {avaliacao.componentes[key]} pts
                   </span>
                 </div>
                 <Slider
@@ -238,11 +247,27 @@ export default function AvaliacaoQualidadeRegistro({ open, onOpenChange, registr
                     componentes: { ...prev.componentes, [key]: v }
                   }))}
                   min={0}
-                  max={10}
-                  step={0.5}
+                  max={2}
+                  step={1}
+                  className="w-full"
                 />
+                <div className="flex justify-between text-xs text-slate-400">
+                  <span>Ausente (0)</span>
+                  <span>Parcial (1)</span>
+                  <span>Completo (2)</span>
+                </div>
               </div>
             ))}
+            
+            <div className="p-3 bg-slate-100 rounded-lg text-sm font-medium">
+              Nota Base Total: {
+                avaliacao.componentes.comunidade_classificada +
+                avaliacao.componentes.municipio_estado +
+                avaliacao.componentes.tipo_demanda +
+                avaliacao.componentes.encaminhamento +
+                avaliacao.componentes.responsavel_humano
+              } / 10 pontos
+            </div>
           </div>
 
           {/* Criticidade do Caso */}
@@ -295,7 +320,7 @@ export default function AvaliacaoQualidadeRegistro({ open, onOpenChange, registr
                   />
                   <p className="text-xs text-amber-700 flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
-                    Peso da revisão neste caso: {(CRITICIDADE_CONFIG[avaliacao.criticidade_caso].pesoRevisao * 100).toFixed(0)}%
+                    Bônus neste caso: Nota Ajustada × {(CRITICIDADE_CONFIG[avaliacao.criticidade_caso].pesoRevisao * 100).toFixed(0)}%
                   </p>
                 </div>
               )}

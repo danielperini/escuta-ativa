@@ -54,15 +54,19 @@ export default function BadgeQualidade({ avaliacao, compact = false }) {
                 <span className="font-medium">{nota_base}/10</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600">Peso da Fonte:</span>
-                <span className="font-medium">{getForcaIcon(forca_fonte)} {(peso_fonte * 100).toFixed(0)}%</span>
+                <span className="text-slate-600">Ajustada (×{peso_fonte}):</span>
+                <span className="font-medium">{avaliacao.nota_ajustada || (nota_base * peso_fonte).toFixed(1)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Força da Fonte:</span>
+                <span className="font-medium">{getForcaIcon(forca_fonte)}</span>
               </div>
               {revisao_humana_certificada && (
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Revisão Humana:</span>
+                  <span className="text-slate-600">Bônus Revisão:</span>
                   <span className="font-medium text-emerald-600">
                     <Shield className="w-3 h-3 inline mr-1" />
-                    {(peso_revisao_humana * 100).toFixed(0)}%
+                    +{avaliacao.bonus_revisao || ((nota_base * peso_fonte) * peso_revisao_humana).toFixed(1)}
                   </span>
                 </div>
               )}
@@ -101,19 +105,21 @@ export default function BadgeQualidade({ avaliacao, compact = false }) {
             <span className="font-medium">{nota_base}/10</span>
           </div>
           <div className="flex justify-between items-center">
+            <span className="text-slate-600">× Peso Fonte ({peso_fonte})</span>
+            <span className="font-medium">{avaliacao.nota_ajustada || (nota_base * peso_fonte).toFixed(1)}</span>
+          </div>
+          <div className="flex justify-between items-center">
             <span className="text-slate-600">Força da Fonte</span>
-            <span className="font-medium">
-              {getForcaIcon(forca_fonte)} {(peso_fonte * 100).toFixed(0)}%
-            </span>
+            <span className="font-medium">{getForcaIcon(forca_fonte)}</span>
           </div>
           {revisao_humana_certificada && (
             <div className="flex justify-between items-center">
               <span className="text-slate-600 flex items-center gap-1">
                 <Shield className="w-3 h-3" />
-                Revisão Humana
+                Bônus Revisão
               </span>
               <span className="font-medium text-emerald-600">
-                +{(peso_revisao_humana * 100).toFixed(0)}%
+                +{avaliacao.bonus_revisao || ((nota_base * peso_fonte) * peso_revisao_humana).toFixed(1)}
               </span>
             </div>
           )}
