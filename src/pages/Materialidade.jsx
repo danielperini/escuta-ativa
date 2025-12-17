@@ -46,6 +46,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import ComparadorPeriodos from "../components/analise/ComparadorPeriodos";
 import ResumoTemas from "@/components/analise/ResumoTemas";
