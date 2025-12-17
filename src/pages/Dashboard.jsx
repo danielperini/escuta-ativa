@@ -64,6 +64,13 @@ export default function Dashboard() {
         refetchOnWindowFocus: false
     });
 
+    const { data: stakeholders = [] } = useQuery({
+        queryKey: ['stakeholders-dashboard'],
+        queryFn: () => base44.entities.Stakeholder.list('-created_date', 200),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false
+    });
+
     // Cálculos de KPIs
     const totalRegistros = registros.length;
     const registrosMesAnterior = registros.filter(r => {
@@ -193,7 +200,7 @@ export default function Dashboard() {
                         {widgets.includes('graficos') && (
                         <GraficosKPIAvancados
                         registros={registros}
-                        atores={[]}
+                        atores={stakeholders}
                         riscos={riscos}
                         compromissos={[]}
                         />
