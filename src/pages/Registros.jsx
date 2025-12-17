@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import FiltrosAvancados from '@/components/registros/FiltrosAvancados';
 import TabelaRegistros from '@/components/registros/TabelaRegistros';
 import Pagination from '@/components/shared/Pagination';
-import ValidadorQualidadeRegistros from '@/components/registros/ValidadorQualidadeRegistros';
+import ContadorRegistrosRecentes from '@/components/registros/ContadorRegistrosRecentes';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -178,7 +178,7 @@ export default function Registros() {
         </div>
       </div>
 
-      <ValidadorQualidadeRegistros registros={filteredRegistros} />
+      <ContadorRegistrosRecentes registros={registros} />
       
       <FiltrosAvancados
         filtros={filtros}
