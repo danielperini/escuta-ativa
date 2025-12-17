@@ -296,7 +296,7 @@ export default function CardsEducativos() {
           ))}
         </div>
       ) : (
-        // Modo carrossel: 2 cards centralizados
+        // Modo carrossel: 2 cards centralizados ocupando largura total
         <div className="space-y-6">
           {/* Indicador de rotação automática */}
           <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
@@ -309,74 +309,78 @@ export default function CardsEducativos() {
             </CardContent>
           </Card>
 
-          {/* Cards em destaque */}
-          <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {cardsExibidos.map((card, idx) => (
-                <Card 
-                  key={card?.id || idx}
-                  className="hover:shadow-2xl transition-all duration-300 border-2 hover:border-[#E31E24]"
-                >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <Badge className={cn("text-xs", CORES_CATEGORIA[card?.categoria])}>
-                        {card?.categoria}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        #{card?.card_id}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-xl leading-tight">
-                      {card?.titulo}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-slate-700 leading-relaxed text-base">
-                      {card?.texto}
-                    </p>
-                    <div className="flex items-center gap-4 text-sm text-slate-400 pt-3 border-t">
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-4 h-4" />
-                        {card?.visualizacoes || 0}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <ThumbsUp className="w-4 h-4" />
-                        {card?.curtidas || 0}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          {/* Container com navegação integrada */}
+          <div className="relative">
+            {/* Botão Anterior - fixo à esquerda */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={voltarDicas}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white shadow-lg hover:bg-slate-50 hover:scale-110 transition-all"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </Button>
 
-            {/* Controles de navegação */}
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={voltarDicas}
-                className="gap-2"
-              >
-                <ChevronLeft className="w-5 h-5" />
-                Anterior
-              </Button>
-              
-              <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg">
-                <span className="text-sm font-medium text-slate-700">
-                  {Math.floor(indiceAtual / 2) + 1} de {Math.ceil(cardsFiltrados.length / 2)}
-                </span>
+            {/* Cards em destaque - largura total */}
+            <div className="px-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {cardsExibidos.map((card, idx) => (
+                  <Card 
+                    key={card?.id || idx}
+                    className="hover:shadow-2xl transition-all duration-300 border-2 hover:border-[#E31E24] h-full"
+                  >
+                    <CardHeader className="pb-4">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <Badge className={cn("text-xs", CORES_CATEGORIA[card?.categoria])}>
+                          {card?.categoria}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          #{card?.card_id}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-xl leading-tight">
+                        {card?.titulo}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-slate-700 leading-relaxed text-base">
+                        {card?.texto}
+                      </p>
+                      <div className="flex items-center gap-4 text-sm text-slate-400 pt-3 border-t">
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-4 h-4" />
+                          {card?.visualizacoes || 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <ThumbsUp className="w-4 h-4" />
+                          {card?.curtidas || 0}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => avancarDicas(2)}
-                className="gap-2"
-              >
-                Próxima
-                <ChevronRight className="w-5 h-5" />
-              </Button>
             </div>
+
+            {/* Botão Próxima - fixo à direita */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => avancarDicas(2)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white shadow-lg hover:bg-slate-50 hover:scale-110 transition-all"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </Button>
+          </div>
+
+          {/* Indicador de posição centralizado */}
+          <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center gap-2 px-6 py-3 bg-slate-100 rounded-full">
+              <span className="text-sm font-semibold text-slate-700">
+                {Math.floor(indiceAtual / 2) + 1} de {Math.ceil(cardsFiltrados.length / 2)}
+              </span>
+            </div>
+          </div>
 
             {/* Indicador de próxima rotação */}
             <div className="text-center mt-4">
