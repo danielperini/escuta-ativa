@@ -24,7 +24,13 @@ const widgetsDisponiveis = [
   { id: 'temperatura', nome: 'Temperatura Social', descricao: 'Mapa de calor territorial' },
   { id: 'proximas_agendas', nome: 'Próximas Agendas', descricao: 'Compromissos agendados' },
   { id: 'riscos_ativos', nome: 'Riscos Ativos', descricao: 'Alertas de riscos sociais' },
-  { id: 'dicas_relacionamento', nome: 'Dicas de Relacionamento', descricao: 'Conselhos práticos' }
+  { id: 'dicas_relacionamento', nome: 'Dicas de Relacionamento', descricao: 'Conselhos práticos' },
+  { id: 'comunidades_ativas', nome: 'Comunidades Mais Ativas', descricao: 'Top 5 comunidades com mais registros' },
+  { id: 'temas_prioritarios', nome: 'Temas Prioritários', descricao: 'Temas mais mencionados' },
+  { id: 'stakeholders_engajados', nome: 'Stakeholders Engajados', descricao: 'Top 5 por score de engajamento' },
+  { id: 'temperatura_territorio', nome: 'Temperatura do Território', descricao: 'Distribuição por nível de tensão' },
+  { id: 'compromissos_atrasados', nome: 'Compromissos Atrasados', descricao: 'Compromissos vencidos' },
+  { id: 'atividade_recente', nome: 'Atividade Recente', descricao: 'Últimos 5 registros criados' }
 ];
 
 export default function PersonalizadorWidgets({ widgetsAtivos = [], onWidgetsChange }) {
