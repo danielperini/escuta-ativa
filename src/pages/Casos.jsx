@@ -109,22 +109,7 @@ export default function Casos() {
     queryKey: ['casos'],
     queryFn: async () => {
       const lista = await base44.entities.Caso.list('-created_date');
-      // Remover duplicatas e consolidar casos similares
-      const seen = new Map();
-      return lista.filter(caso => {
-        const key = `${caso.titulo?.toLowerCase().trim()}-${caso.comunidade?.toLowerCase().trim()}-${caso.tema?.toLowerCase().trim()}`;
-        if (seen.has(key)) {
-          const existente = seen.get(key);
-          // Se houver duplicata, manter apenas o mais recente
-          if (new Date(caso.created_date) > new Date(existente.created_date)) {
-            seen.set(key, caso);
-            return true;
-          }
-          return false;
-        }
-        seen.set(key, caso);
-        return true;
-      });
+      return removerDuplicatas(lista, 'caso');
     },
     staleTime: 30000,
     refetchInterval: 60000
