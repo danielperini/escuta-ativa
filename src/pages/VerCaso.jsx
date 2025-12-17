@@ -191,9 +191,10 @@ Seja objetivo, estratégico e prático. Máximo 400 palavras.`
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           <Tabs defaultValue="detalhes">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
               <TabsTrigger value="registros">Registros ({registros.length})</TabsTrigger>
+              <TabsTrigger value="stakeholders">Stakeholders</TabsTrigger>
               <TabsTrigger value="historico">Histórico</TabsTrigger>
               <TabsTrigger value="analise">Análise IA</TabsTrigger>
             </TabsList>
@@ -249,31 +250,117 @@ Seja objetivo, estratégico e prático. Máximo 400 palavras.`
                   <p className="text-slate-500">Nenhum registro vinculado</p>
                 </Card>
               ) : (
-                registros.map(registro => (
-                  <Card key={registro.id} className="hover:shadow-md transition-all">
-                    <CardContent className="p-4">
-                      <Link to={createPageUrl('VerRegistro') + `?id=${registro.id}`}>
-                        <h4 className="font-semibold text-slate-900 hover:text-blue-600">
-                          {registro.titulo}
-                        </h4>
-                      </Link>
-                      <p className="text-sm text-slate-600 mt-1 line-clamp-2">
-                        {registro.descricao}
-                      </p>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(registro.created_date).toLocaleDateString('pt-BR')}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {registro.comunidade}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                registros.map(registro => {
+                  const isOnline = registro.comunidade?.toLowerCase().includes('online') || 
+                                   registro.comunidade?.toLowerCase().includes('teams') ||
+                                   registro.comunidade?.toLowerCase().includes('zoom') ||
+                                   registro.local?.toLowerCase().includes('virtual');
+                  const tipoOnline = registro.comunidade?.toLowerCase().includes('teams') ? 'reunião virtual' :
+                                     registro.comunidade?.toLowerCase().includes('email') ? 'e-mail' :
+                                     registro.comunidade?.toLowerCase().includes('whatsapp') || registro.comunidade?.toLowerCase().includes('grupo') ? 'redes sociais / grupos' :
+                                     'online';
+                  
+                  return (
+                    <Card key={registro.id} className="hover:shadow-md transition-all">
+                      <CardContent className="p-4">
+                        <Link to={createPageUrl('VerRegistro') + `?id=${registro.id}`}>
+                          <h4 className="font-semibold text-slate-900 hover:text-blue-600">
+                            {registro.titulo}
+                          </h4>
+                        </Link>
+                        <p className="text-sm text-slate-600 mt-1 line-clamp-2">
+                          {registro.descricao}
+                        </p>
+                        <div className="flex items-center gap-3 mt-2 text-xs flex-wrap">
+                          <span className="flex items-center gap-1 text-slate-500">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(registro.created_date).toLocaleDateString('pt-BR')}
+                          </span>
+                          <span className="flex items-center gap-1 text-slate-500">
+                            <MapPin className="w-3 h-3" />
+                            {registro.localizacao?.municipio || 'Não identificado'} / {registro.localizacao?.estado || 'Não identificado'}
+                          </span>
+                          {isOnline && (
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                              Online – {tipoOnline}
+                            </Badge>
+                          )}
+                        </div>
+                        {registro.created_by && (
+                          <p className="text-xs text-slate-400 mt-2">
+                            Criado por: {registro.created_by}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })
               )}
+            </TabsContent>
+
+            <TabsContent value="stakeholders" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Pessoas e Organizações Envolvidas</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {stakeholders.length === 0 ? (
+                    <p className="text-sm text-slate-500 text-center py-4">Nenhum stakeholder vinculado</p>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        {stakeholders.map(s => (
+                          <Link key={s.id} to={createPageUrl('PerfilStakeholder') + `?id=${s.id}`}>
+                            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                              <div className="w-10 h-10 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white font-medium">
+                                {s.nome[0]?.toUpperCase()}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-slate-900">{s.nome}</p>
+                                <p className="text-xs text-slate-500 capitalize">{s.tipo} {s.subtipo ? `• ${s.subtipo}` : ''}</p>
+                                {s.organizacao && (
+                                  <p className="text-xs text-slate-500 mt-0.5">Organização: {s.organizacao}</p>
+                                )}
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+
+                      {/* Poder Público */}
+                      <div className="pt-3 border-t">
+                        <h4 className="font-medium text-slate-900 mb-2 text-sm">Participação do Poder Público</h4>
+                        <div className="space-y-1">
+                          {stakeholders.some(s => s.subtipo === 'governo' || s.organizacao?.toLowerCase().includes('prefeitura') || s.organizacao?.toLowerCase().includes('municipal')) && (
+                            <Badge variant="outline" className="text-xs">Municipal</Badge>
+                          )}
+                          {stakeholders.some(s => s.organizacao?.toLowerCase().includes('estadual') || s.organizacao?.toLowerCase().includes('estado')) && (
+                            <Badge variant="outline" className="text-xs">Estadual</Badge>
+                          )}
+                          {stakeholders.some(s => s.organizacao?.toLowerCase().includes('federal') || s.organizacao?.toLowerCase().includes('união')) && (
+                            <Badge variant="outline" className="text-xs">Federal</Badge>
+                          )}
+                          {stakeholders.some(s => s.organizacao?.toLowerCase().includes('judiciário') || s.organizacao?.toLowerCase().includes('tribunal')) && (
+                            <Badge variant="outline" className="text-xs">Judiciário</Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Comunidades */}
+                      <div className="pt-3 border-t">
+                        <h4 className="font-medium text-slate-900 mb-2 text-sm">Comunidades Envolvidas</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {[...new Set(stakeholders.map(s => s.comunidade).filter(Boolean))].map((com, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-xs">
+                              {com}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="historico" className="space-y-3 mt-4">
@@ -284,17 +371,35 @@ Seja objetivo, estratégico e prático. Máximo 400 palavras.`
                 <CardContent className="p-0">
                   <div className="divide-y">
                     {/* Criação do caso */}
-                    <div className="p-4">
+                    <div className="p-4 bg-blue-50">
                       <div className="flex items-start gap-3">
                         <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
                         <div className="flex-1">
                           <p className="text-sm font-medium text-slate-900">Caso criado</p>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {caso.created_by} • {new Date(caso.created_date || caso.data_abertura).toLocaleString('pt-BR')}
+                          <p className="text-xs text-slate-600 mt-1 font-medium">
+                            Criado por: {caso.created_by}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {new Date(caso.created_date || caso.data_abertura).toLocaleString('pt-BR')}
                           </p>
                         </div>
                       </div>
                     </div>
+
+                    {/* Última atualização */}
+                    {caso.updated_date && caso.updated_date !== caso.created_date && (
+                      <div className="p-4 bg-amber-50">
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-amber-500 mt-2" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-slate-900">Última atualização</p>
+                            <p className="text-xs text-slate-600 mt-1">
+                              {new Date(caso.updated_date).toLocaleString('pt-BR')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Histórico de atualizações */}
                     {caso.historico_atualizacoes?.map((item, idx) => (
@@ -306,8 +411,11 @@ Seja objetivo, estratégico e prático. Máximo 400 palavras.`
                             {item.observacao && (
                               <p className="text-sm text-slate-600 mt-1">{item.observacao}</p>
                             )}
-                            <p className="text-xs text-slate-500 mt-1">
-                              {item.usuario} • {new Date(item.data).toLocaleString('pt-BR')}
+                            <p className="text-xs text-slate-600 mt-1 font-medium">
+                              Por: {item.usuario}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {new Date(item.data).toLocaleString('pt-BR')}
                             </p>
                           </div>
                         </div>

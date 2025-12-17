@@ -52,6 +52,7 @@ export default function VozComunidade() {
   const [search, setSearch] = useState('');
   const [filterComunidade, setFilterComunidade] = useState('todos');
   const [filterUrgencia, setFilterUrgencia] = useState('todos');
+  const [periodoDias, setPeriodoDias] = useState(30);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentPageFalas, setCurrentPageFalas] = useState(1);
   const itemsPerPage = 10;
@@ -118,7 +119,7 @@ export default function VozComunidade() {
       if (!dataRegistro) return false;
       const daysDiff = Math.floor((new Date() - new Date(dataRegistro)) / (1000 * 60 * 60 * 24));
       
-      if (daysDiff > 30 || !r.transcricao || r.transcricao.length < 100) return false;
+      if (daysDiff > periodoDias || !r.transcricao || r.transcricao.length < 100) return false;
       
       const tituloLower = (r.titulo || '').toLowerCase();
       const transcricao = r.transcricao || '';
@@ -221,11 +222,27 @@ export default function VozComunidade() {
       {falas30Dias.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-[#40916C]" />
-              Voz da Comunidade - Falas Reais
-            </CardTitle>
-            <p className="text-xs text-slate-500 mt-1">Declarações diretas das pessoas, sem filtros institucionais</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5 text-[#40916C]" />
+                  Voz da Comunidade - Falas Reais
+                </CardTitle>
+                <p className="text-xs text-slate-500 mt-1">Declarações diretas das pessoas, sem filtros institucionais</p>
+              </div>
+              <Select value={periodoDias.toString()} onValueChange={(v) => setPeriodoDias(Number(v))}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">Últimos 7 dias</SelectItem>
+                  <SelectItem value="15">Últimos 15 dias</SelectItem>
+                  <SelectItem value="30">Últimos 30 dias</SelectItem>
+                  <SelectItem value="60">Últimos 60 dias</SelectItem>
+                  <SelectItem value="90">Últimos 90 dias</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {paginatedFalas.length === 0 ? (
@@ -268,8 +285,21 @@ export default function VozComunidade() {
                         {registro.comunidade && (
                           <div className="flex items-center gap-1 text-slate-600">
                             <MapPin className="w-3 h-3" />
-                            {registro.comunidade}
+                            {registro.comunidade} {registro.localizacao?.municipio ? `/ ${registro.localizacao.municipio}` : ''}
                           </div>
+                        )}
+
+                        {/* Tipo de registro */}
+                        {(registro.comunidade?.toLowerCase().includes('online') || 
+                          registro.comunidade?.toLowerCase().includes('teams') ||
+                          registro.local?.toLowerCase().includes('virtual')) ? (
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                            Online
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700">
+                            Presencial
+                          </Badge>
                         )}
 
                         {/* Temas relacionados */}
@@ -294,6 +324,15 @@ export default function VozComunidade() {
                         <span className="text-slate-500 ml-auto">
                           {format(new Date(registro.created_date || registro.data_registro), "dd/MM/yyyy", { locale: ptBR })}
                         </span>
+
+                        {/* Caso relacionado */}
+                        {registro.caso_relacionado && (
+                          <Link to={createPageUrl('VerCaso') + `?id=${registro.caso_relacionado}`}>
+                            <Badge variant="outline" className="text-xs hover:bg-slate-100 cursor-pointer">
+                              Ver Caso
+                            </Badge>
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>
