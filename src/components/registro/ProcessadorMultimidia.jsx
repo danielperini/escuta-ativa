@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Upload, X, FileAudio, FileVideo, Image, FileText, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, X, FileAudio, FileVideo, Image, FileText, Loader2, CheckCircle2, AlertCircle, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TIPO_ICONE = {
