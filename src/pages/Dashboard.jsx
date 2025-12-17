@@ -199,27 +199,15 @@ export default function Dashboard() {
                         />
                         )}
 
+                {/* Voz da Comunidade */}
+                {widgets.includes('voz_comunidade') && <VozComunidade />}
+
                 {/* Widgets em Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {widgets.includes('proximas_agendas') && <WidgetProximasAgendas />}
                     {widgets.includes('riscos_ativos') && <WidgetRiscosAtivos />}
                     {widgets.includes('dicas_relacionamento') && <WidgetDicasRelacionamento />}
-                    {widgets.includes('demandas_recorrentes') && (
-                        <div className="lg:col-span-2">
-                            <MonitorDemandasRecorrentes />
-                        </div>
-                    )}
-                    {widgets.includes('devolutivas') && (
-                        <div className="lg:col-span-2">
-                            <MonitorDevolutivas />
-                        </div>
-                    )}
-                    {widgets.includes('voz_comunidade') && (
-                        <div className="lg:col-span-2">
-                            <VozComunidade />
-                        </div>
-                    )}
-
+                    
                     {/* Widget Código de Conduta */}
                     {user?.configuracoes?.exibir_tutorial !== false && (
                         <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
@@ -254,6 +242,17 @@ export default function Dashboard() {
                                 </Link>
                             </CardContent>
                         </Card>
+                    )}
+
+                    {widgets.includes('demandas_recorrentes') && (
+                        <div className="lg:col-span-2">
+                            <MonitorDemandasRecorrentes />
+                        </div>
+                    )}
+                    {widgets.includes('devolutivas') && (
+                        <div className="lg:col-span-2">
+                            <MonitorDevolutivas />
+                        </div>
                     )}
                 </div>
 
