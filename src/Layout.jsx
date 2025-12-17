@@ -61,7 +61,8 @@ const navigation = [
   { name: 'Equipes', href: 'GerenciarEquipes', icon: Users },
   { name: 'Usuários', href: 'GerenciarUsuarios', icon: User },
   { name: 'Integrações', href: 'Integracoes', icon: Plug },
-  { name: 'Documentação', href: 'Documentacao', icon: Book }
+  { name: 'Documentação', href: 'Documentacao', icon: Book },
+  { name: 'Limpeza de Dados', href: 'LimpezaDados', icon: Shield }
   ];
 
 export default function Layout({ children, currentPageName }) {

@@ -115,7 +115,10 @@ export default function Stakeholders() {
 
   const { data: stakeholders = [], isLoading, refetch } = useQuery({
     queryKey: ['stakeholders'],
-    queryFn: () => base44.entities.Stakeholder.list('-created_date'),
+    queryFn: async () => {
+      const lista = await base44.entities.Stakeholder.list('-created_date', 500);
+      return removerDuplicatas(lista, 'stakeholder');
+    },
     staleTime: 30000,
     refetchInterval: 60000
   });
