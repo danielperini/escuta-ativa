@@ -218,28 +218,28 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64 pb-safe">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 h-16 border-b px-4 lg:px-8 bg-white" style={{
-          backgroundColor: estiloTema.backgroundAlt,
-          borderColor: estiloTema.border
-        }}>
-          <div className="flex items-center justify-between h-full">
-            <button 
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-2 text-slate-600 hover:text-slate-900"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+            <div className="lg:pl-64 pb-16 lg:pb-8">
+              {/* Top bar */}
+              <header className="sticky top-0 z-30 h-14 md:h-16 border-b px-3 md:px-4 lg:px-8 bg-white" style={{
+                backgroundColor: estiloTema.backgroundAlt,
+                borderColor: estiloTema.border
+              }}>
+                <div className="flex items-center justify-between h-full gap-2">
+                  <button 
+                    onClick={() => setSidebarOpen(true)}
+                    className="lg:hidden p-2 -ml-2 text-slate-600 hover:text-slate-900 active:scale-95"
+                  >
+                    <Menu className="w-5 h-5 md:w-6 md:h-6" />
+                  </button>
 
-            <div className="hidden lg:block">
-              <h1 className="text-lg font-semibold" style={{ color: estiloTema.text }}>
+            <div className="hidden lg:block flex-1 min-w-0">
+              <h1 className="text-base md:text-lg font-semibold truncate" style={{ color: estiloTema.text }}>
                 {navigation.find(n => n.href === currentPageName)?.name || currentPageName}
               </h1>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden lg:block w-80">
+            <div className="flex items-center gap-1 md:gap-2 lg:gap-4">
+              <div className="hidden lg:block w-64 xl:w-80">
                 <BuscaInteligenteCodigo />
               </div>
 
@@ -247,14 +247,14 @@ export default function Layout({ children, currentPageName }) {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 pl-2 pr-3">
-                    <div className="w-8 h-8 rounded-full bg-[#E31E24] flex items-center justify-center text-white text-sm font-medium">
+                  <Button variant="ghost" className="flex items-center gap-1 md:gap-2 pl-1 md:pl-2 pr-2 md:pr-3 h-9 md:h-10">
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-[#E31E24] flex items-center justify-center text-white text-xs md:text-sm font-medium">
                       {user?.full_name?.[0]?.toUpperCase() || 'U'}
                     </div>
-                    <span className="hidden sm:block text-sm font-medium text-slate-700">
+                    <span className="hidden md:block text-sm font-medium text-slate-700 max-w-[100px] truncate">
                       {user?.full_name || 'Usuário'}
                     </span>
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                    <ChevronDown className="w-3.5 h-3.5 md:w-4 md:h-4 text-slate-400" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -273,7 +273,7 @@ export default function Layout({ children, currentPageName }) {
         </header>
 
         {/* Page content */}
-        <main className="p-4 lg:p-8 pb-20 lg:pb-8">
+        <main className="p-3 md:p-4 lg:p-8 pb-20 lg:pb-8">
           {children}
         </main>
 

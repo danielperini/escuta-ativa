@@ -177,18 +177,18 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto px-4 md:px-0">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4 flex-1">
+      <div className="flex flex-col gap-3 md:gap-4">
+        <div className="flex items-start gap-2 md:gap-4">
           <Link to={createPageUrl('Registros')}>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="h-9 w-9 md:h-10 md:w-10">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-2xl font-bold text-slate-900">{registro.titulo}</h2>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2">
+              <h2 className="text-lg md:text-2xl font-bold text-slate-900 break-words">{registro.titulo}</h2>
               {registro.codigo_unico && (
                 <Badge variant="outline" className="text-sm font-mono bg-slate-100">
                   {registro.codigo_unico}
@@ -233,33 +233,36 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap gap-2">
           <Button 
             onClick={() => setMostrarAvaliacaoQualidade(true)}
             variant="outline"
             size="sm"
-            className="gap-2"
+            className="gap-1 md:gap-2 flex-1 sm:flex-none text-xs md:text-sm"
           >
-            <CheckCircle2 className="w-4 h-4" />
-            Avaliar Qualidade
+            <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Avaliar</span>
+            <span className="sm:hidden">Avaliar</span>
           </Button>
           <Button 
             onClick={() => setMostrarGerador(true)}
-            className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
+            className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-1 md:gap-2 flex-1 sm:flex-none text-xs md:text-sm"
             size="sm"
           >
-            <FileText className="w-4 h-4" />
-            Gerar Relatório
+            <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Relatório</span>
+            <span className="sm:hidden">PDF</span>
           </Button>
           <BotoesExportacao registro={registro} />
-          <Link to={createPageUrl(`AuditoriaRegistro?id=${registro.id}`)}>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Shield className="w-4 h-4" />
-              Ver Auditoria
+          <Link to={createPageUrl(`AuditoriaRegistro?id=${registro.id}`)} className="flex-1 sm:flex-none">
+            <Button variant="outline" size="sm" className="gap-1 md:gap-2 w-full text-xs md:text-sm">
+              <Shield className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Auditoria</span>
+              <span className="sm:hidden">Audit</span>
             </Button>
           </Link>
         </div>
-      </div>
+        </div>
 
       {/* Nota de Qualidade */}
       {registro.avaliacao_qualidade?.nota_final && (
