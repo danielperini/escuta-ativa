@@ -30,7 +30,9 @@ export default function Dashboard() {
 
     const widgetsAtivos = user?.configuracoes?.widgets_dashboard || [
         'kpis', 'graficos', 'demandas_recorrentes', 'devolutivas', 
-        'voz_comunidade', 'proximas_agendas', 'riscos_ativos', 'dicas_relacionamento'
+        'voz_comunidade', 'proximas_agendas', 'riscos_ativos', 'dicas_relacionamento',
+        'comunidades_ativas', 'temas_prioritarios', 'stakeholders_engajados',
+        'temperatura_territorio', 'compromissos_atrasados', 'atividade_recente'
     ];
 
     const [widgets, setWidgets] = useState(widgetsAtivos);
@@ -67,6 +69,13 @@ export default function Dashboard() {
     const { data: stakeholders = [] } = useQuery({
         queryKey: ['stakeholders-dashboard'],
         queryFn: () => base44.entities.Stakeholder.list('-created_date', 200),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false
+    });
+
+    const { data: compromissos = [] } = useQuery({
+        queryKey: ['compromissos-dashboard'],
+        queryFn: () => base44.entities.Compromisso.list('-created_date', 100),
         staleTime: 5 * 60 * 1000,
         refetchOnWindowFocus: false
     });
@@ -202,7 +211,7 @@ export default function Dashboard() {
                         registros={registros}
                         atores={stakeholders}
                         riscos={riscos}
-                        compromissos={[]}
+                        compromissos={compromissos}
                         />
                         )}
 
@@ -214,6 +223,244 @@ export default function Dashboard() {
                     {widgets.includes('proximas_agendas') && <WidgetProximasAgendas />}
                     {widgets.includes('riscos_ativos') && <WidgetRiscosAtivos />}
                     {widgets.includes('dicas_relacionamento') && <WidgetDicasRelacionamento />}
+
+                        {/* Novos Widgets */}
+                        {widgets.includes('comunidades_ativas') && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-lg">
+                                        <Target className="w-5 h-5 text-blue-600" />
+                                        Comunidades Mais Ativas
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {(() => {
+                                        const comunidadesCount = registros.reduce((acc, r) => {
+                                            if (r.comunidade) {
+                                                acc[r.comunidade] = (acc[r.comunidade] || 0) + 1;
+                                            }
+                                            return acc;
+                                        }, {});
+
+                                        const top5 = Object.entries(comunidadesCount)
+                                            .sort((a, b) => b[1] - a[1])
+                                            .slice(0, 5);
+
+                                        return top5.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {top5.map(([comunidade, count], idx) => (
+                                                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                        <span className="text-sm font-medium text-slate-900">{comunidade}</span>
+                                                        <Badge className="bg-blue-100 text-blue-700">{count} registros</Badge>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-center text-slate-500 py-8">Nenhum dado disponível</p>
+                                        );
+                                    })()}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {widgets.includes('temas_prioritarios') && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-lg">
+                                        <TrendingUp className="w-5 h-5 text-purple-600" />
+                                        Temas Prioritários
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {(() => {
+                                        const temasCount = registros.reduce((acc, r) => {
+                                            r.temas_identificados?.forEach(tema => {
+                                                acc[tema] = (acc[tema] || 0) + 1;
+                                            });
+                                            return acc;
+                                        }, {});
+
+                                        const top5 = Object.entries(temasCount)
+                                            .sort((a, b) => b[1] - a[1])
+                                            .slice(0, 5);
+
+                                        return top5.length > 0 ? (
+                                            <div className="space-y-2">
+                                                {top5.map(([tema, count], idx) => (
+                                                    <div key={idx} className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                                                        <span className="text-sm text-slate-900">{tema}</span>
+                                                        <Badge className="bg-purple-100 text-purple-700">{count}x</Badge>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-center text-slate-500 py-8">Nenhum tema identificado</p>
+                                        );
+                                    })()}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {widgets.includes('stakeholders_engajados') && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-lg">
+                                        <Users className="w-5 h-5 text-emerald-600" />
+                                        Stakeholders Mais Engajados
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {(() => {
+                                        const topStakeholders = stakeholders
+                                            .filter(s => s.score_engajamento > 0)
+                                            .sort((a, b) => (b.score_engajamento || 0) - (a.score_engajamento || 0))
+                                            .slice(0, 5);
+
+                                        return topStakeholders.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {topStakeholders.map((s, idx) => (
+                                                    <Link key={idx} to={createPageUrl('PerfilStakeholder') + `?id=${s.id}`}>
+                                                        <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center text-sm font-medium">
+                                                                    {s.nome[0]?.toUpperCase()}
+                                                                </div>
+                                                                <span className="text-sm font-medium text-slate-900">{s.nome}</span>
+                                                            </div>
+                                                            <Badge className="bg-emerald-100 text-emerald-700">
+                                                                {s.score_engajamento || 0} pts
+                                                            </Badge>
+                                                        </div>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-center text-slate-500 py-8">Nenhum stakeholder com score</p>
+                                        );
+                                    })()}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {widgets.includes('temperatura_territorio') && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-lg">
+                                        <AlertTriangle className="w-5 h-5 text-orange-600" />
+                                        Temperatura do Território
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {(() => {
+                                        const temperaturas = registros.reduce((acc, r) => {
+                                            if (r.temperatura_territorio) {
+                                                acc[r.temperatura_territorio] = (acc[r.temperatura_territorio] || 0) + 1;
+                                            }
+                                            return acc;
+                                        }, {});
+
+                                        const tempConfig = {
+                                            critico: { label: 'Crítico', color: 'bg-red-100 text-red-700', count: temperaturas.critico || 0 },
+                                            alto: { label: 'Alto', color: 'bg-orange-100 text-orange-700', count: temperaturas.alto || 0 },
+                                            medio: { label: 'Médio', color: 'bg-yellow-100 text-yellow-700', count: temperaturas.medio || 0 },
+                                            baixo: { label: 'Baixo', color: 'bg-green-100 text-green-700', count: temperaturas.baixo || 0 }
+                                        };
+
+                                        return (
+                                            <div className="space-y-2">
+                                                {Object.entries(tempConfig).map(([key, config]) => (
+                                                    <div key={key} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                        <Badge className={config.color}>{config.label}</Badge>
+                                                        <span className="text-lg font-bold text-slate-900">{config.count}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        );
+                                    })()}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {widgets.includes('compromissos_atrasados') && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-lg">
+                                        <Calendar className="w-5 h-5 text-red-600" />
+                                        Compromissos Atrasados
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {(() => {
+                                        const hoje = new Date();
+                                        const atrasados = compromissos.filter(c => 
+                                            c.prazo && 
+                                            new Date(c.prazo) < hoje && 
+                                            c.status !== 'concluido'
+                                        ).slice(0, 5);
+
+                                        return atrasados.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {atrasados.map((c, idx) => {
+                                                    const diasAtraso = Math.floor((hoje - new Date(c.prazo)) / (1000 * 60 * 60 * 24));
+                                                    return (
+                                                        <div key={idx} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                            <p className="text-sm font-medium text-slate-900 mb-1">{c.titulo}</p>
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-xs text-slate-600">{c.responsavel}</span>
+                                                                <Badge className="bg-red-100 text-red-700">
+                                                                    {diasAtraso} dias atraso
+                                                                </Badge>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-8">
+                                                <CheckCircle2 className="w-12 h-12 mx-auto mb-2 text-green-500" />
+                                                <p className="text-sm text-slate-500">Nenhum compromisso atrasado</p>
+                                            </div>
+                                        );
+                                    })()}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {widgets.includes('atividade_recente') && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-lg">
+                                        <FileText className="w-5 h-5 text-indigo-600" />
+                                        Atividade Recente
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {(() => {
+                                        const recentes = registros.slice(0, 5);
+
+                                        return recentes.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {recentes.map((r, idx) => (
+                                                    <Link key={idx} to={createPageUrl('VerRegistro') + `?id=${r.id}`}>
+                                                        <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                                                            <p className="text-sm font-medium text-slate-900 mb-1">{r.titulo}</p>
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-xs text-slate-500">{r.comunidade}</span>
+                                                                <span className="text-xs text-slate-500">
+                                                                    {format(new Date(r.created_date), 'dd/MM HH:mm')}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-center text-slate-500 py-8">Nenhuma atividade recente</p>
+                                        );
+                                    })()}
+                                </CardContent>
+                            </Card>
+                        )}
                     
                     {/* Widget Código de Conduta */}
                     {user?.configuracoes?.exibir_tutorial !== false && (
