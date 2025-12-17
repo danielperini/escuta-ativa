@@ -33,6 +33,8 @@ import { cn } from "@/lib/utils";
 import { BotoesExportacao } from "@/components/registro/ExportadorPDF";
 import GeradorRelatorioCompleto from "@/components/registro/GeradorRelatorioCompleto";
 import { gerarCodigoUnico } from "@/components/codigos/GeradorCodigoUnico";
+import BadgeQualidade from "@/components/qualidade/BadgeQualidade";
+import AvaliacaoQualidadeRegistro from "@/components/qualidade/AvaliacaoQualidadeRegistro";
 
 const tipoConfig = {
   reuniao: { label: 'Reunião', color: 'bg-purple-100 text-purple-700' },
@@ -62,6 +64,7 @@ export default function VerRegistro() {
   const queryClient = useQueryClient();
   const [isGeneratingAta, setIsGeneratingAta] = useState(false);
   const [mostrarGerador, setMostrarGerador] = useState(false);
+  const [mostrarAvaliacaoQualidade, setMostrarAvaliacaoQualidade] = useState(false);
 
   const getNotaColor = (nota) => {
     if (nota >= 4) return 'bg-emerald-100 text-emerald-700 border-emerald-300';
@@ -230,6 +233,15 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Button 
+            onClick={() => setMostrarAvaliacaoQualidade(true)}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Avaliar Qualidade
+          </Button>
+          <Button 
             onClick={() => setMostrarGerador(true)}
             className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
             size="sm"
@@ -248,30 +260,8 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
       </div>
 
       {/* Nota de Qualidade */}
-      {registro.nota_qualidade !== undefined && (
-        <Card className={cn("border-2", getNotaColor(registro.nota_qualidade))}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium">Nota de Qualidade do Registro</p>
-                {registro.observacao_validacao && (
-                  <p className="text-xs mt-1 opacity-80">
-                    {registro.observacao_validacao}
-                  </p>
-                )}
-                {registro.validado_em && (
-                  <p className="text-xs mt-1 opacity-70">
-                    Validado em {format(new Date(registro.validado_em), "dd/MM/yyyy 'às' HH:mm")}
-                  </p>
-                )}
-              </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold">{registro.nota_qualidade}/5</div>
-                <div className="text-sm font-medium mt-1">{getNotaLabel(registro.nota_qualidade)}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {registro.avaliacao_qualidade?.nota_final && (
+        <BadgeQualidade avaliacao={registro.avaliacao_qualidade} />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -596,6 +586,13 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
         registro={registro}
         open={mostrarGerador}
         onOpenChange={setMostrarGerador}
+      />
+
+      {/* Avaliação de Qualidade */}
+      <AvaliacaoQualidadeRegistro
+        registro={registro}
+        open={mostrarAvaliacaoQualidade}
+        onOpenChange={setMostrarAvaliacaoQualidade}
       />
     </div>
   );
