@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 import GerenciadorPermissoesGranular from '@/components/permissoes/GerenciadorPermissoesGranular';
 import HistoricoPermissoes from '@/components/permissoes/HistoricoPermissoes';
+import DialogConviteMembro from '@/components/equipes/DialogConviteMembro';
+import GerenciadorConvites from '@/components/equipes/GerenciadorConvites';
 import {
   Dialog,
   DialogContent,
@@ -368,6 +370,8 @@ export default function GerenciarEquipes() {
 
   return (
     <div className="space-y-6 pb-6">
+      <GerenciadorConvites />
+      
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Gerenciar Equipes</h2>
@@ -871,8 +875,15 @@ export default function GerenciarEquipes() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog Convidar */}
-      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+      {/* Dialog Convidar - Novo Sistema */}
+      <DialogConviteMembro
+        open={showInviteDialog}
+        onOpenChange={setShowInviteDialog}
+        equipe={selectedEquipe}
+      />
+
+      {/* Dialog Convidar - Antigo (manter temporariamente) */}
+      <Dialog open={false} onOpenChange={setShowInviteDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Convidar Novo Membro</DialogTitle>
