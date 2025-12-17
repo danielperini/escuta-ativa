@@ -222,6 +222,9 @@ export default function GerenciarUsuarios() {
       setShowInviteDialog(false);
       setInviteData({ email: '', full_name: '', role: 'user', equipes_vincular: [] });
       
+      // Imprimir na tela: Convite enviado
+      console.log(`✅ CONVITE ENVIADO para ${inviteData.full_name} (${inviteData.email})`);
+      
       // Mensagem de sucesso detalhada
       toast.success(`✅ Convite enviado para ${inviteData.full_name}!`, {
         description: `Um email foi enviado para ${inviteData.email} com as instruções de acesso.`,
