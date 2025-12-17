@@ -12,8 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BookOpen, Search, ThumbsUp, Eye, Filter, Lightbulb } from 'lucide-react';
+import { BookOpen, Search, ThumbsUp, Eye, Filter, Lightbulb, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const CATEGORIAS = [
   "Todas",
@@ -47,11 +49,53 @@ export default function CardsEducativos() {
   const [categoriaFiltro, setCategoriaFiltro] = useState('Todas');
   const [cardSelecionado, setCardSelecionado] = useState(null);
   const [gerando, setGerando] = useState(false);
+  const [indiceAtual, setIndiceAtual] = useState(0);
+  const [horarioUltimaAtualizacao, setHorarioUltimaAtualizacao] = useState(new Date());
 
   const { data: cards = [], isLoading, refetch } = useQuery({
     queryKey: ['cards-educativos'],
     queryFn: () => base44.entities.CardEducativo.list('-ordem', 200)
   });
+
+  const { data: macrotemas = [] } = useQuery({
+    queryKey: ['macrotemas'],
+    queryFn: () => base44.entities.Macrotema.list()
+  });
+
+  const { data: registrosRecentes = [] } = useQuery({
+    queryKey: ['registros-recentes-dicas'],
+    queryFn: () => base44.entities.Registro.list('-created_date', 20)
+  });
+
+  // Contextualizar cards com base nos temas do sistema
+  const contextualizarCards = () => {
+    if (cards.length === 0) return [];
+
+    // Temas do sistema (macrotemas + registros)
+    const temasAtivos = new Set([
+      ...macrotemas.map(m => m.nome.toLowerCase()),
+      ...registrosRecentes.flatMap(r => (r.temas_identificados || []).map(t => t.toLowerCase()))
+    ]);
+
+    // Priorizar cards que mencionam temas ativos
+    const cardsComScore = cards.map(card => {
+      let score = 0;
+      const textoCompleto = (card.titulo + ' ' + card.texto).toLowerCase();
+      
+      temasAtivos.forEach(tema => {
+        if (textoCompleto.includes(tema)) score += 2;
+      });
+
+      // Bonus para categorias relacionadas aos macrotemas
+      const categoriasSociais = ['Conflitos e Mediação', 'Riscos Sociais', 'Escuta e Diálogo'];
+      if (categoriasSociais.includes(card.categoria)) score += 1;
+
+      return { ...card, relevancia: score };
+    });
+
+    // Ordenar por relevância (mais relevantes primeiro)
+    return cardsComScore.sort((a, b) => b.relevancia - a.relevancia);
+  };
 
   const gerarCards = async () => {
     setGerando(true);
@@ -66,7 +110,45 @@ export default function CardsEducativos() {
     }
   };
 
-  const cardsFiltrados = cards.filter(card => {
+  // Atualização automática às 7h, 12h e 20h
+  React.useEffect(() => {
+    const verificarHorario = () => {
+      const agora = new Date();
+      const hora = agora.getHours();
+      const ultimaHora = horarioUltimaAtualizacao.getHours();
+
+      // Horários de troca: 7h, 12h, 20h
+      const horariosRotacao = [7, 12, 20];
+      
+      for (const horarioAlvo of horariosRotacao) {
+        if (hora === horarioAlvo && ultimaHora !== horarioAlvo) {
+          avancarDicas(2); // Avançar 2 cards
+          setHorarioUltimaAtualizacao(agora);
+          break;
+        }
+      }
+    };
+
+    const interval = setInterval(verificarHorario, 60000); // Verificar a cada 1 minuto
+    return () => clearInterval(interval);
+  }, [horarioUltimaAtualizacao, cards.length]);
+
+  const avancarDicas = (quantidade = 2) => {
+    const cardsContextualizados = contextualizarCards();
+    setIndiceAtual(prev => (prev + quantidade) % cardsContextualizados.length);
+  };
+
+  const voltarDicas = () => {
+    const cardsContextualizados = contextualizarCards();
+    setIndiceAtual(prev => (prev - 2 + cardsContextualizados.length) % cardsContextualizados.length);
+  };
+
+  const cardsContextualizados = contextualizarCards();
+  
+  const cardsFiltrados = (busca || categoriaFiltro !== 'Todas' 
+    ? cards 
+    : cardsContextualizados
+  ).filter(card => {
     const matchBusca = busca === '' || 
       card.titulo.toLowerCase().includes(busca.toLowerCase()) ||
       card.texto.toLowerCase().includes(busca.toLowerCase());
@@ -75,6 +157,11 @@ export default function CardsEducativos() {
     
     return matchBusca && matchCategoria;
   });
+
+  const cardsExibidos = [
+    cardsFiltrados[indiceAtual % cardsFiltrados.length],
+    cardsFiltrados[(indiceAtual + 1) % cardsFiltrados.length]
+  ].filter(Boolean);
 
   const estatisticas = {
     total: cards.length,
@@ -153,7 +240,7 @@ export default function CardsEducativos() {
         </div>
       )}
 
-      {/* Cards Grid */}
+      {/* Cards Carrossel - Modo Principal */}
       {isLoading ? (
         <div className="text-center py-12">
           <p className="text-slate-500">Carregando cards...</p>
@@ -168,7 +255,8 @@ export default function CardsEducativos() {
             Clique em "Gerar 150 Cards" para criar conteúdo educativo sobre Relacionamento Comunitário
           </p>
         </Card>
-      ) : (
+      ) : busca || categoriaFiltro !== 'Todas' ? (
+        // Modo de busca/filtro: grid tradicional
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {cardsFiltrados.map(card => (
             <Card 
@@ -206,6 +294,106 @@ export default function CardsEducativos() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      ) : (
+        // Modo carrossel: 2 cards centralizados
+        <div className="space-y-6">
+          {/* Indicador de rotação automática */}
+          <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+            <CardContent className="p-4 flex items-center justify-center gap-3">
+              <Clock className="w-5 h-5 text-amber-600" />
+              <p className="text-sm text-amber-900">
+                <span className="font-semibold">Dicas contextualizadas</span> • 
+                Atualização automática às 7h, 12h e 20h
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Cards em destaque */}
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {cardsExibidos.map((card, idx) => (
+                <Card 
+                  key={card?.id || idx}
+                  className="hover:shadow-2xl transition-all duration-300 border-2 hover:border-[#E31E24]"
+                >
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <Badge className={cn("text-xs", CORES_CATEGORIA[card?.categoria])}>
+                        {card?.categoria}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        #{card?.card_id}
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-xl leading-tight">
+                      {card?.titulo}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-slate-700 leading-relaxed text-base">
+                      {card?.texto}
+                    </p>
+                    <div className="flex items-center gap-4 text-sm text-slate-400 pt-3 border-t">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        {card?.visualizacoes || 0}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <ThumbsUp className="w-4 h-4" />
+                        {card?.curtidas || 0}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Controles de navegação */}
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={voltarDicas}
+                className="gap-2"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                Anterior
+              </Button>
+              
+              <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg">
+                <span className="text-sm font-medium text-slate-700">
+                  {Math.floor(indiceAtual / 2) + 1} de {Math.ceil(cardsFiltrados.length / 2)}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => avancarDicas(2)}
+                className="gap-2"
+              >
+                Próxima
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Indicador de próxima rotação */}
+            <div className="text-center mt-4">
+              <p className="text-xs text-slate-400">
+                Próxima rotação automática: {(() => {
+                  const agora = new Date();
+                  const hora = agora.getHours();
+                  const proximoHorario = hora < 7 ? 7 : hora < 12 ? 12 : hora < 20 ? 20 : 7;
+                  const proximoDia = proximoHorario === 7 && hora >= 20 ? 1 : 0;
+                  const dataProxima = new Date(agora);
+                  dataProxima.setDate(dataProxima.getDate() + proximoDia);
+                  dataProxima.setHours(proximoHorario, 0, 0, 0);
+                  return format(dataProxima, "dd/MM 'às' HH:mm", { locale: ptBR });
+                })()}
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
