@@ -5,7 +5,7 @@ import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, MapPin, Phone, Mail, Building, Users, FileText,
-  Calendar, Target, TrendingUp, Loader2, Sparkles, Download
+  Calendar, Target, TrendingUp, Loader2, Sparkles, Download, AlertTriangle, Link as LinkIcon
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import HistoricoInteracoes from "@/components/stakeholders/HistoricoInteracoes";
+import NotasCustomizadas from "@/components/stakeholders/NotasCustomizadas";
+import ContatosCustomizados from "@/components/stakeholders/ContatosCustomizados";
+import ScoreEngajamento from "@/components/stakeholders/ScoreEngajamento";
 
 const tipoConfig = {
   pessoa: { label: 'Pessoa', color: 'bg-blue-100 text-blue-700' },
@@ -62,6 +66,18 @@ export default function PerfilStakeholder() {
       return allCasos.filter(c => c.stakeholders_envolvidos?.includes(stakeholderId));
     },
     enabled: !!stakeholderId
+  });
+
+  const { data: riscos = [] } = useQuery({
+    queryKey: ['riscos-stakeholder', stakeholder?.nome],
+    queryFn: async () => {
+      const allRiscos = await base44.entities.RiscoSocial.list();
+      return allRiscos.filter(r => 
+        r.liderancas_envolvidas?.includes(stakeholderId) ||
+        stakeholder?.riscos_vinculados?.includes(r.id)
+      );
+    },
+    enabled: !!stakeholder
   });
 
   const gerarNarrativa = async () => {
@@ -179,10 +195,12 @@ Mantenha tom profissional e objetivo. Máximo 500 palavras.`;
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           <Tabs defaultValue="perfil">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="perfil">Perfil</TabsTrigger>
+              <TabsTrigger value="timeline">Timeline</TabsTrigger>
+              <TabsTrigger value="notas">Notas</TabsTrigger>
               <TabsTrigger value="registros">Registros ({registros.length})</TabsTrigger>
-              <TabsTrigger value="casos">Casos ({casos.length})</TabsTrigger>
+              <TabsTrigger value="vinculos">Vínculos</TabsTrigger>
             </TabsList>
 
             <TabsContent value="perfil" className="space-y-4">
@@ -272,6 +290,121 @@ Mantenha tom profissional e objetivo. Máximo 500 palavras.`;
               )}
             </TabsContent>
 
+            <TabsContent value="timeline" className="space-y-4">
+              <HistoricoInteracoes 
+                timeline={stakeholder.timeline_interacoes || []}
+                registros={registros}
+                casos={casos}
+              />
+            </TabsContent>
+
+            <TabsContent value="notas" className="space-y-4">
+              <NotasCustomizadas stakeholder={stakeholder} />
+            </TabsContent>
+
+            <TabsContent value="vinculos" className="space-y-4">
+              {/* Vínculos com Registros */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Registros Vinculados ({registros.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {registros.length === 0 ? (
+                    <p className="text-center text-slate-500 py-8">Nenhum registro vinculado</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {registros.slice(0, 5).map(r => (
+                        <Link key={r.id} to={createPageUrl('VerRegistro') + `?id=${r.id}`}>
+                          <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100">
+                            <LinkIcon className="w-4 h-4 text-blue-600" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-slate-900">{r.titulo}</p>
+                              <p className="text-xs text-slate-500">
+                                {new Date(r.created_date).toLocaleDateString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Vínculos com Casos */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5" />
+                    Casos Vinculados ({casos.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {casos.length === 0 ? (
+                    <p className="text-center text-slate-500 py-8">Nenhum caso vinculado</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {casos.map(c => (
+                        <Link key={c.id} to={createPageUrl('VerCaso') + `?id=${c.id}`}>
+                          <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100">
+                            <LinkIcon className="w-4 h-4 text-purple-600" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-slate-900">{c.titulo}</p>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">{c.status}</Badge>
+                                <Badge variant="outline" className="text-xs">{c.prioridade}</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Vínculos com Riscos */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    Riscos Vinculados ({riscos.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {riscos.length === 0 ? (
+                    <p className="text-center text-slate-500 py-8">Nenhum risco vinculado</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {riscos.map(r => (
+                        <div key={r.id} className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                          <AlertTriangle className="w-4 h-4 text-red-600" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-slate-900">{r.titulo}</p>
+                            <div className="flex gap-2 mt-1">
+                              <Badge className={cn(
+                                "text-xs",
+                                r.nivel === 'critico' ? 'bg-red-100 text-red-700' :
+                                r.nivel === 'alto' ? 'bg-orange-100 text-orange-700' :
+                                r.nivel === 'moderado' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-green-100 text-green-700'
+                              )}>
+                                {r.nivel}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">{r.status}</Badge>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="casos" className="space-y-3">
               {casos.length === 0 ? (
                 <Card className="p-12 text-center">
@@ -300,6 +433,17 @@ Mantenha tom profissional e objetivo. Máximo 500 palavras.`;
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Score de Engajamento */}
+          <ScoreEngajamento 
+            stakeholder={stakeholder}
+            registros={registros}
+            casos={casos}
+            riscos={riscos}
+          />
+
+          {/* Contatos Customizados */}
+          <ContatosCustomizados stakeholder={stakeholder} />
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Informações</CardTitle>

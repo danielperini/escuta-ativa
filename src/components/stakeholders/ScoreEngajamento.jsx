@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Award, Target, Calendar } from 'lucide-react';
+import { TrendingUp, Award, Target, Calendar, AlertTriangle } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export default function ScoreEngajamento({ stakeholder, registros = [], casos = [], riscos = [] }) {
