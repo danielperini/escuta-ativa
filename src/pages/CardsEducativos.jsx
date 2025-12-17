@@ -374,29 +374,26 @@ export default function CardsEducativos() {
           </div>
 
           {/* Indicador de posição centralizado */}
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center gap-2 px-6 py-3 bg-slate-100 rounded-full">
               <span className="text-sm font-semibold text-slate-700">
                 {Math.floor(indiceAtual / 2) + 1} de {Math.ceil(cardsFiltrados.length / 2)}
               </span>
             </div>
-          </div>
 
             {/* Indicador de próxima rotação */}
-            <div className="text-center mt-4">
-              <p className="text-xs text-slate-400">
-                Próxima rotação automática: {(() => {
-                  const agora = new Date();
-                  const hora = agora.getHours();
-                  const proximoHorario = hora < 7 ? 7 : hora < 12 ? 12 : hora < 20 ? 20 : 7;
-                  const proximoDia = proximoHorario === 7 && hora >= 20 ? 1 : 0;
-                  const dataProxima = new Date(agora);
-                  dataProxima.setDate(dataProxima.getDate() + proximoDia);
-                  dataProxima.setHours(proximoHorario, 0, 0, 0);
-                  return format(dataProxima, "dd/MM 'às' HH:mm", { locale: ptBR });
-                })()}
-              </p>
-            </div>
+            <p className="text-xs text-slate-400">
+              Próxima rotação automática: {(() => {
+                const agora = new Date();
+                const hora = agora.getHours();
+                const proximoHorario = hora < 7 ? 7 : hora < 12 ? 12 : hora < 20 ? 20 : 7;
+                const proximoDia = proximoHorario === 7 && hora >= 20 ? 1 : 0;
+                const dataProxima = new Date(agora);
+                dataProxima.setDate(dataProxima.getDate() + proximoDia);
+                dataProxima.setHours(proximoHorario, 0, 0, 0);
+                return format(dataProxima, "dd/MM 'às' HH:mm", { locale: ptBR });
+              })()}
+            </p>
           </div>
         </div>
       )}
