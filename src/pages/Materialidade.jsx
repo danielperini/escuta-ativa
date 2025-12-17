@@ -23,7 +23,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Label } from "@/components/ui/label";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
@@ -634,7 +633,7 @@ export default function Materialidade() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Nome do Tema</Label>
+              <label className="text-sm font-medium">Nome do Tema</label>
               <Input
                 value={formData.nome}
                 onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
@@ -643,7 +642,7 @@ export default function Materialidade() {
             </div>
 
             <div className="space-y-2">
-              <Label>Categoria</Label>
+              <label className="text-sm font-medium">Categoria</label>
               <Select
                 value={formData.categoria}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, categoria: value }))}
@@ -660,7 +659,7 @@ export default function Materialidade() {
             </div>
 
             <div className="space-y-2">
-              <Label>Relevância para Comunidade: {formData.relevancia_comunidade}</Label>
+              <label className="text-sm font-medium">Relevância para Comunidade: {formData.relevancia_comunidade}</label>
               <Slider
                 value={[formData.relevancia_comunidade]}
                 onValueChange={([value]) => setFormData(prev => ({ ...prev, relevancia_comunidade: value }))}
@@ -671,7 +670,7 @@ export default function Materialidade() {
             </div>
 
             <div className="space-y-2">
-              <Label>Relevância para Empresa: {formData.relevancia_empresa}</Label>
+              <label className="text-sm font-medium">Relevância para Empresa: {formData.relevancia_empresa}</label>
               <Slider
                 value={[formData.relevancia_empresa]}
                 onValueChange={([value]) => setFormData(prev => ({ ...prev, relevancia_empresa: value }))}
@@ -682,7 +681,7 @@ export default function Materialidade() {
             </div>
 
             <div className="space-y-2">
-              <Label>Tendência</Label>
+              <label className="text-sm font-medium">Tendência</label>
               <Select
                 value={formData.tendencia}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, tendencia: value }))}
