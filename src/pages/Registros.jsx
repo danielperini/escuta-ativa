@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { defaultQueryConfig } from '@/utils/queryConfig';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -65,14 +64,12 @@ export default function Registros() {
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
-    queryFn: () => base44.entities.Comunidade.list(),
-    ...defaultQueryConfig
+    queryFn: () => base44.entities.Comunidade.list()
   });
 
   const { data: temas = [] } = useQuery({
     queryKey: ['temas'],
-    queryFn: () => base44.entities.Tema.list(),
-    ...defaultQueryConfig
+    queryFn: () => base44.entities.Tema.list()
   });
 
   const deleteMutation = useMutation({
