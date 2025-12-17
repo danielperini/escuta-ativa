@@ -98,7 +98,7 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
         file_urls: [file_url]
       });
 
-      if (!resultado || resultado.length < 3) {
+      if (!resultado || typeof resultado !== 'string' || resultado.length < 3) {
         throw new Error('Transcrição vazia ou inválida');
       }
 
@@ -109,8 +109,17 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
         url: file_url
       });
 
-      // Enviar para caixa de texto
-      const blocoTexto = `\n\n--- ✅ ${arquivo.tipo.toUpperCase()}: ${arquivo.file.name} ---\n${resultado}\n`;
+      // Enviar para caixa de texto com formatação aprimorada
+      const blocoTexto = `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📎 ARQUIVO: ${arquivo.file.name}
+🔖 TIPO: ${arquivo.tipo.toUpperCase()}
+📅 PROCESSADO: ${new Date().toLocaleString('pt-BR')}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${resultado}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      
       if (onTextoExtraido) {
         onTextoExtraido(blocoTexto, file_url, arquivo.file.name, arquivo.tipo);
       }
@@ -276,11 +285,19 @@ export default function ProcessadorMultimidia({ onTextoExtraido, onTranscricaoTe
           </div>
         )}
 
-        <div className="text-xs text-center text-slate-500 space-y-1">
-          <p>💡 Processamento automático em lote: até 3 arquivos simultâneos</p>
-          <p>🎙️ Transcrição de áudio/vídeo com Whisper AI</p>
-          <p>📄 Extração de texto de documentos e imagens (OCR)</p>
-          <p>✅ Todo conteúdo é adicionado automaticamente ao registro</p>
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 text-xs space-y-2">
+          <p className="font-semibold text-slate-700 flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 text-amber-500" />
+            Recursos Avançados do Processador
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-600">
+            <p>🎙️ Transcrição áudio/vídeo com Whisper AI</p>
+            <p>📄 Extração PDF, Word, Excel completa</p>
+            <p>🖼️ OCR inteligente em imagens</p>
+            <p>⚡ Processamento em lote (3 simultâneos)</p>
+            <p>📱 Suporte WhatsApp (áudio/vídeo/docs)</p>
+            <p>✅ Inserção automática no registro</p>
+          </div>
         </div>
       </CardContent>
     </Card>
