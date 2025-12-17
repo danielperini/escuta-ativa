@@ -262,7 +262,6 @@ export default function Dashboard() {
                     <BotaoPanicoAvancado />
                 </div>
             </div>
-            </div>
-            </ErrorBoundary>
-            );
-            }
+        </div>
+    );
+}
