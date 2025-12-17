@@ -62,6 +62,7 @@ import TranscricaoNavegador from '@/components/transcricao/TranscricaoNavegador'
 import { processarRegistroCompleto, alimentarModulos } from '@/components/registro/ProcessadorIALote';
 import TranscricaoNativa from '@/components/registro/TranscricaoNativa';
 import SugestoesIARegistro from '@/components/registro/SugestoesIARegistro';
+import AnaliseCriticidade from '@/components/registro/AnaliseCriticidade';
 import { toast } from 'sonner';
 
 const tipoOptions = [
@@ -127,6 +128,8 @@ export default function RegistroUnificado() {
   const [transcricaoTempoReal, setTranscricaoTempoReal] = useState(false);
   const [duplicatasDetectadas, setDuplicatasDetectadas] = useState([]);
   const [mostrarAlertaDuplicatas, setMostrarAlertaDuplicatas] = useState(false);
+  const [analiseCriticidade, setAnaliseCriticidade] = useState(null);
+  const [analisandoCriticidade, setAnalisandoCriticidade] = useState(false);
 
   const { data: comunidades = [] } = useQuery({
     queryKey: ['comunidades'],
@@ -487,6 +490,9 @@ RETORNE: Apenas o texto extraído formatado, sem comentários ou explicações.`
         agenda_futura: analiseCompleta.agenda_futura
       });
 
+      // Análise de criticidade automática após processar
+      await analisarCriticidadeAutomatica();
+
       setEtapaAtual('formulario');
       setSecaoExpandida('basico');
       return;
@@ -611,6 +617,33 @@ Extraia:
     return duplicatas;
   };
 
+  const analisarCriticidadeAutomatica = async () => {
+    setAnalisandoCriticidade(true);
+    try {
+      const response = await base44.functions.invoke('analisarCriticidadeRegistro', {
+        registro: formData
+      });
+      
+      if (response.data.success) {
+        setAnaliseCriticidade(response.data.analise);
+        
+        // Atualizar formData com dados da análise
+        setFormData(prev => ({
+          ...prev,
+          temperatura_territorio: response.data.analise.temperatura_territorio.toString(),
+          local: response.data.analise.local || prev.local,
+          comunidade: response.data.analise.comunidade_territorial !== 'Sem Registro' 
+            ? response.data.analise.comunidade_territorial 
+            : prev.comunidade
+        }));
+      }
+    } catch (error) {
+      console.error('Erro ao analisar criticidade:', error);
+    } finally {
+      setAnalisandoCriticidade(false);
+    }
+  };
+
   const handleFinalizar = async () => {
     // Removido validação de campos obrigatórios
       if (!formData.titulo) {
@@ -687,7 +720,8 @@ Extraia:
         stakeholders_vinculados: stakeholdersVinculados,
         liderancas_vinculadas: stakeholdersVinculados,
         registros_continuidade: continuidades,
-        casos_vinculados: casosVinculados
+        casos_vinculados: casosVinculados,
+        analise_criticidade: analiseCriticidade
       };
 
     try {
@@ -1395,22 +1429,38 @@ Extraia:
           </div>
         </div>
         <div className="flex gap-2">
-          {!modoEdicao && formData.titulo && (
-            <Button
-              variant="outline"
-              onClick={salvarRascunho}
-              disabled={salvandoRascunho}
-              size="sm"
-            >
-              {salvandoRascunho ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            </Button>
-          )}
-          <Button onClick={handleFinalizar} disabled={createMutation.isPending || carregandoRegistro} className="bg-[#E31E24] hover:bg-[#B01419] active:bg-[#8A0F13] transition-all">
-            {(createMutation.isPending || carregandoRegistro) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-            {modoEdicao ? 'Salvar Alterações' : 'Finalizar'}
+        {!analiseCriticidade && !analisandoCriticidade && (
+          <Button
+            variant="outline"
+            onClick={analisarCriticidadeAutomatica}
+            size="sm"
+            className="gap-2"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            Analisar Criticidade
           </Button>
+        )}
+        {!modoEdicao && formData.titulo && (
+          <Button
+            variant="outline"
+            onClick={salvarRascunho}
+            disabled={salvandoRascunho}
+            size="sm"
+          >
+            {salvandoRascunho ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          </Button>
+        )}
+        <Button onClick={handleFinalizar} disabled={createMutation.isPending || carregandoRegistro} className="bg-[#E31E24] hover:bg-[#B01419] active:bg-[#8A0F13] transition-all">
+          {(createMutation.isPending || carregandoRegistro) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+          {modoEdicao ? 'Salvar Alterações' : 'Finalizar'}
+        </Button>
         </div>
       </div>
+
+      {/* Análise de Criticidade e Temperatura */}
+      {analiseCriticidade && (
+        <AnaliseCriticidade analise={analiseCriticidade} />
+      )}
 
       {/* Análise Avançada IA */}
       {sugestoesIA && (
