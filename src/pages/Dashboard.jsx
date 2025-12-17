@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Plus, FileText, Calendar, AlertTriangle, Users, Target, TrendingUp, Heart, Shield, CheckCircle2 } from "lucide-react";
