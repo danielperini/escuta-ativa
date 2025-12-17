@@ -62,6 +62,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { removerDuplicatas } from '@/components/sistema/FiltroDuplicatasAutomatico';
 import Pagination from '@/components/shared/Pagination';
 import ConsolidadorCasos from '@/components/casos/ConsolidadorCasos';
 import FormularioCasoInteligente from '@/components/casos/FormularioCasoInteligente';

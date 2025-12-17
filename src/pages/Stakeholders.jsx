@@ -65,6 +65,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import Pagination from '@/components/shared/Pagination';
 import SegmentacaoAvancada from '@/components/stakeholders/SegmentacaoAvancada';
+import { removerDuplicatas } from '@/components/sistema/FiltroDuplicatasAutomatico';
 
 const tipoConfig = {
   pessoa: { label: 'Pessoa', color: 'bg-blue-100 text-blue-700' },

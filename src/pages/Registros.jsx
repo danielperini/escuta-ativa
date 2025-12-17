@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { removerDuplicatas } from '@/components/sistema/FiltroDuplicatasAutomatico';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Plus, FileText } from 'lucide-react';
@@ -46,17 +47,7 @@ export default function Registros() {
     queryKey: ['registros'],
     queryFn: async () => {
       const lista = await base44.entities.Registro.list('-created_date', 300);
-      // Remover duplicatas baseado em título, comunidade e data
-      const seen = new Map();
-      const unicos = lista.filter(registro => {
-        const key = `${registro.titulo?.toLowerCase().trim()}-${registro.comunidade?.toLowerCase().trim()}-${registro.data_registro}`;
-        if (seen.has(key)) {
-          return false;
-        }
-        seen.set(key, true);
-        return true;
-      });
-      return unicos;
+      return removerDuplicatas(lista, 'registro');
     },
     staleTime: 30 * 1000,
     refetchInterval: 2 * 60 * 1000

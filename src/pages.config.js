@@ -48,6 +48,7 @@ import CentralAnalise from './pages/CentralAnalise';
 import Integracoes from './pages/Integracoes';
 import VisaoGeral from './pages/VisaoGeral';
 import CardsEducativos from './pages/CardsEducativos';
+import LimpezaDados from './pages/LimpezaDados';
 import __Layout from './Layout.jsx';
 
 
@@ -102,6 +103,7 @@ export const PAGES = {
     "Integracoes": Integracoes,
     "VisaoGeral": VisaoGeral,
     "CardsEducativos": CardsEducativos,
+    "LimpezaDados": LimpezaDados,
 }
 
 export const pagesConfig = {
