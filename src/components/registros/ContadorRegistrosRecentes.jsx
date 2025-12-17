@@ -2,19 +2,21 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from 'lucide-react';
 
-export default function ContadorRegistrosRecentes({ registros }) {
+export default function ContadorRegistrosRecentes({ registros = [] }) {
   const agora = new Date();
   const vinteCincoHorasAtras = new Date(agora.getTime() - (24.5 * 60 * 60 * 1000));
 
-  const registrosRecentes = registros.filter(r => {
-    const dataCriacao = r.created_date ? new Date(r.created_date) : null;
-    const dataAtualizacao = r.updated_date ? new Date(r.updated_date) : null;
+  const registrosRecentes = React.useMemo(() => {
+    return registros.filter(r => {
+      const dataCriacao = r.created_date ? new Date(r.created_date) : null;
+      const dataAtualizacao = r.updated_date ? new Date(r.updated_date) : null;
 
-    const criouRecente = dataCriacao && dataCriacao >= vinteCincoHorasAtras;
-    const atualizouRecente = dataAtualizacao && dataAtualizacao >= vinteCincoHorasAtras;
+      const criouRecente = dataCriacao && dataCriacao >= vinteCincoHorasAtras;
+      const atualizouRecente = dataAtualizacao && dataAtualizacao >= vinteCincoHorasAtras;
 
-    return criouRecente || atualizouRecente;
-  });
+      return criouRecente || atualizouRecente;
+    });
+  }, [registros, vinteCincoHorasAtras]);
 
   const total = registrosRecentes.length;
 
