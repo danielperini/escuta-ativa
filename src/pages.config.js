@@ -47,6 +47,7 @@ import CadernoNotas from './pages/CadernoNotas';
 import CentralAnalise from './pages/CentralAnalise';
 import Integracoes from './pages/Integracoes';
 import VisaoGeral from './pages/VisaoGeral';
+import CardsEducativos from './pages/CardsEducativos';
 import __Layout from './Layout.jsx';
 
 
@@ -100,6 +101,7 @@ export const PAGES = {
     "CentralAnalise": CentralAnalise,
     "Integracoes": Integracoes,
     "VisaoGeral": VisaoGeral,
+    "CardsEducativos": CardsEducativos,
 }
 
 export const pagesConfig = {
