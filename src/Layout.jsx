@@ -58,6 +58,9 @@ const navigation = [
   { name: 'Comunidades e Grupos', href: 'ComunidadesGrupos', icon: Home },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
   { name: 'Central de Análise', href: 'CentralAnalise', icon: Sparkles },
+  { name: 'Gerador de Relatório', href: 'GeradorRelatorioSustentabilidade', icon: Sparkles, secao: 'sustentabilidade' },
+  { name: 'Relatórios Gerados', href: 'RelatoriosGerados', icon: FileText, secao: 'sustentabilidade' },
+  { name: 'Configurações ESG', href: 'ConfiguracoesESG', icon: Target, secao: 'sustentabilidade' },
   { name: 'Equipes', href: 'GerenciarEquipes', icon: Users },
   { name: 'Usuários', href: 'GerenciarUsuarios', icon: User },
   { name: 'Integrações', href: 'Integracoes', icon: Plug },
@@ -177,31 +180,42 @@ export default function Layout({ children, currentPageName }) {
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-            {navigation.map((item) => {
-                              const isActive = currentPageName === item.href;
-                              const requerAdmin = item.href === 'GerenciarUsuarios';
+            {navigation.map((item, index) => {
+              const isActive = currentPageName === item.href;
+              const requerAdmin = item.href === 'GerenciarUsuarios';
+              const proximoItem = navigation[index + 1];
+              const secaoMudou = proximoItem && item.secao !== proximoItem.secao;
 
-                              // Ocultar link de Usuários se não for admin
-                              if (requerAdmin && user?.role !== 'admin') return null;
+              // Ocultar link de Usuários se não for admin
+              if (requerAdmin && user?.role !== 'admin') return null;
 
-                              return (
-                                <Link
-                                  key={item.name}
-                                  to={createPageUrl(item.href)}
-                                  onClick={() => setSidebarOpen(false)}
-                                  className={cn(
-                                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                                    isActive 
-                                      ? "bg-white/15 text-white" 
-                                      : "text-white/70 hover:bg-white/10 hover:text-white"
-                                  )}
-                                >
-                                  <item.icon className="w-5 h-5" />
-                                  {item.name}
-                                  {requerAdmin && <Shield className="w-3 h-3 ml-auto" />}
-                                </Link>
-                              );
-                            })}
+              return (
+                <React.Fragment key={item.name}>
+                  {item.secao === 'sustentabilidade' && (!navigation[index - 1] || navigation[index - 1].secao !== 'sustentabilidade') && (
+                    <div className="px-3 pt-4 pb-2">
+                      <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">
+                        Sustentabilidade
+                      </p>
+                    </div>
+                  )}
+                  <Link
+                    to={createPageUrl(item.href)}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                      isActive 
+                        ? "bg-white/15 text-white" 
+                        : "text-white/70 hover:bg-white/10 hover:text-white"
+                    )}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.name}
+                    {requerAdmin && <Shield className="w-3 h-3 ml-auto" />}
+                  </Link>
+                  {secaoMudou && <div className="my-2 border-t border-white/10" />}
+                </React.Fragment>
+              );
+            })}
           </nav>
 
           {/* User section */}

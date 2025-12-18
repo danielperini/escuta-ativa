@@ -20,7 +20,8 @@ import {
   TrendingUp,
   AlertTriangle,
   Clock,
-  Lightbulb
+  Lightbulb,
+  Leaf
 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -305,6 +306,35 @@ const sections = [
         'Termômetro social atualiza automaticamente',
         'Grupos coletivos facilitam engajamento cultural',
         'Use para segmentar comunicação por território'
+      ]
+    }
+  },
+  {
+    id: 'sustentabilidade',
+    title: 'Módulo Sustentabilidade',
+    icon: Leaf,
+    color: 'bg-emerald-100 text-emerald-600',
+    content: {
+      description: 'Geração automática de relatórios ESG alinhados aos padrões GRI, ODS, Pacto Global e CSRD/ESRS.',
+      features: [
+        'Classificação automática de ações sociais',
+        'Vinculação com GRI Standards (413, 403, 404, 405, 406, 408, 409, 102/103)',
+        'Mapeamento de ODS prioritários (1, 4, 5, 8, 10, 11, 16, 17)',
+        'Alinhamento com Pacto Global da ONU',
+        'Crosswalk automático GRI → ESRS (CSRD)',
+        'Exportação em PDF e DOCX',
+        'Integração com perfil da empresa, território e comunidades',
+        'Metodologia auditável e rastreável'
+      ],
+      howTo: [
+        'Configure dados da empresa em "Configurações ESG"',
+        'Acesse "Gerador de Relatório de Sustentabilidade"',
+        'Selecione escopo (plataforma completa, comunidade, território)',
+        'Defina período de análise',
+        'IA classifica automaticamente as ações em categorias ESG',
+        'Revise o preview com vinculações GRI, ODS, Pacto Global, ESRS',
+        'Gere relatório final em PDF ou DOCX',
+        'Acesse relatórios gerados em "Relatórios Gerados"'
       ]
     }
   },
