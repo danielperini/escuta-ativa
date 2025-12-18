@@ -240,11 +240,7 @@ export default function VisaoGeralODSAvancada({ acoesPorODS, metas, odsInfo, reg
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Bar yAxisId="left" dataKey="acoes" fill="#3B82F6" name="Ações Realizadas">
-                  {dadosComparativos.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.cor} />
-                  ))}
-                </Bar>
+                <Bar yAxisId="left" dataKey="acoes" fill="#3B82F6" name="Ações Realizadas" />
                 <Bar yAxisId="right" dataKey="progresso" fill="#10B981" name="Progresso (%)" />
               </BarChart>
             </ResponsiveContainer>
