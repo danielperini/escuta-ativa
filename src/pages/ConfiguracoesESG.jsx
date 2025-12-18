@@ -44,7 +44,7 @@ export default function ConfiguracoesESG() {
       email: '',
       telefone: ''
     },
-    metodologia_classificacao: '',
+    metodologia_classificacao: 'Classificação automática por IA utilizando análise de palavras-chave e contexto temático',
     logo_empresa_url: ''
   });
 

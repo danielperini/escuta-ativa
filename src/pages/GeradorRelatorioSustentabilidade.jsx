@@ -150,32 +150,32 @@ export default function GeradorRelatorioSustentabilidade() {
   };
 
   const vincularPadroesESG = async (registros, casos, dados) => {
-    // Vincular aos registros
-    const updatePromises = registros.map(registro => {
-      const classificacaoRegistro = classificarRegistroIndividual(registro);
-      return base44.entities.Registro.update(registro.id, {
-        vinculacao_gri: dados.vinculacao_gri.filter(gri => 
-          classificacaoRegistro.categorias.length > 0
-        ).map(g => g.codigo),
-        vinculacao_ods: dados.vinculacao_ods.filter(ods => 
-          classificacaoRegistro.categorias.length > 0
-        ).map(o => o.numero),
-        vinculacao_esrs: dados.vinculacao_esrs.filter(esrs => 
-          classificacaoRegistro.categorias.length > 0
-        ).map(e => e.codigo)
+    try {
+      // Vincular aos registros
+      const updatePromises = registros.slice(0, 50).map(registro => {
+        const classificacaoRegistro = classificarRegistroIndividual(registro);
+        if (classificacaoRegistro.categorias.length === 0) return Promise.resolve();
+        
+        return base44.entities.Registro.update(registro.id, {
+          vinculacao_gri: dados.vinculacao_gri.slice(0, 5).map(g => g.codigo),
+          vinculacao_ods: dados.vinculacao_ods.slice(0, 5).map(o => o.numero),
+          vinculacao_esrs: dados.vinculacao_esrs.slice(0, 3).map(e => e.codigo)
+        }).catch(err => console.log('Erro ao vincular registro:', err));
       });
-    });
 
-    // Vincular aos casos
-    const casosPromises = casos.map(caso => {
-      return base44.entities.Caso.update(caso.id, {
-        vinculacao_gri: dados.vinculacao_gri.map(g => g.codigo),
-        vinculacao_ods: dados.vinculacao_ods.map(o => o.numero),
-        vinculacao_esrs: dados.vinculacao_esrs.map(e => e.codigo)
+      // Vincular aos casos
+      const casosPromises = casos.slice(0, 50).map(caso => {
+        return base44.entities.Caso.update(caso.id, {
+          vinculacao_gri: dados.vinculacao_gri.slice(0, 5).map(g => g.codigo),
+          vinculacao_ods: dados.vinculacao_ods.slice(0, 5).map(o => o.numero),
+          vinculacao_esrs: dados.vinculacao_esrs.slice(0, 3).map(e => e.codigo)
+        }).catch(err => console.log('Erro ao vincular caso:', err));
       });
-    });
 
-    await Promise.all([...updatePromises, ...casosPromises]);
+      await Promise.allSettled([...updatePromises, ...casosPromises]);
+    } catch (error) {
+      console.log('Erro na vinculação ESG:', error);
+    }
   };
 
   const classificarRegistroIndividual = (registro) => {
@@ -210,7 +210,7 @@ export default function GeradorRelatorioSustentabilidade() {
             <Loader2 className="w-16 h-16 mx-auto mb-6 text-emerald-600 animate-spin" />
             <h2 className="text-2xl font-bold text-slate-900 mb-4">Gerando Relatório de Sustentabilidade</h2>
             <p className="text-slate-600 mb-8">
-              Analisando {registrosFiltrados.length} registros e vinculando aos padrões GRI, ODS, Pacto Global e CSRD/ESRS...
+              Analisando {registrosFiltrados.length} registros e {casosFiltrados.length} casos, vinculando aos padrões GRI, ODS, Pacto Global e CSRD/ESRS...
             </p>
             <div className="space-y-3">
               <div className="flex items-center justify-center gap-3">

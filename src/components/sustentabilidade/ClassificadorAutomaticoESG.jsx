@@ -36,32 +36,36 @@ export default class ClassificadorAutomaticoESG {
 
     const palavrasChave = {
       direitos_humanos: ['direito', 'liberdade', 'igualdade', 'discriminação', 'trabalho infantil', 'trabalho forçado', 'dignidade'],
-      participacao_social: ['participação', 'consulta', 'envolvimento', 'assembleia', 'reunião comunitária', 'ouvir comunidade'],
-      dialogo_comunitario: ['diálogo', 'conversa', 'escuta', 'fala', 'comunicação', 'interação'],
-      construcao_conjunta: ['conjunto', 'parceria', 'colaboração', 'coletivo', 'construir junto', 'decisão compartilhada'],
-      desenvolvimento_local: ['emprego', 'renda', 'capacitação', 'treinamento', 'oportunidade', 'desenvolvimento'],
-      governanca_social: ['gestão', 'política', 'procedimento', 'transparência', 'prestação de contas', 'auditoria'],
-      gestao_impactos: ['impacto', 'mitigação', 'compensação', 'prevenção', 'monitoramento', 'avaliação'],
-      cultura_identidade: ['cultura', 'tradição', 'identidade', 'patrimônio', 'memória', 'costumes']
+      participacao_social: ['participação', 'participacao', 'consulta', 'envolvimento', 'assembleia', 'reunião', 'reuniao comunitária', 'ouvir comunidade'],
+      dialogo_comunitario: ['diálogo', 'dialogo', 'conversa', 'escuta', 'fala', 'comunicação', 'comunicacao', 'interação', 'interacao'],
+      construcao_conjunta: ['conjunto', 'parceria', 'colaboração', 'colaboracao', 'coletivo', 'construir junto', 'decisão compartilhada'],
+      desenvolvimento_local: ['emprego', 'renda', 'capacitação', 'capacitacao', 'treinamento', 'oportunidade', 'desenvolvimento'],
+      governanca_social: ['gestão', 'gestao', 'política', 'politica', 'procedimento', 'transparência', 'transparencia', 'prestação de contas', 'auditoria'],
+      gestao_impactos: ['impacto', 'mitigação', 'mitigacao', 'compensação', 'compensacao', 'prevenção', 'prevencao', 'monitoramento', 'avaliação', 'avaliacao'],
+      cultura_identidade: ['cultura', 'tradição', 'tradicao', 'identidade', 'patrimônio', 'patrimonio', 'memória', 'memoria', 'costumes']
     };
 
     this.registros.forEach(registro => {
-      const textoCompleto = [
-        registro.titulo,
-        registro.descricao,
-        registro.transcricao,
-        ...(registro.temas_identificados || []),
-        ...(registro.demandas || []).map(d => d.descricao)
-      ].filter(Boolean).join(' ').toLowerCase();
+      try {
+        const textoCompleto = [
+          registro.titulo || '',
+          registro.descricao || '',
+          registro.transcricao || '',
+          ...(registro.temas_identificados || []),
+          ...(registro.demandas || []).map(d => d?.descricao || '')
+        ].filter(Boolean).join(' ').toLowerCase();
 
-      Object.keys(palavrasChave).forEach(categoria => {
-        const matches = palavrasChave[categoria].filter(palavra => 
-          textoCompleto.includes(palavra.toLowerCase())
-        );
-        if (matches.length > 0) {
-          classificacoes[categoria]++;
-        }
-      });
+        Object.keys(palavrasChave).forEach(categoria => {
+          const matches = palavrasChave[categoria].filter(palavra => 
+            textoCompleto.includes(palavra.toLowerCase())
+          );
+          if (matches.length > 0) {
+            classificacoes[categoria]++;
+          }
+        });
+      } catch (error) {
+        console.log('Erro ao classificar registro:', error);
+      }
     });
 
     return classificacoes;

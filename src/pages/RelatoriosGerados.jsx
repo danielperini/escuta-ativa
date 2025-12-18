@@ -131,11 +131,21 @@ export default function RelatoriosGerados() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <Button size="sm" variant="outline" disabled={!relatorio.arquivo_pdf_url}>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      disabled={!relatorio.arquivo_pdf_url}
+                      onClick={() => relatorio.arquivo_pdf_url && window.open(relatorio.arquivo_pdf_url, '_blank')}
+                    >
                       <Download className="w-4 h-4 mr-2" />
                       PDF
                     </Button>
-                    <Button size="sm" variant="outline" disabled={!relatorio.arquivo_docx_url}>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      disabled={!relatorio.arquivo_docx_url}
+                      onClick={() => relatorio.arquivo_docx_url && window.open(relatorio.arquivo_docx_url, '_blank')}
+                    >
                       <Download className="w-4 h-4 mr-2" />
                       DOCX
                     </Button>

@@ -56,6 +56,33 @@ export default function PreviewRelatorioESG({ configuracao, registros, casos = [
         </CardContent>
       </Card>
 
+      {/* Resumo Executivo */}
+      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
+        <CardHeader>
+          <CardTitle className="text-lg">Resumo Executivo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <p className="text-3xl font-bold text-blue-600">{registros.length}</p>
+              <p className="text-sm text-slate-600">Registros</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-purple-600">{casos.length}</p>
+              <p className="text-sm text-slate-600">Casos</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-emerald-600">{dados.vinculacao_gri.length}</p>
+              <p className="text-sm text-slate-600">GRI Standards</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-orange-600">{dados.vinculacao_ods.length}</p>
+              <p className="text-sm text-slate-600">ODS Vinculadas</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Panorama das Ações */}
       <Card>
         <CardHeader>
