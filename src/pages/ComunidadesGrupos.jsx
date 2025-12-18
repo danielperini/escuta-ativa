@@ -691,7 +691,7 @@ export default function ComunidadesGrupos() {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Nome *</Label>
+                <label className="text-sm font-medium">Nome *</label className="text-sm font-medium">
                 <Input
                   value={formComunidade.nome}
                   onChange={(e) => setFormComunidade(prev => ({ ...prev, nome: e.target.value }))}
@@ -699,7 +699,7 @@ export default function ComunidadesGrupos() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Tipo *</Label>
+                <label className="text-sm font-medium">Tipo *</label className="text-sm font-medium">
                 <Select value={formComunidade.tipo} onValueChange={(v) => setFormComunidade(prev => ({ ...prev, tipo: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -710,7 +710,7 @@ export default function ComunidadesGrupos() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Município *</Label>
+                <label className="text-sm font-medium">Município *</label className="text-sm font-medium">
                 <Select 
                   value={formComunidade.municipio} 
                   onValueChange={(v) => setFormComunidade(prev => ({ ...prev, municipio: v }))}
@@ -769,7 +769,7 @@ export default function ComunidadesGrupos() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Estado *</Label>
+                <label className="text-sm font-medium">Estado *</label className="text-sm font-medium">
                 <Select value={formComunidade.estado} onValueChange={(v) => setFormComunidade(prev => ({ ...prev, estado: v }))}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
@@ -780,7 +780,7 @@ export default function ComunidadesGrupos() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>População Estimada</Label>
+                <label className="text-sm font-medium">População Estimada</label className="text-sm font-medium">
                 <Input
                   type="number"
                   value={formComunidade.populacao_estimada}
@@ -791,7 +791,7 @@ export default function ComunidadesGrupos() {
             </div>
 
             <div className="space-y-2">
-              <Label>Geolocalização</Label>
+              <label className="text-sm font-medium">Geolocalização</label className="text-sm font-medium">
               <div className="grid grid-cols-2 gap-2">
                 <Input
                   type="number"
@@ -826,7 +826,7 @@ export default function ComunidadesGrupos() {
             </div>
 
             <div className="space-y-2">
-              <Label>Notas</Label>
+              <label className="text-sm font-medium">Notas</label className="text-sm font-medium">
               <Textarea
                 value={formComunidade.notas}
                 onChange={(e) => setFormComunidade(prev => ({ ...prev, notas: e.target.value }))}
@@ -857,14 +857,14 @@ export default function ComunidadesGrupos() {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Nome *</Label>
+                <label className="text-sm font-medium">Nome *</label className="text-sm font-medium">
                 <Input
                   value={formComunidade.nome}
                   onChange={(e) => setFormComunidade(prev => ({ ...prev, nome: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Tipo *</Label>
+                <label className="text-sm font-medium">Tipo *</label className="text-sm font-medium">
                 <Select value={formComunidade.tipo} onValueChange={(v) => setFormComunidade(prev => ({ ...prev, tipo: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -875,7 +875,7 @@ export default function ComunidadesGrupos() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Município *</Label>
+                <label className="text-sm font-medium">Município *</label className="text-sm font-medium">
                 <Select 
                   value={formComunidade.municipio} 
                   onValueChange={(v) => setFormComunidade(prev => ({ ...prev, municipio: v }))}
@@ -934,7 +934,7 @@ export default function ComunidadesGrupos() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Estado *</Label>
+                <label className="text-sm font-medium">Estado *</label className="text-sm font-medium">
                 <Select value={formComunidade.estado} onValueChange={(v) => setFormComunidade(prev => ({ ...prev, estado: v }))}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
@@ -945,7 +945,7 @@ export default function ComunidadesGrupos() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>População Estimada</Label>
+                <label className="text-sm font-medium">População Estimada</label className="text-sm font-medium">
                 <Input
                   type="number"
                   value={formComunidade.populacao_estimada}
@@ -955,7 +955,7 @@ export default function ComunidadesGrupos() {
             </div>
 
             <div className="space-y-2">
-              <Label>Geolocalização</Label>
+              <label className="text-sm font-medium">Geolocalização</label className="text-sm font-medium">
               <div className="grid grid-cols-2 gap-2">
                 <Input
                   type="number"
@@ -990,7 +990,7 @@ export default function ComunidadesGrupos() {
             </div>
 
             <div className="space-y-2">
-              <Label>Notas</Label>
+              <label className="text-sm font-medium">Notas</label className="text-sm font-medium">
               <Textarea
                 value={formComunidade.notas}
                 onChange={(e) => setFormComunidade(prev => ({ ...prev, notas: e.target.value }))}
@@ -1019,7 +1019,7 @@ export default function ComunidadesGrupos() {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Nome *</Label>
+                <label className="text-sm font-medium">Nome *</label className="text-sm font-medium">
                 <Input
                   value={formGrupo.nome}
                   onChange={(e) => setFormGrupo(prev => ({ ...prev, nome: e.target.value }))}
@@ -1027,7 +1027,7 @@ export default function ComunidadesGrupos() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Tipo *</Label>
+                <label className="text-sm font-medium">Tipo *</label className="text-sm font-medium">
                 <Select value={formGrupo.tipo} onValueChange={(v) => setFormGrupo(prev => ({ ...prev, tipo: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -1038,7 +1038,7 @@ export default function ComunidadesGrupos() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Área de Atuação</Label>
+                <label className="text-sm font-medium">Área de Atuação</label className="text-sm font-medium">
                 <Input
                   value={formGrupo.area_atuacao}
                   onChange={(e) => setFormGrupo(prev => ({ ...prev, area_atuacao: e.target.value }))}
@@ -1046,7 +1046,7 @@ export default function ComunidadesGrupos() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Número de Membros</Label>
+                <label className="text-sm font-medium">Número de Membros</label className="text-sm font-medium">
                 <Input
                   type="number"
                   value={formGrupo.numero_membros}
@@ -1055,7 +1055,7 @@ export default function ComunidadesGrupos() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Comunidade de Origem</Label>
+                <label className="text-sm font-medium">Comunidade de Origem</label className="text-sm font-medium">
                 <Select value={formGrupo.comunidade_origem} onValueChange={(v) => setFormGrupo(prev => ({ ...prev, comunidade_origem: v }))}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
@@ -1067,7 +1067,7 @@ export default function ComunidadesGrupos() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Município</Label>
+                <label className="text-sm font-medium">Município</label className="text-sm font-medium">
                 <Select 
                   value={formGrupo.municipio} 
                   onValueChange={(v) => setFormGrupo(prev => ({ ...prev, municipio: v }))}
@@ -1119,7 +1119,7 @@ export default function ComunidadesGrupos() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Estado</Label>
+                <label className="text-sm font-medium">Estado</label className="text-sm font-medium">
                 <Select value={formGrupo.estado} onValueChange={(v) => setFormGrupo(prev => ({ ...prev, estado: v }))}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
@@ -1132,7 +1132,7 @@ export default function ComunidadesGrupos() {
             </div>
 
             <div className="space-y-2">
-              <Label>Descrição</Label>
+              <label className="text-sm font-medium">Descrição</label className="text-sm font-medium">
               <Textarea
                 value={formGrupo.descricao}
                 onChange={(e) => setFormGrupo(prev => ({ ...prev, descricao: e.target.value }))}
@@ -1143,7 +1143,7 @@ export default function ComunidadesGrupos() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Contato Principal</Label>
+                <label className="text-sm font-medium">Contato Principal</label className="text-sm font-medium">
                 <Input
                   value={formGrupo.contato_principal}
                   onChange={(e) => setFormGrupo(prev => ({ ...prev, contato_principal: e.target.value }))}
@@ -1151,7 +1151,7 @@ export default function ComunidadesGrupos() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Telefone</Label>
+                <label className="text-sm font-medium">Telefone</label className="text-sm font-medium">
                 <Input
                   value={formGrupo.telefone}
                   onChange={(e) => setFormGrupo(prev => ({ ...prev, telefone: e.target.value }))}
@@ -1159,7 +1159,7 @@ export default function ComunidadesGrupos() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
+                <label className="text-sm font-medium">Email</label className="text-sm font-medium">
                 <Input
                   type="email"
                   value={formGrupo.email}
@@ -1191,14 +1191,14 @@ export default function ComunidadesGrupos() {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Nome *</Label>
+                <label className="text-sm font-medium">Nome *</label className="text-sm font-medium">
                 <Input
                   value={formGrupo.nome}
                   onChange={(e) => setFormGrupo(prev => ({ ...prev, nome: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Tipo *</Label>
+                <label className="text-sm font-medium">Tipo *</label className="text-sm font-medium">
                 <Select value={formGrupo.tipo} onValueChange={(v) => setFormGrupo(prev => ({ ...prev, tipo: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -1209,14 +1209,14 @@ export default function ComunidadesGrupos() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Área de Atuação</Label>
+                <label className="text-sm font-medium">Área de Atuação</label className="text-sm font-medium">
                 <Input
                   value={formGrupo.area_atuacao}
                   onChange={(e) => setFormGrupo(prev => ({ ...prev, area_atuacao: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Número de Membros</Label>
+                <label className="text-sm font-medium">Número de Membros</label className="text-sm font-medium">
                 <Input
                   type="number"
                   value={formGrupo.numero_membros}
@@ -1224,7 +1224,7 @@ export default function ComunidadesGrupos() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Comunidade de Origem</Label>
+                <label className="text-sm font-medium">Comunidade de Origem</label className="text-sm font-medium">
                 <Select value={formGrupo.comunidade_origem} onValueChange={(v) => setFormGrupo(prev => ({ ...prev, comunidade_origem: v }))}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
@@ -1236,7 +1236,7 @@ export default function ComunidadesGrupos() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Município</Label>
+                <label className="text-sm font-medium">Município</label className="text-sm font-medium">
                 <Select 
                   value={formGrupo.municipio} 
                   onValueChange={(v) => setFormGrupo(prev => ({ ...prev, municipio: v }))}
@@ -1288,7 +1288,7 @@ export default function ComunidadesGrupos() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Estado</Label>
+                <label className="text-sm font-medium">Estado</label className="text-sm font-medium">
                 <Select value={formGrupo.estado} onValueChange={(v) => setFormGrupo(prev => ({ ...prev, estado: v }))}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
@@ -1301,7 +1301,7 @@ export default function ComunidadesGrupos() {
             </div>
 
             <div className="space-y-2">
-              <Label>Descrição</Label>
+              <label className="text-sm font-medium">Descrição</label className="text-sm font-medium">
               <Textarea
                 value={formGrupo.descricao}
                 onChange={(e) => setFormGrupo(prev => ({ ...prev, descricao: e.target.value }))}
@@ -1311,21 +1311,21 @@ export default function ComunidadesGrupos() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Contato Principal</Label>
+                <label className="text-sm font-medium">Contato Principal</label className="text-sm font-medium">
                 <Input
                   value={formGrupo.contato_principal}
                   onChange={(e) => setFormGrupo(prev => ({ ...prev, contato_principal: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Telefone</Label>
+                <label className="text-sm font-medium">Telefone</label className="text-sm font-medium">
                 <Input
                   value={formGrupo.telefone}
                   onChange={(e) => setFormGrupo(prev => ({ ...prev, telefone: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
+                <label className="text-sm font-medium">Email</label className="text-sm font-medium">
                 <Input
                   type="email"
                   value={formGrupo.email}
