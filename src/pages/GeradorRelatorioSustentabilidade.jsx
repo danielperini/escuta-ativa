@@ -69,6 +69,11 @@ export default function GeradorRelatorioSustentabilidade() {
     }
   });
 
+  const { data: casos = [] } = useQuery({
+    queryKey: ['casos-sustentabilidade'],
+    queryFn: () => base44.entities.Caso.list('-created_date', 1000)
+  });
+
   const registrosFiltrados = React.useMemo(() => {
     let filtered = registros.filter(r => {
       const dataRegistro = new Date(r.data_registro || r.created_date);
@@ -90,6 +95,13 @@ export default function GeradorRelatorioSustentabilidade() {
     return filtered;
   }, [registros, configuracao]);
 
+  const casosFiltrados = React.useMemo(() => {
+    return casos.filter(caso => {
+      const dataCaso = new Date(caso.created_date);
+      return dataCaso >= configuracao.data_inicio && dataCaso <= configuracao.data_fim;
+    });
+  }, [casos, configuracao]);
+
   const handleAvancarEtapa = () => {
     if (!configuracaoESG) {
       toast.error('Configure os dados da empresa primeiro em Configurações ESG');
@@ -108,11 +120,14 @@ export default function GeradorRelatorioSustentabilidade() {
   const handleGerarRelatorio = async () => {
     setEtapa(3);
     
-    // Classificar registros
-    const classificador = new ClassificadorAutomaticoESG(registrosFiltrados);
+    // Classificar registros e casos
+    const classificador = new ClassificadorAutomaticoESG([...registrosFiltrados, ...casosFiltrados]);
     const dadosClassificados = classificador.classificar();
     
     setDadosClassificados(dadosClassificados);
+
+    // Vincular GRI, ODS, ESRS aos registros e casos
+    await vincularPadroesESG(registrosFiltrados, casosFiltrados, dadosClassificados);
 
     // Criar relatório
     const relatorio = {
@@ -121,15 +136,70 @@ export default function GeradorRelatorioSustentabilidade() {
       data_inicio: format(configuracao.data_inicio, 'yyyy-MM-dd'),
       data_fim: format(configuracao.data_fim, 'yyyy-MM-dd'),
       registros_incluidos: registrosFiltrados.map(r => r.id),
+      casos_incluidos: casosFiltrados.map(c => c.id),
       comunidade: configuracao.comunidade,
       territorio: configuracao.territorio,
       total_registros: registrosFiltrados.length,
+      total_casos: casosFiltrados.length,
       ...dadosClassificados,
       status: 'concluido',
       versao: '1.0'
     };
 
     gerarRelatorioMutation.mutate(relatorio);
+  };
+
+  const vincularPadroesESG = async (registros, casos, dados) => {
+    // Vincular aos registros
+    const updatePromises = registros.map(registro => {
+      const classificacaoRegistro = classificarRegistroIndividual(registro);
+      return base44.entities.Registro.update(registro.id, {
+        vinculacao_gri: dados.vinculacao_gri.filter(gri => 
+          classificacaoRegistro.categorias.length > 0
+        ).map(g => g.codigo),
+        vinculacao_ods: dados.vinculacao_ods.filter(ods => 
+          classificacaoRegistro.categorias.length > 0
+        ).map(o => o.numero),
+        vinculacao_esrs: dados.vinculacao_esrs.filter(esrs => 
+          classificacaoRegistro.categorias.length > 0
+        ).map(e => e.codigo)
+      });
+    });
+
+    // Vincular aos casos
+    const casosPromises = casos.map(caso => {
+      return base44.entities.Caso.update(caso.id, {
+        vinculacao_gri: dados.vinculacao_gri.map(g => g.codigo),
+        vinculacao_ods: dados.vinculacao_ods.map(o => o.numero),
+        vinculacao_esrs: dados.vinculacao_esrs.map(e => e.codigo)
+      });
+    });
+
+    await Promise.all([...updatePromises, ...casosPromises]);
+  };
+
+  const classificarRegistroIndividual = (registro) => {
+    const texto = [
+      registro.titulo,
+      registro.descricao,
+      registro.transcricao,
+      ...(registro.temas_identificados || [])
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    const palavrasChave = {
+      direitos_humanos: ['direito', 'liberdade', 'igualdade'],
+      participacao_social: ['participação', 'consulta', 'envolvimento'],
+      dialogo_comunitario: ['diálogo', 'conversa', 'escuta'],
+      desenvolvimento_local: ['emprego', 'renda', 'capacitação']
+    };
+
+    const categorias = [];
+    Object.keys(palavrasChave).forEach(categoria => {
+      const matches = palavrasChave[categoria].filter(palavra => texto.includes(palavra));
+      if (matches.length > 0) categorias.push(categoria);
+    });
+
+    return { categorias };
   };
 
   if (etapa === 3) {
@@ -188,6 +258,7 @@ export default function GeradorRelatorioSustentabilidade() {
         <PreviewRelatorioESG
           configuracao={configuracao}
           registros={registrosFiltrados}
+          casos={casosFiltrados}
           configuracaoESG={configuracaoESG}
         />
       </div>

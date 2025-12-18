@@ -4,8 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Leaf, Globe, Users, Target, BarChart3, FileText } from 'lucide-react';
 import ClassificadorAutomaticoESG from './ClassificadorAutomaticoESG.jsx';
 
-export default function PreviewRelatorioESG({ configuracao, registros, configuracaoESG }) {
-  const classificador = new ClassificadorAutomaticoESG(registros);
+export default function PreviewRelatorioESG({ configuracao, registros, casos = [], configuracaoESG }) {
+  const todosItens = [...registros, ...casos];
+  const classificador = new ClassificadorAutomaticoESG(todosItens);
   const dados = classificador.classificar();
 
   const coresODS = {
@@ -214,12 +215,15 @@ export default function PreviewRelatorioESG({ configuracao, registros, configura
         </CardHeader>
         <CardContent>
           <p className="text-sm text-slate-700 leading-relaxed">
-            Este relatório consolida {registros.length} registros de interações sociais no período de{' '}
+            Este relatório consolida {registros.length} registros de interações sociais e {casos.length} casos 
+            no período de{' '}
             {new Date(configuracao.data_inicio).toLocaleDateString('pt-BR')} a{' '}
-            {new Date(configuracao.data_fim).toLocaleDateString('pt-BR')}. As ações foram classificadas automaticamente
-            por inteligência artificial utilizando análise de palavras-chave e contexto temático, com vinculação automática
-            aos padrões GRI Standards, Objetivos de Desenvolvimento Sustentável (ODS), Princípios do Pacto Global da ONU
-            e European Sustainability Reporting Standards (ESRS/CSRD).
+            {new Date(configuracao.data_fim).toLocaleDateString('pt-BR')}
+            {configuracao.comunidade ? ` da comunidade ${configuracao.comunidade}` : ''}.
+            As ações foram classificadas automaticamente por inteligência artificial utilizando análise de palavras-chave 
+            e contexto temático, com vinculação automática aos padrões GRI Standards, Objetivos de Desenvolvimento 
+            Sustentável (ODS), Princípios do Pacto Global da ONU e European Sustainability Reporting Standards (ESRS/CSRD).
+            Todos os registros e casos receberam vinculação individual aos padrões aplicáveis.
           </p>
         </CardContent>
       </Card>
