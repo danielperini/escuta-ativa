@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -521,7 +521,7 @@ export default function Agenda() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Título *</Label>
+              <label className="text-sm font-medium">Título *</label>
               <Input
                 value={formData.titulo}
                 onChange={(e) => setFormData(prev => ({ ...prev, titulo: e.target.value }))}
@@ -531,7 +531,7 @@ export default function Agenda() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Data *</Label>
+                <label className="text-sm font-medium">Data *</label>
                 <Input
                   type="date"
                   value={formData.data}
@@ -539,7 +539,7 @@ export default function Agenda() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Tipo</Label>
+                <label className="text-sm font-medium">Tipo</label>
                 <Select
                   value={formData.tipo}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value }))}
@@ -557,7 +557,7 @@ export default function Agenda() {
             </div>
 
             <div className="space-y-2">
-              <Label>Status</Label>
+              <label className="text-sm font-medium">Status</label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
@@ -574,7 +574,7 @@ export default function Agenda() {
             </div>
 
             <div className="space-y-2">
-              <Label>Comunidade</Label>
+              <label className="text-sm font-medium">Comunidade</label>
               <Select
                 value={formData.comunidade}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, comunidade: value }))}
@@ -595,7 +595,7 @@ export default function Agenda() {
             </div>
 
             <div className="space-y-2">
-              <Label>Local</Label>
+              <label className="text-sm font-medium">Local</label>
               <Input
                 value={formData.local}
                 onChange={(e) => setFormData(prev => ({ ...prev, local: e.target.value }))}
@@ -604,7 +604,7 @@ export default function Agenda() {
             </div>
 
             <div className="space-y-2">
-              <Label>Descrição</Label>
+              <label className="text-sm font-medium">Descrição</label>
               <Textarea
                 value={formData.descricao}
                 onChange={(e) => setFormData(prev => ({ ...prev, descricao: e.target.value }))}
