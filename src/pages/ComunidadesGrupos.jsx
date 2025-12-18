@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+
 import { Textarea } from "@/components/ui/textarea";
 import { 
   MapPin, 
@@ -117,6 +117,11 @@ export default function ComunidadesGrupos() {
   const { data: grupos = [] } = useQuery({
     queryKey: ['grupos-gestao'],
     queryFn: () => base44.entities.GrupoColetivo.list('-created_date')
+  });
+
+  const { data: registros = [] } = useQuery({
+    queryKey: ['registros-comunidades'],
+    queryFn: () => base44.entities.Registro.list('-created_date', 500)
   });
 
   const createComunidadeMutation = useMutation({
@@ -272,25 +277,58 @@ export default function ComunidadesGrupos() {
     }
   };
 
+  // Atualizar contadores de registros nas comunidades
+  React.useEffect(() => {
+    if (registros.length > 0 && comunidades.length > 0) {
+      const contagemPorComunidade = {};
+      registros.forEach(r => {
+        if (r.comunidade) {
+          contagemPorComunidade[r.comunidade] = (contagemPorComunidade[r.comunidade] || 0) + 1;
+        }
+      });
+      
+      comunidades.forEach(c => {
+        if (contagemPorComunidade[c.nome] && c.total_registros !== contagemPorComunidade[c.nome]) {
+          base44.entities.Comunidade.update(c.id, { 
+            total_registros: contagemPorComunidade[c.nome],
+            ultima_interacao: new Date().toISOString()
+          }).catch(() => {});
+        }
+      });
+    }
+  }, [registros.length, comunidades.length]);
+
   // Filtros
-  const municipios = [...new Set([...comunidades.map(c => c.municipio), ...grupos.map(g => g.municipio)].filter(Boolean))];
-  const estados = [...new Set([...comunidades.map(c => c.estado), ...grupos.map(g => g.estado)].filter(Boolean))];
+  const municipios = [...new Set([
+    ...comunidades.map(c => c.municipio), 
+    ...grupos.map(g => g.municipio),
+    ...registros.map(r => r.localizacao?.municipio)
+  ].filter(Boolean))].sort();
+  
+  const estados = [...new Set([
+    ...comunidades.map(c => c.estado), 
+    ...grupos.map(g => g.estado)
+  ].filter(Boolean))].sort();
 
-  const comunidadesFiltradas = comunidades.filter(c => {
-    const matchSearch = !search || c.nome?.toLowerCase().includes(search.toLowerCase());
-    const matchTipo = filtroTipo === 'todos' || c.tipo === filtroTipo;
-    const matchMunicipio = filtroMunicipio === 'todos' || c.municipio === filtroMunicipio;
-    const matchEstado = filtroEstado === 'todos' || c.estado === filtroEstado;
-    return matchSearch && matchTipo && matchMunicipio && matchEstado;
-  });
+  const comunidadesFiltradas = comunidades
+    .filter(c => {
+      const matchSearch = !search || c.nome?.toLowerCase().includes(search.toLowerCase());
+      const matchTipo = filtroTipo === 'todos' || c.tipo === filtroTipo;
+      const matchMunicipio = filtroMunicipio === 'todos' || c.municipio === filtroMunicipio;
+      const matchEstado = filtroEstado === 'todos' || c.estado === filtroEstado;
+      return matchSearch && matchTipo && matchMunicipio && matchEstado;
+    })
+    .sort((a, b) => (b.total_registros || 0) - (a.total_registros || 0));
 
-  const gruposFiltrados = grupos.filter(g => {
-    const matchSearch = !search || g.nome?.toLowerCase().includes(search.toLowerCase()) || g.area_atuacao?.toLowerCase().includes(search.toLowerCase());
-    const matchTipo = filtroTipo === 'todos' || g.tipo === filtroTipo;
-    const matchMunicipio = filtroMunicipio === 'todos' || g.municipio === filtroMunicipio;
-    const matchEstado = filtroEstado === 'todos' || g.estado === filtroEstado;
-    return matchSearch && matchTipo && matchMunicipio && matchEstado;
-  });
+  const gruposFiltrados = grupos
+    .filter(g => {
+      const matchSearch = !search || g.nome?.toLowerCase().includes(search.toLowerCase()) || g.area_atuacao?.toLowerCase().includes(search.toLowerCase());
+      const matchTipo = filtroTipo === 'todos' || g.tipo === filtroTipo;
+      const matchMunicipio = filtroMunicipio === 'todos' || g.municipio === filtroMunicipio;
+      const matchEstado = filtroEstado === 'todos' || g.estado === filtroEstado;
+      return matchSearch && matchTipo && matchMunicipio && matchEstado;
+    })
+    .sort((a, b) => (b.numero_membros || 0) - (a.numero_membros || 0));
 
   const comunidadesComLocalizacao = comunidadesFiltradas.filter(c => c.localizacao?.lat && c.localizacao?.lng);
 
@@ -392,12 +430,12 @@ export default function ComunidadesGrupos() {
 
           {/* Mapa Interativo */}
           {mostrarMapa && comunidadesComLocalizacao.length > 0 && (
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden shadow-lg">
               <CardContent className="p-0">
-                <div style={{ height: '400px', width: '100%' }}>
+                <div style={{ height: '600px', width: '100%' }}>
                   <MapContainer
                     center={[comunidadesComLocalizacao[0].localizacao.lat, comunidadesComLocalizacao[0].localizacao.lng]}
-                    zoom={10}
+                    zoom={6}
                     style={{ height: '100%', width: '100%' }}
                   >
                     <TileLayer
@@ -410,12 +448,24 @@ export default function ComunidadesGrupos() {
                         position={[comunidade.localizacao.lat, comunidade.localizacao.lng]}
                       >
                         <Popup>
-                          <div className="p-2">
-                            <p className="font-bold">{comunidade.nome}</p>
-                            <p className="text-sm">{comunidade.municipio} - {comunidade.estado}</p>
+                          <div className="p-2 min-w-[200px]">
+                            <p className="font-bold text-lg mb-1">{comunidade.nome}</p>
+                            <p className="text-sm text-slate-600 mb-2">{comunidade.municipio} - {comunidade.estado}</p>
                             <Badge className={TIPO_COMUNIDADE_CONFIG[comunidade.tipo]?.color || 'bg-slate-100'}>
                               {TIPO_COMUNIDADE_CONFIG[comunidade.tipo]?.label}
                             </Badge>
+                            {comunidade.populacao_estimada && (
+                              <p className="text-xs text-slate-500 mt-2">
+                                <Users className="w-3 h-3 inline mr-1" />
+                                {comunidade.populacao_estimada.toLocaleString()} hab.
+                              </p>
+                            )}
+                            {comunidade.total_registros > 0 && (
+                              <p className="text-xs text-slate-500 mt-1">
+                                <TrendingUp className="w-3 h-3 inline mr-1" />
+                                {comunidade.total_registros} registros
+                              </p>
+                            )}
                           </div>
                         </Popup>
                       </Marker>
@@ -425,6 +475,30 @@ export default function ComunidadesGrupos() {
               </CardContent>
             </Card>
           )}
+
+          {/* Estatísticas Rápidas */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <Card className="p-4 bg-gradient-to-br from-blue-50 to-blue-100">
+              <p className="text-xs text-blue-600 font-medium">Total Comunidades</p>
+              <p className="text-2xl font-bold text-blue-700">{comunidadesFiltradas.length}</p>
+            </Card>
+            <Card className="p-4 bg-gradient-to-br from-emerald-50 to-emerald-100">
+              <p className="text-xs text-emerald-600 font-medium">Com Geolocalização</p>
+              <p className="text-2xl font-bold text-emerald-700">{comunidadesComLocalizacao.length}</p>
+            </Card>
+            <Card className="p-4 bg-gradient-to-br from-purple-50 to-purple-100">
+              <p className="text-xs text-purple-600 font-medium">Total Registros</p>
+              <p className="text-2xl font-bold text-purple-700">
+                {comunidadesFiltradas.reduce((acc, c) => acc + (c.total_registros || 0), 0)}
+              </p>
+            </Card>
+            <Card className="p-4 bg-gradient-to-br from-amber-50 to-amber-100">
+              <p className="text-xs text-amber-600 font-medium">População Total</p>
+              <p className="text-2xl font-bold text-amber-700">
+                {comunidadesFiltradas.reduce((acc, c) => acc + (c.populacao_estimada || 0), 0).toLocaleString()}
+              </p>
+            </Card>
+          </div>
 
           {/* Lista de Comunidades */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -496,6 +570,32 @@ export default function ComunidadesGrupos() {
 
         {/* TAB GRUPOS */}
         <TabsContent value="grupos" className="space-y-4">
+          {/* Estatísticas Rápidas Grupos */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <Card className="p-4 bg-gradient-to-br from-pink-50 to-pink-100">
+              <p className="text-xs text-pink-600 font-medium">Total Grupos</p>
+              <p className="text-2xl font-bold text-pink-700">{gruposFiltrados.length}</p>
+            </Card>
+            <Card className="p-4 bg-gradient-to-br from-indigo-50 to-indigo-100">
+              <p className="text-xs text-indigo-600 font-medium">Total Membros</p>
+              <p className="text-2xl font-bold text-indigo-700">
+                {gruposFiltrados.reduce((acc, g) => acc + (g.numero_membros || 0), 0)}
+              </p>
+            </Card>
+            <Card className="p-4 bg-gradient-to-br from-cyan-50 to-cyan-100">
+              <p className="text-xs text-cyan-600 font-medium">Tipos Diferentes</p>
+              <p className="text-2xl font-bold text-cyan-700">
+                {new Set(gruposFiltrados.map(g => g.tipo)).size}
+              </p>
+            </Card>
+            <Card className="p-4 bg-gradient-to-br from-lime-50 to-lime-100">
+              <p className="text-xs text-lime-600 font-medium">Com Comunidade</p>
+              <p className="text-2xl font-bold text-lime-700">
+                {gruposFiltrados.filter(g => g.comunidade_origem).length}
+              </p>
+            </Card>
+          </div>
+
           <div className="flex justify-between items-center">
             <Select value={filtroTipo} onValueChange={setFiltroTipo}>
               <SelectTrigger className="w-48">
