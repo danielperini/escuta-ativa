@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 const widgetsDisponiveis = [
   { id: 'kpis', nome: 'KPIs Principais', descricao: 'Métricas chave do sistema' },
   { id: 'graficos', nome: 'Gráficos de Tendência', descricao: 'Evolução temporal dos dados' },
+  { id: 'sustentabilidade', nome: 'Sustentabilidade & ODS', descricao: 'Progresso de metas ODS e relatórios ESG' },
   { id: 'demandas_recorrentes', nome: 'Demandas Recorrentes', descricao: 'Alertas de demandas repetidas' },
   { id: 'devolutivas', nome: 'Monitor de Devolutivas', descricao: 'Prazos e pendências' },
   { id: 'voz_comunidade', nome: 'Voz da Comunidade', descricao: 'Citações relevantes' },

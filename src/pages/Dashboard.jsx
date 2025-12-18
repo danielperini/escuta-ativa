@@ -24,6 +24,7 @@ import MonitorDevolutivas from "@/components/devolutiva/MonitorDevolutivas";
 import BotaoPanicoAvancado from "@/components/dashboard/BotaoPanicoAvancado";
 import WidgetDicasRelacionamento from "@/components/dashboard/WidgetDicasRelacionamento";
 import GraficosKPIAvancados from "@/components/dashboard/GraficosKPIAvancados";
+import WidgetSustentabilidade from "@/components/dashboard/WidgetSustentabilidade";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function Dashboard() {
     });
 
     const widgetsAtivos = user?.configuracoes?.widgets_dashboard || [
-        'kpis', 'graficos', 'demandas_recorrentes', 'devolutivas', 
+        'kpis', 'graficos', 'sustentabilidade', 'demandas_recorrentes', 'devolutivas', 
         'voz_comunidade', 'proximas_agendas', 'riscos_ativos', 'dicas_relacionamento',
         'comunidades_ativas', 'temas_prioritarios', 'stakeholders_engajados',
         'temperatura_territorio', 'compromissos_atrasados', 'atividade_recente',
@@ -234,6 +235,7 @@ export default function Dashboard() {
 
                 {/* Widgets em Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {widgets.includes('sustentabilidade') && <WidgetSustentabilidade />}
                     {widgets.includes('temperatura_territorial') && <WidgetTemperaturaTerritorial />}
                     {widgets.includes('rede_stakeholders') && <WidgetRedeStakeholders />}
                     {widgets.includes('proximas_agendas') && <WidgetProximasAgendas />}
