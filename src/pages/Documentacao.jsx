@@ -322,19 +322,22 @@ const sections = [
         'Mapeamento de ODS prioritários (1, 4, 5, 8, 10, 11, 16, 17)',
         'Alinhamento com Pacto Global da ONU',
         'Crosswalk automático GRI → ESRS (CSRD)',
+        'Gestão completa de metas ODS',
+        'Visualizações gráficas de progresso',
         'Exportação em PDF e DOCX',
         'Integração com perfil da empresa, território e comunidades',
         'Metodologia auditável e rastreável'
       ],
       howTo: [
         'Configure dados da empresa em "Configurações ESG"',
+        'Acesse "ODS" para definir metas e acompanhar progresso',
+        'Defina metas quantitativas para cada ODS prioritário',
+        'Acompanhe ações vinculadas automaticamente aos ODS',
         'Acesse "Gerador de Relatório de Sustentabilidade"',
         'Selecione escopo (plataforma completa, comunidade, território)',
-        'Defina período de análise',
         'IA classifica automaticamente as ações em categorias ESG',
         'Revise o preview com vinculações GRI, ODS, Pacto Global, ESRS',
-        'Gere relatório final em PDF ou DOCX',
-        'Acesse relatórios gerados em "Relatórios Gerados"'
+        'Gere relatório final em PDF ou DOCX'
       ]
     }
   },

@@ -3,29 +3,30 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { 
-                LayoutDashboard, 
-                FileText, 
-                MapPin, 
-                Users as UsersIcon,
-                Users, 
-                Target, 
-                MessageCircle,
-                CheckSquare,
-                Settings,
-                Menu,
-                X,
-                LogOut,
-                ChevronDown,
-                CalendarDays,
-                BarChart3,
-                User,
-                Shield,
-                Home,
-                Sparkles,
-                CheckCircle2,
-                Plug,
-                Book
-              } from 'lucide-react';
+                      LayoutDashboard, 
+                      FileText, 
+                      MapPin, 
+                      Users as UsersIcon,
+                      Users, 
+                      Target, 
+                      MessageCircle,
+                      CheckSquare,
+                      Settings,
+                      Menu,
+                      X,
+                      LogOut,
+                      ChevronDown,
+                      CalendarDays,
+                      BarChart3,
+                      User,
+                      Shield,
+                      Home,
+                      Sparkles,
+                      CheckCircle2,
+                      Plug,
+                      Book,
+                      Globe
+                    } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
 import NotificationGenerator from "@/components/NotificationGenerator";
@@ -60,6 +61,7 @@ const navigation = [
   { name: 'Central de Análise', href: 'CentralAnalise', icon: Sparkles },
   { name: 'Gerador de Relatório', href: 'GeradorRelatorioSustentabilidade', icon: Sparkles, secao: 'sustentabilidade' },
   { name: 'Relatórios Gerados', href: 'RelatoriosGerados', icon: FileText, secao: 'sustentabilidade' },
+  { name: 'ODS', href: 'ODS', icon: Globe, secao: 'sustentabilidade' },
   { name: 'Configurações ESG', href: 'ConfiguracoesESG', icon: Target, secao: 'sustentabilidade' },
   { name: 'Equipes', href: 'GerenciarEquipes', icon: Users },
   { name: 'Usuários', href: 'GerenciarUsuarios', icon: User },

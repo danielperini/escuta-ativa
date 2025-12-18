@@ -52,6 +52,7 @@ import LimpezaDados from './pages/LimpezaDados';
 import GeradorRelatorioSustentabilidade from './pages/GeradorRelatorioSustentabilidade';
 import RelatoriosGerados from './pages/RelatoriosGerados';
 import ConfiguracoesESG from './pages/ConfiguracoesESG';
+import ODS from './pages/ODS';
 import __Layout from './Layout.jsx';
 
 
@@ -110,6 +111,7 @@ export const PAGES = {
     "GeradorRelatorioSustentabilidade": GeradorRelatorioSustentabilidade,
     "RelatoriosGerados": RelatoriosGerados,
     "ConfiguracoesESG": ConfiguracoesESG,
+    "ODS": ODS,
 }
 
 export const pagesConfig = {
