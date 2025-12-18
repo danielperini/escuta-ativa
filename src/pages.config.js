@@ -49,6 +49,7 @@ import Integracoes from './pages/Integracoes';
 import VisaoGeral from './pages/VisaoGeral';
 import CardsEducativos from './pages/CardsEducativos';
 import LimpezaDados from './pages/LimpezaDados';
+import GeradorRelatorioSustentabilidade from './pages/GeradorRelatorioSustentabilidade';
 import __Layout from './Layout.jsx';
 
 
@@ -104,6 +105,7 @@ export const PAGES = {
     "VisaoGeral": VisaoGeral,
     "CardsEducativos": CardsEducativos,
     "LimpezaDados": LimpezaDados,
+    "GeradorRelatorioSustentabilidade": GeradorRelatorioSustentabilidade,
 }
 
 export const pagesConfig = {
