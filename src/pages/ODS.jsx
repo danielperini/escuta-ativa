@@ -12,6 +12,7 @@ import ODSCard from '@/components/ods/ODSCard';
 import GraficoProgressoODS from '@/components/ods/GraficoProgressoODS';
 import DialogMetaODS from '@/components/ods/DialogMetaODS';
 import VisaoGeralODS from '@/components/ods/VisaoGeralODS';
+import VisaoGeralODSAvancada from '@/components/ods/VisaoGeralODSAvancada';
 
 const ODS_INFO = {
   1: { nome: 'Erradicação da Pobreza', cor: '#E5243B', icon: '🏚️' },
@@ -109,10 +110,11 @@ export default function ODSPage() {
         </TabsList>
 
         <TabsContent value="visao-geral" className="space-y-6 mt-6">
-          <VisaoGeralODS 
+          <VisaoGeralODSAvancada
             acoesPorODS={acoesPorODS} 
             metas={metas}
             odsInfo={ODS_INFO}
+            registros={registros}
           />
         </TabsContent>
 

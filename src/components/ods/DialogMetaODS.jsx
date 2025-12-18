@@ -9,10 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, Save, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Save, Trash2, MessageSquare } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import NotasMetaODS from '@/components/ods/NotasMetaODS';
 
 export default function DialogMetaODS({ aberto, onFechar, meta, odsInfo }) {
   const queryClient = useQueryClient();
@@ -103,12 +105,22 @@ export default function DialogMetaODS({ aberto, onFechar, meta, odsInfo }) {
 
   return (
     <Dialog open={aberto} onOpenChange={onFechar}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{meta?.id ? 'Editar Meta ODS' : 'Nova Meta ODS'}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <Tabs defaultValue="dados" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="dados">Dados da Meta</TabsTrigger>
+            <TabsTrigger value="notas" disabled={!meta?.id}>
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Notas
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dados">
+            <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>ODS</Label>
             <Select 
@@ -232,29 +244,35 @@ export default function DialogMetaODS({ aberto, onFechar, meta, odsInfo }) {
             />
           </div>
 
-          <div className="flex justify-between pt-4 border-t">
-            {meta?.id && (
-              <Button 
-                type="button" 
-                variant="destructive" 
-                onClick={() => excluirMutation.mutate()}
-                disabled={excluirMutation.isPending}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Excluir
-              </Button>
-            )}
-            <div className="flex gap-2 ml-auto">
-              <Button type="button" variant="outline" onClick={onFechar}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={salvarMutation.isPending}>
-                <Save className="w-4 h-4 mr-2" />
-                {salvarMutation.isPending ? 'Salvando...' : 'Salvar'}
-              </Button>
-            </div>
-          </div>
-        </form>
+              <div className="flex justify-between pt-4 border-t">
+                {meta?.id && (
+                  <Button 
+                    type="button" 
+                    variant="destructive" 
+                    onClick={() => excluirMutation.mutate()}
+                    disabled={excluirMutation.isPending}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Excluir
+                  </Button>
+                )}
+                <div className="flex gap-2 ml-auto">
+                  <Button type="button" variant="outline" onClick={onFechar}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={salvarMutation.isPending}>
+                    <Save className="w-4 h-4 mr-2" />
+                    {salvarMutation.isPending ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </TabsContent>
+
+          <TabsContent value="notas">
+            {meta?.id && <NotasMetaODS meta={meta} />}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
