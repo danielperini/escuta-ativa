@@ -50,6 +50,8 @@ import VisaoGeral from './pages/VisaoGeral';
 import CardsEducativos from './pages/CardsEducativos';
 import LimpezaDados from './pages/LimpezaDados';
 import GeradorRelatorioSustentabilidade from './pages/GeradorRelatorioSustentabilidade';
+import RelatoriosGerados from './pages/RelatoriosGerados';
+import ConfiguracoesESG from './pages/ConfiguracoesESG';
 import __Layout from './Layout.jsx';
 
 
@@ -106,6 +108,8 @@ export const PAGES = {
     "CardsEducativos": CardsEducativos,
     "LimpezaDados": LimpezaDados,
     "GeradorRelatorioSustentabilidade": GeradorRelatorioSustentabilidade,
+    "RelatoriosGerados": RelatoriosGerados,
+    "ConfiguracoesESG": ConfiguracoesESG,
 }
 
 export const pagesConfig = {
