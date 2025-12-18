@@ -61,10 +61,10 @@ export default function FiltrosGeograficos({
 
         {/* Comunidade */}
         <div>
-          <Label className="text-xs text-slate-600 mb-1 block">
+          <label className="text-xs text-slate-600 mb-1 block font-medium">
             <MapPin className="w-3 h-3 inline mr-1" />
             Comunidade
-          </Label>
+          </label>
           <Select
             value={filtros.comunidade || 'todas'}
             onValueChange={(v) => handleChange('comunidade', v)}
@@ -83,10 +83,10 @@ export default function FiltrosGeograficos({
 
         {/* Temperatura */}
         <div>
-          <Label className="text-xs text-slate-600 mb-1 block">
+          <label className="text-xs text-slate-600 mb-1 block font-medium">
             <Thermometer className="w-3 h-3 inline mr-1" />
             Temperatura do Território
-          </Label>
+          </label>
           <Select
             value={filtros.temperatura || 'todas'}
             onValueChange={(v) => handleChange('temperatura', v)}
@@ -106,10 +106,10 @@ export default function FiltrosGeograficos({
 
         {/* Período */}
         <div>
-          <Label className="text-xs text-slate-600 mb-1 block">
+          <label className="text-xs text-slate-600 mb-1 block font-medium">
             <Calendar className="w-3 h-3 inline mr-1" />
             Período
-          </Label>
+          </label>
           <Select
             value={filtros.periodo || '30'}
             onValueChange={(v) => handleChange('periodo', v)}
@@ -130,7 +130,7 @@ export default function FiltrosGeograficos({
 
         {/* Tipo de Registro */}
         <div>
-          <Label className="text-xs text-slate-600 mb-1 block">Tipo de Registro</Label>
+          <label className="text-xs text-slate-600 mb-1 block font-medium">Tipo de Registro</label>
           <Select
             value={filtros.tipo || 'todos'}
             onValueChange={(v) => handleChange('tipo', v)}
