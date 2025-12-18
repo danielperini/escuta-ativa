@@ -54,7 +54,7 @@ const CORES_TEMPERATURA = {
   critico: '#EF4444'
 };
 
-const CORES_RISCO = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6'];
+const CORES_RISCO = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6'];
 
 export default function DashboardTemperaturaRisco() {
   const [periodoMeses, setPeriodoMeses] = useState(3);
@@ -308,15 +308,15 @@ export default function DashboardTemperaturaRisco() {
 
       {/* KPIs Rápidos */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-gradient-to-br from-red-50 to-rose-100 border-red-200 hover:shadow-lg transition-all">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg">
+                <AlertTriangle className="w-7 h-7 text-white" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Crítico</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-xs font-medium text-red-700">Crítico</p>
+                <p className="text-3xl font-black bg-gradient-to-br from-red-600 to-rose-700 bg-clip-text text-transparent">
                   {dadosTemperaturaAtual.find(d => d.name === 'Critico')?.value || 0}
                 </p>
               </div>
@@ -324,15 +324,15 @@ export default function DashboardTemperaturaRisco() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-orange-50 to-amber-100 border-orange-200 hover:shadow-lg transition-all">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-                <Thermometer className="w-6 h-6 text-orange-600" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg">
+                <Thermometer className="w-7 h-7 text-white" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Alto</p>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="text-xs font-medium text-orange-700">Alto</p>
+                <p className="text-3xl font-black bg-gradient-to-br from-orange-600 to-amber-700 bg-clip-text text-transparent">
                   {dadosTemperaturaAtual.find(d => d.name === 'Alto')?.value || 0}
                 </p>
               </div>
@@ -340,15 +340,15 @@ export default function DashboardTemperaturaRisco() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-amber-50 to-yellow-100 border-amber-200 hover:shadow-lg transition-all">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-amber-600" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-7 h-7 text-white" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Médio</p>
-                <p className="text-2xl font-bold text-amber-600">
+                <p className="text-xs font-medium text-amber-700">Médio</p>
+                <p className="text-3xl font-black bg-gradient-to-br from-amber-600 to-yellow-700 bg-clip-text text-transparent">
                   {dadosTemperaturaAtual.find(d => d.name === 'Medio')?.value || 0}
                 </p>
               </div>
@@ -356,15 +356,15 @@ export default function DashboardTemperaturaRisco() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-emerald-50 to-teal-100 border-emerald-200 hover:shadow-lg transition-all">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-emerald-600" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                <FileText className="w-7 h-7 text-white" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Total Riscos</p>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-xs font-medium text-emerald-700">Total Riscos</p>
+                <p className="text-3xl font-black bg-gradient-to-br from-emerald-600 to-teal-700 bg-clip-text text-transparent">
                   {riscos.length}
                 </p>
               </div>

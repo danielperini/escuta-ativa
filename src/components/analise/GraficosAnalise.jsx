@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Users, MapPin, MessageSquare, AlertTriangle, Calendar } from 'lucide-react';
 
-const COLORS = ['#2D6A4F', '#40916C', '#52B788', '#74C69D', '#95D5B2', '#B7E4C7', '#D8F3DC'];
+const COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#14B8A6', '#F97316', '#06B6D4', '#6366F1', '#A855F7'];
 
 export default function GraficosAnalise() {
   const [filterComunidade, setFilterComunidade] = useState('todos');
@@ -197,49 +197,57 @@ export default function GraficosAnalise() {
 
       {/* Estatísticas resumidas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 hover:shadow-lg transition-all">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <MessageSquare className="w-8 h-8 text-[#2D6A4F]" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                <MessageSquare className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm text-slate-500">Registros</p>
-                <p className="text-2xl font-bold">{registrosFiltrados.length}</p>
+                <p className="text-xs font-medium text-blue-700">Registros</p>
+                <p className="text-3xl font-black bg-gradient-to-br from-blue-600 to-indigo-700 bg-clip-text text-transparent">{registrosFiltrados.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-fuchsia-100 border-purple-200 hover:shadow-lg transition-all">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <MapPin className="w-8 h-8 text-[#40916C]" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg">
+                <MapPin className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm text-slate-500">Comunidades</p>
-                <p className="text-2xl font-bold">{new Set(registrosFiltrados.map(r => r.comunidade).filter(Boolean)).size}</p>
+                <p className="text-xs font-medium text-purple-700">Comunidades</p>
+                <p className="text-3xl font-black bg-gradient-to-br from-purple-600 to-fuchsia-700 bg-clip-text text-transparent">{new Set(registrosFiltrados.map(r => r.comunidade).filter(Boolean)).size}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-emerald-50 to-teal-100 border-emerald-200 hover:shadow-lg transition-all">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <Users className="w-8 h-8 text-[#52B788]" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                <Users className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm text-slate-500">Stakeholders</p>
-                <p className="text-2xl font-bold">{stakeholders.length}</p>
+                <p className="text-xs font-medium text-emerald-700">Stakeholders</p>
+                <p className="text-3xl font-black bg-gradient-to-br from-emerald-600 to-teal-700 bg-clip-text text-transparent">{stakeholders.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-orange-50 to-amber-100 border-orange-200 hover:shadow-lg transition-all">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <TrendingUp className="w-8 h-8 text-[#74C69D]" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm text-slate-500">Temas</p>
-                <p className="text-2xl font-bold">{dadosPorTema.length}</p>
+                <p className="text-xs font-medium text-orange-700">Temas</p>
+                <p className="text-3xl font-black bg-gradient-to-br from-orange-600 to-amber-700 bg-clip-text text-transparent">{dadosPorTema.length}</p>
               </div>
             </div>
           </CardContent>
@@ -259,7 +267,13 @@ export default function GraficosAnalise() {
                 <XAxis dataKey="nome" angle={-45} textAnchor="end" height={100} />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="total" fill="#2D6A4F" />
+                <Bar dataKey="total" fill="url(#colorComunidade)" radius={[8, 8, 0, 0]} />
+                <defs>
+                  <linearGradient id="colorComunidade" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.9}/>
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.8}/>
+                  </linearGradient>
+                </defs>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -276,7 +290,13 @@ export default function GraficosAnalise() {
                 <XAxis type="number" />
                 <YAxis dataKey="nome" type="category" width={120} />
                 <Tooltip />
-                <Bar dataKey="total" fill="#40916C" />
+                <Bar dataKey="total" fill="url(#colorTema)" radius={[8, 8, 0, 0]} />
+                <defs>
+                  <linearGradient id="colorTema" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#EC4899" stopOpacity={0.9}/>
+                    <stop offset="95%" stopColor="#F97316" stopOpacity={0.8}/>
+                  </linearGradient>
+                </defs>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -294,7 +314,7 @@ export default function GraficosAnalise() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="total" stroke="#2D6A4F" strokeWidth={2} />
+                <Line type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', r: 5 }} activeDot={{ r: 7 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

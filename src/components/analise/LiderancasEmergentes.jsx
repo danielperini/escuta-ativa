@@ -138,14 +138,16 @@ export default function LiderancasEmergentes() {
   });
 
   // Filtrar e ordenar
-  const stakeholdersFiltrados = stakeholdersComCitacoes
-    .filter(s => {
-      const matchComunidade = filterComunidade === 'todos' || s.comunidade === filterComunidade;
-      const matchTema = filterTema === 'todos' || s.temasCriticos.includes(filterTema);
-      return matchComunidade && matchTema && s.emergente;
-    })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 20);
+  const stakeholdersFiltrados = React.useMemo(() => {
+    return stakeholdersComCitacoes
+      .filter(s => {
+        const matchComunidade = filterComunidade === 'todos' || s.comunidade === filterComunidade;
+        const matchTema = filterTema === 'todos' || (s.temasCriticos && s.temasCriticos.includes(filterTema));
+        return matchComunidade && matchTema && s.emergente;
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 20);
+  }, [stakeholdersComCitacoes, filterComunidade, filterTema]);
 
   return (
     <div className="space-y-6">
