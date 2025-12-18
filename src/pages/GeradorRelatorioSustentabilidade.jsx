@@ -16,8 +16,8 @@ import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import ClassificadorAutomaticoESG from '@/components/sustentabilidade/ClassificadorAutomaticoESG';
-import PreviewRelatorioESG from '@/components/sustentabilidade/PreviewRelatorioESG';
+import ClassificadorAutomaticoESG from '@/components/sustentabilidade/ClassificadorAutomaticoESG.jsx';
+import PreviewRelatorioESG from '@/components/sustentabilidade/PreviewRelatorioESG.jsx';
 
 export default function GeradorRelatorioSustentabilidade() {
   const navigate = useNavigate();

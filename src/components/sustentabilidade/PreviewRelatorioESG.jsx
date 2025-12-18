@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Leaf, Globe, Users, Target, BarChart3, FileText } from 'lucide-react';
-import ClassificadorAutomaticoESG from './ClassificadorAutomaticoESG';
+import ClassificadorAutomaticoESG from './ClassificadorAutomaticoESG.jsx';
 
 export default function PreviewRelatorioESG({ configuracao, registros, configuracaoESG }) {
   const classificador = new ClassificadorAutomaticoESG(registros);
