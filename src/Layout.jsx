@@ -49,6 +49,7 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
   { name: 'Registros', href: 'Registros', icon: FileText },
+  { name: 'Gestão de Demandas', href: 'GestorDemandas', icon: CheckCircle2 },
   { name: 'Agenda', href: 'Agenda', icon: CalendarDays },
   { name: 'Mapa', href: 'Mapa', icon: MapPin },
   { name: 'Materialidade', href: 'Materialidade', icon: Target },

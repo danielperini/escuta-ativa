@@ -64,6 +64,7 @@ import Configuracoes from './pages/Configuracoes';
 import ConfiguracoesESG from './pages/ConfiguracoesESG';
 import ConfiguracoesSistema from './pages/ConfiguracoesSistema';
 import Dashboard from './pages/Dashboard';
+import DashboardAnalitico from './pages/DashboardAnalitico';
 import DetalheTema from './pages/DetalheTema';
 import DetalhesComunidade from './pages/DetalhesComunidade';
 import DicasRelacionamento from './pages/DicasRelacionamento';
@@ -103,7 +104,7 @@ import VerRegistro from './pages/VerRegistro';
 import VisaoGeral from './pages/VisaoGeral';
 import VozComunidade from './pages/VozComunidade';
 import Welcome from './pages/Welcome';
-import DashboardAnalitico from './pages/DashboardAnalitico';
+import GestorDemandas from './pages/GestorDemandas';
 import __Layout from './Layout.jsx';
 
 
@@ -125,6 +126,7 @@ export const PAGES = {
     "ConfiguracoesESG": ConfiguracoesESG,
     "ConfiguracoesSistema": ConfiguracoesSistema,
     "Dashboard": Dashboard,
+    "DashboardAnalitico": DashboardAnalitico,
     "DetalheTema": DetalheTema,
     "DetalhesComunidade": DetalhesComunidade,
     "DicasRelacionamento": DicasRelacionamento,
@@ -164,7 +166,7 @@ export const PAGES = {
     "VisaoGeral": VisaoGeral,
     "VozComunidade": VozComunidade,
     "Welcome": Welcome,
-    "DashboardAnalitico": DashboardAnalitico,
+    "GestorDemandas": GestorDemandas,
 }
 
 export const pagesConfig = {
