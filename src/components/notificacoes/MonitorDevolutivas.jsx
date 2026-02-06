@@ -195,10 +195,15 @@ export default function MonitorDevolutivas() {
             {pendencias.compromissosAtrasados.length > 0 && (
                 <Card className="border-2 border-orange-500 bg-orange-50 shadow-xl">
                     <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2 text-orange-900">
-                            <AlertTriangle className="w-5 h-5" />
-                            {pendencias.compromissosAtrasados.length} Compromissos Atrasados
-                        </CardTitle>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg flex items-center gap-2 text-orange-900">
+                                <AlertTriangle className="w-5 h-5" />
+                                {pendencias.compromissosAtrasados.length} Compromissos Atrasados
+                            </CardTitle>
+                            <Button variant="ghost" size="icon" onClick={() => setNotificacoesVisiveis(false)}>
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardContent className="space-y-2">
                         {pendencias.compromissosAtrasados.slice(0, 2).map((item, idx) => (
