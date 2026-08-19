@@ -1,0 +1,67 @@
+{
+  "name": "ConviteEquipe",
+  "type": "object",
+  "properties": {
+    "equipe_id": {
+      "type": "string",
+      "description": "ID da equipe"
+    },
+    "equipe_nome": {
+      "type": "string",
+      "description": "Nome da equipe"
+    },
+    "email_convidado": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio convidado"
+    },
+    "papel": {
+      "type": "string",
+      "enum": [
+        "administrador_equipe",
+        "editor",
+        "observador"
+      ],
+      "default": "observador",
+      "description": "Papel na equipe"
+    },
+    "enviado_por": {
+      "type": "string",
+      "description": "Email de quem enviou o convite"
+    },
+    "token": {
+      "type": "string",
+      "description": "Token \u00fanico do convite"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "aceito",
+        "recusado",
+        "expirado"
+      ],
+      "default": "pendente"
+    },
+    "data_expiracao": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de expira\u00e7\u00e3o (7 dias)"
+    },
+    "data_resposta": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da resposta ao convite"
+    },
+    "mensagem_personalizada": {
+      "type": "string",
+      "description": "Mensagem opcional do convidador"
+    }
+  },
+  "required": [
+    "equipe_id",
+    "email_convidado",
+    "papel",
+    "enviado_por",
+    "token"
+  ]
+}

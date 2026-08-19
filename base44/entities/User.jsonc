@@ -1,0 +1,39 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o usu\u00e1rio est\u00e1 ativo no sistema"
+    },
+    "papeis": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos pap\u00e9is atribu\u00eddos ao usu\u00e1rio"
+    },
+    "configuracoes": {
+      "type": "object",
+      "properties": {
+        "tema": {
+          "type": "string",
+          "enum": [
+            "claro",
+            "escuro"
+          ],
+          "default": "claro"
+        },
+        "prazo_devolutiva_dias": {
+          "type": "number",
+          "default": 15
+        }
+      }
+    }
+  },
+  "required": [
+    "papeis",
+    "configuracoes"
+  ]
+}

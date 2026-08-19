@@ -1,0 +1,47 @@
+{
+  "name": "RelatorioGerado",
+  "type": "object",
+  "properties": {
+    "tipo_relatorio": {
+      "type": "string",
+      "enum": [
+        "ata",
+        "agenda",
+        "materialidade",
+        "registros",
+        "atores",
+        "tematico"
+      ],
+      "description": "Tipo do relat\u00f3rio"
+    },
+    "formato": {
+      "type": "string",
+      "enum": [
+        "PDF",
+        "XLSX",
+        "DOCX"
+      ],
+      "description": "Formato do arquivo"
+    },
+    "arquivo": {
+      "type": "string",
+      "description": "URL do arquivo gerado"
+    },
+    "periodo": {
+      "type": "string",
+      "description": "Per\u00edodo do relat\u00f3rio"
+    },
+    "filtros": {
+      "type": "object",
+      "description": "Filtros aplicados"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do relat\u00f3rio"
+    }
+  },
+  "required": [
+    "tipo_relatorio",
+    "formato"
+  ]
+}

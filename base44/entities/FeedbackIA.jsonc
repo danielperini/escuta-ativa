@@ -1,0 +1,56 @@
+{
+  "name": "FeedbackIA",
+  "type": "object",
+  "properties": {
+    "tipo_analise": {
+      "type": "string",
+      "enum": [
+        "risco_social",
+        "lideranca_emergente",
+        "predicao_tensao",
+        "governanca",
+        "classificacao_compromisso",
+        "sugestao_ia"
+      ],
+      "description": "Tipo de an\u00e1lise corrigida"
+    },
+    "entidade_relacionada_tipo": {
+      "type": "string",
+      "description": "Tipo da entidade (RiscoSocial, LiderancaComunitaria, etc)"
+    },
+    "entidade_relacionada_id": {
+      "type": "string",
+      "description": "ID da entidade relacionada"
+    },
+    "analise_original": {
+      "type": "object",
+      "description": "Dados originais sugeridos pela IA"
+    },
+    "correcao_usuario": {
+      "type": "object",
+      "description": "Corre\u00e7\u00f5es aplicadas pelo usu\u00e1rio"
+    },
+    "validado": {
+      "type": "boolean",
+      "description": "Se o usu\u00e1rio validou a an\u00e1lise como correta"
+    },
+    "comentario": {
+      "type": "string",
+      "description": "Coment\u00e1rio do usu\u00e1rio sobre a corre\u00e7\u00e3o"
+    },
+    "contexto": {
+      "type": "object",
+      "description": "Contexto adicional usado na an\u00e1lise"
+    },
+    "precisao_avaliada": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Avalia\u00e7\u00e3o de 1-5 da precis\u00e3o da IA"
+    }
+  },
+  "required": [
+    "tipo_analise",
+    "validado"
+  ]
+}

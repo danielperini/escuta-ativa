@@ -1,0 +1,225 @@
+{
+  "name": "Role",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do papel customizado"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do papel"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "sistema",
+        "customizado"
+      ],
+      "default": "customizado",
+      "description": "Se \u00e9 papel padr\u00e3o do sistema ou customizado"
+    },
+    "permissoes": {
+      "type": "object",
+      "properties": {
+        "registros": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean",
+              "default": false
+            },
+            "criar": {
+              "type": "boolean",
+              "default": false
+            },
+            "editar": {
+              "type": "boolean",
+              "default": false
+            },
+            "excluir": {
+              "type": "boolean",
+              "default": false
+            },
+            "exportar": {
+              "type": "boolean",
+              "default": false
+            },
+            "comunidades_restritas": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Lista de comunidades permitidas (vazio = todas)"
+            }
+          }
+        },
+        "stakeholders": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean",
+              "default": false
+            },
+            "criar": {
+              "type": "boolean",
+              "default": false
+            },
+            "editar": {
+              "type": "boolean",
+              "default": false
+            },
+            "excluir": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "casos": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean",
+              "default": false
+            },
+            "criar": {
+              "type": "boolean",
+              "default": false
+            },
+            "editar": {
+              "type": "boolean",
+              "default": false
+            },
+            "excluir": {
+              "type": "boolean",
+              "default": false
+            },
+            "atribuir_responsavel": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "agenda": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean",
+              "default": false
+            },
+            "criar": {
+              "type": "boolean",
+              "default": false
+            },
+            "editar": {
+              "type": "boolean",
+              "default": false
+            },
+            "excluir": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "comunidades": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean",
+              "default": false
+            },
+            "criar": {
+              "type": "boolean",
+              "default": false
+            },
+            "editar": {
+              "type": "boolean",
+              "default": false
+            },
+            "excluir": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "analise": {
+          "type": "object",
+          "properties": {
+            "visualizar_dashboard": {
+              "type": "boolean",
+              "default": false
+            },
+            "visualizar_materialidade": {
+              "type": "boolean",
+              "default": false
+            },
+            "exportar_relatorios": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "equipes": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean",
+              "default": false
+            },
+            "criar": {
+              "type": "boolean",
+              "default": false
+            },
+            "editar": {
+              "type": "boolean",
+              "default": false
+            },
+            "gerenciar_membros": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "usuarios": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean",
+              "default": false
+            },
+            "convidar": {
+              "type": "boolean",
+              "default": false
+            },
+            "editar_permissoes": {
+              "type": "boolean",
+              "default": false
+            },
+            "desativar": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      }
+    },
+    "cor": {
+      "type": "string",
+      "description": "Cor de identifica\u00e7\u00e3o do papel (hex)"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    },
+    "usuarios_com_papel": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos usu\u00e1rios com este papel"
+    }
+  },
+  "required": [
+    "nome"
+  ]
+}

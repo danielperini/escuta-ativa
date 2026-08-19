@@ -1,0 +1,91 @@
+{
+  "name": "IntegracaoExterna",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome da integra\u00e7\u00e3o (ex: Google Maps, Slack, HubSpot)"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "maps",
+        "crm",
+        "comunicacao",
+        "armazenamento",
+        "outro"
+      ],
+      "description": "Tipo de integra\u00e7\u00e3o"
+    },
+    "provedor": {
+      "type": "string",
+      "description": "Provedor do servi\u00e7o (ex: Google, Slack, Salesforce)"
+    },
+    "ativa": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a integra\u00e7\u00e3o est\u00e1 ativa"
+    },
+    "configuracoes": {
+      "type": "object",
+      "properties": {
+        "api_key_nome": {
+          "type": "string",
+          "description": "Nome da secret onde a API key est\u00e1 armazenada"
+        },
+        "webhook_url": {
+          "type": "string"
+        },
+        "parametros_adicionais": {
+          "type": "object"
+        }
+      }
+    },
+    "funcionalidades": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de funcionalidades habilitadas (ex: notificacoes, sincronizacao)"
+    },
+    "ultima_sincronizacao": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativa",
+        "erro",
+        "desativada",
+        "configurando"
+      ],
+      "default": "desativada"
+    },
+    "logs_integracao": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "acao": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "mensagem": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "nome",
+    "tipo",
+    "provedor"
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "name": "ProjetoOrganizacao",
+  "type": "object",
+  "properties": {
+    "nome_oficial": {
+      "type": "string",
+      "description": "Nome oficial da organiza\u00e7\u00e3o"
+    },
+    "nome_fantasia": {
+      "type": "string",
+      "description": "Nome fantasia"
+    },
+    "natureza": {
+      "type": "string",
+      "enum": [
+        "p\u00fablica",
+        "privada",
+        "ONG",
+        "associa\u00e7\u00e3o",
+        "sindicato",
+        "outro"
+      ],
+      "description": "Natureza da organiza\u00e7\u00e3o"
+    },
+    "cnpj": {
+      "type": "string",
+      "description": "CNPJ"
+    },
+    "endereco": {
+      "type": "string",
+      "description": "Endere\u00e7o completo"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone principal"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail"
+    },
+    "site": {
+      "type": "string",
+      "description": "Website"
+    },
+    "contato_principal": {
+      "type": "string",
+      "description": "Nome do contato principal"
+    },
+    "cargo_contato": {
+      "type": "string",
+      "description": "Cargo do contato"
+    },
+    "telefone_contato": {
+      "type": "string",
+      "description": "Telefone do contato"
+    },
+    "whatsapp_contato": {
+      "type": "string",
+      "description": "WhatsApp do contato"
+    },
+    "email_contato": {
+      "type": "string",
+      "description": "E-mail do contato"
+    },
+    "avaliacao_interlocucao": {
+      "type": "string",
+      "enum": [
+        "boa",
+        "m\u00e9dia",
+        "dif\u00edcil",
+        "neutro"
+      ],
+      "description": "Avalia\u00e7\u00e3o da interlocu\u00e7\u00e3o"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da organiza\u00e7\u00e3o"
+    },
+    "area_de_atuacao": {
+      "type": "string",
+      "description": "\u00c1rea de atua\u00e7\u00e3o"
+    },
+    "demandas_relacionadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de demandas relacionadas"
+    },
+    "ultima_interacao": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da \u00faltima intera\u00e7\u00e3o"
+    },
+    "historico_auditoria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "campo_alterado": {
+            "type": "string"
+          },
+          "valor_anterior": {
+            "type": "string"
+          },
+          "valor_novo": {
+            "type": "string"
+          },
+          "data_alteracao": {
+            "type": "string"
+          },
+          "usuario_responsavel": {
+            "type": "string"
+          },
+          "tipo_operacao": {
+            "type": "string"
+          },
+          "aprovacao_necessaria": {
+            "type": "boolean"
+          },
+          "fonte_origem": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Hist\u00f3rico completo de altera\u00e7\u00f5es"
+    },
+    "dados_concorrentes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "campo": {
+            "type": "string"
+          },
+          "valor": {
+            "type": "string"
+          },
+          "fonte": {
+            "type": "string"
+          },
+          "data_deteccao": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Dados divergentes detectados aguardando resolu\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "nome_oficial"
+  ]
+}

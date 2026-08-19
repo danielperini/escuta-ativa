@@ -1,0 +1,82 @@
+{
+  "name": "CadernoNota",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo da nota"
+    },
+    "tipo_conteudo": {
+      "type": "string",
+      "enum": [
+        "audio",
+        "video",
+        "documento",
+        "texto"
+      ],
+      "description": "Tipo de conte\u00fado da nota"
+    },
+    "texto_extraido": {
+      "type": "string",
+      "description": "Texto transcrito ou extra\u00eddo"
+    },
+    "arquivos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "tamanho": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Arquivos anexados"
+    },
+    "registros_referenciados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos registros criados a partir desta nota"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "rascunho",
+        "processando",
+        "pronto"
+      ],
+      "default": "rascunho",
+      "description": "Status do processamento"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags para organiza\u00e7\u00e3o"
+    },
+    "favorita": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a nota est\u00e1 marcada como favorita"
+    },
+    "ultima_modificacao": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da \u00faltima modifica\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "titulo"
+  ]
+}

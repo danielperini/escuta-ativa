@@ -1,0 +1,98 @@
+{
+  "name": "RiscoSocial",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo do risco identificado"
+    },
+    "nivel": {
+      "type": "string",
+      "enum": [
+        "baixo",
+        "moderado",
+        "alto",
+        "critico"
+      ],
+      "description": "N\u00edvel de risco"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "protesto",
+        "fechamento_via",
+        "paralisacao",
+        "desgaste_politico",
+        "tensao_comunitaria",
+        "nao_cumprimento_compromisso",
+        "mobilizacao_social"
+      ],
+      "description": "Tipo de risco"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o detalhada do risco"
+    },
+    "comunidade": {
+      "type": "string",
+      "description": "Comunidade afetada"
+    },
+    "causas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Causas identificadas"
+    },
+    "geolocalizacao": {
+      "type": "string",
+      "description": "Coordenadas geogr\u00e1ficas"
+    },
+    "registros_associados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de registros relacionados"
+    },
+    "liderancas_envolvidas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de lideran\u00e7as envolvidas"
+    },
+    "previsao_agravamento": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta"
+      ],
+      "description": "Previs\u00e3o de agravamento"
+    },
+    "acoes_preventivas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A\u00e7\u00f5es preventivas sugeridas"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativo",
+        "monitorando",
+        "resolvido"
+      ],
+      "default": "ativo",
+      "description": "Status do risco"
+    }
+  },
+  "required": [
+    "titulo",
+    "nivel",
+    "tipo",
+    "comunidade"
+  ]
+}

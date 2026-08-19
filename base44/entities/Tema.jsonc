@@ -1,0 +1,73 @@
+{
+  "name": "Tema",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do tema"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "ambiental",
+        "social",
+        "economico",
+        "infraestrutura",
+        "saude",
+        "educacao",
+        "seguranca",
+        "emprego",
+        "cultura",
+        "outro"
+      ],
+      "description": "Categoria do tema"
+    },
+    "relevancia_comunidade": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Relev\u00e2ncia para a comunidade (1-10)"
+    },
+    "relevancia_empresa": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Relev\u00e2ncia para a empresa (1-10)"
+    },
+    "divergencia": {
+      "type": "number",
+      "description": "N\u00edvel de diverg\u00eancia calculado"
+    },
+    "tendencia": {
+      "type": "string",
+      "enum": [
+        "subindo",
+        "estavel",
+        "caindo"
+      ],
+      "description": "Tend\u00eancia do tema"
+    },
+    "mencoes_total": {
+      "type": "number",
+      "description": "Total de men\u00e7\u00f5es"
+    },
+    "ultima_mencao": {
+      "type": "string",
+      "format": "date"
+    },
+    "comunidades_afetadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prioritario": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "nome",
+    "categoria"
+  ]
+}

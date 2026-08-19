@@ -1,0 +1,78 @@
+{
+  "name": "Comunidade",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome da comunidade territorial"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "bairro",
+        "vila",
+        "distrito",
+        "assentamento",
+        "quilombo",
+        "indigena",
+        "favela",
+        "povoado",
+        "outro"
+      ],
+      "description": "Tipo de comunidade territorial"
+    },
+    "municipio": {
+      "type": "string",
+      "description": "Munic\u00edpio onde est\u00e1 localizada"
+    },
+    "estado": {
+      "type": "string",
+      "description": "Estado (UF)"
+    },
+    "populacao_estimada": {
+      "type": "number"
+    },
+    "localizacao": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number"
+        },
+        "lng": {
+          "type": "number"
+        }
+      }
+    },
+    "termometro_social": {
+      "type": "string",
+      "enum": [
+        "baixo",
+        "medio",
+        "alto",
+        "critico"
+      ],
+      "description": "N\u00edvel de tens\u00e3o social"
+    },
+    "principais_temas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "total_registros": {
+      "type": "number"
+    },
+    "ultima_interacao": {
+      "type": "string",
+      "format": "date"
+    },
+    "notas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "nome",
+    "municipio",
+    "tipo"
+  ]
+}

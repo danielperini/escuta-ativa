@@ -1,0 +1,146 @@
+{
+  "name": "DocumentoProcessado",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo do documento"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "relatorio",
+        "ata",
+        "politica",
+        "oficio",
+        "carta",
+        "apresentacao",
+        "outro"
+      ],
+      "description": "Tipo de documento"
+    },
+    "arquivo_url": {
+      "type": "string",
+      "description": "URL do arquivo original"
+    },
+    "conteudo_extraido": {
+      "type": "string",
+      "description": "Texto completo extra\u00eddo"
+    },
+    "resumo": {
+      "type": "string",
+      "description": "Resumo gerado pela IA"
+    },
+    "palavras_chave": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Palavras-chave identificadas"
+    },
+    "entidades_mencionadas": {
+      "type": "object",
+      "properties": {
+        "liderancas": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "organizacoes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "comunidades": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "temas": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "informacoes_chave": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Informa\u00e7\u00f5es-chave extra\u00eddas"
+    },
+    "compromissos_identificados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "datas_importantes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "demandas_identificadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "riscos_identificados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "data_documento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do documento original"
+    },
+    "origem": {
+      "type": "string",
+      "description": "Origem do documento (comunidade, empresa, governo, etc)"
+    },
+    "status_processamento": {
+      "type": "string",
+      "enum": [
+        "processando",
+        "concluido",
+        "erro"
+      ],
+      "default": "processando"
+    },
+    "referencias_cruzadas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "indice_pesquisavel": {
+      "type": "object",
+      "description": "\u00cdndice estruturado para busca"
+    }
+  },
+  "required": [
+    "titulo",
+    "tipo",
+    "arquivo_url"
+  ]
+}

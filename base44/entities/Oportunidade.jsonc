@@ -1,0 +1,87 @@
+{
+  "name": "Oportunidade",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo da oportunidade"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "artista",
+        "fornecedor",
+        "curso",
+        "projeto",
+        "parceiro",
+        "iniciativa_cultural",
+        "projeto_incentivado"
+      ],
+      "description": "Tipo de oportunidade"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o detalhada"
+    },
+    "comunidade": {
+      "type": "string",
+      "description": "Comunidade de origem"
+    },
+    "relevancia": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta"
+      ],
+      "default": "media",
+      "description": "N\u00edvel de relev\u00e2ncia"
+    },
+    "maturidade": {
+      "type": "string",
+      "enum": [
+        "ideia",
+        "em_desenvolvimento",
+        "pronta",
+        "implementada"
+      ],
+      "description": "Est\u00e1gio de maturidade"
+    },
+    "origem": {
+      "type": "string",
+      "description": "Origem da oportunidade (registro, proposta, reuni\u00e3o)"
+    },
+    "contato_principal": {
+      "type": "string",
+      "description": "Nome do contato principal"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone de contato"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail de contato"
+    },
+    "geolocalizacao": {
+      "type": "string",
+      "description": "Coordenadas geogr\u00e1ficas"
+    },
+    "registro_origem_id": {
+      "type": "string",
+      "description": "ID do registro que originou a oportunidade"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags adicionais"
+    }
+  },
+  "required": [
+    "titulo",
+    "tipo",
+    "comunidade"
+  ]
+}

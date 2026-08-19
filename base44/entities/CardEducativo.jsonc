@@ -1,0 +1,56 @@
+{
+  "name": "CardEducativo",
+  "type": "object",
+  "properties": {
+    "card_id": {
+      "type": "number",
+      "description": "ID num\u00e9rico do card"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo curto e educativo"
+    },
+    "texto": {
+      "type": "string",
+      "description": "Texto educativo (300-500 caracteres)"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Escuta e Di\u00e1logo",
+        "Presen\u00e7a no Territ\u00f3rio",
+        "Participa\u00e7\u00e3o Social",
+        "Conflitos e Media\u00e7\u00e3o",
+        "Confian\u00e7a e Legitimidade",
+        "\u00c9tica e Responsabilidade",
+        "Materialidade e ESG",
+        "Redes Comunit\u00e1rias",
+        "Planejamento e Governan\u00e7a",
+        "Riscos Sociais"
+      ],
+      "description": "Categoria do card"
+    },
+    "ordem": {
+      "type": "number",
+      "description": "Ordem de exibi\u00e7\u00e3o"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    },
+    "visualizacoes": {
+      "type": "number",
+      "default": 0
+    },
+    "curtidas": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "card_id",
+    "titulo",
+    "texto",
+    "categoria"
+  ]
+}

@@ -1,0 +1,378 @@
+{
+  "name": "Stakeholder",
+  "type": "object",
+  "properties": {
+    "id_sequencial": {
+      "type": "number",
+      "description": "ID sequencial \u00fanico"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome (mesmo incompleto, ex: 'Pedro pescador')"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "pessoa",
+        "entidade"
+      ],
+      "default": "pessoa",
+      "description": "Pessoa f\u00edsica ou entidade"
+    },
+    "subtipo": {
+      "type": "string",
+      "enum": [
+        "lideranca",
+        "representante",
+        "morador",
+        "associacao",
+        "ong",
+        "governo",
+        "outro"
+      ],
+      "description": "Subtipo do stakeholder"
+    },
+    "comunidade": {
+      "type": "string",
+      "description": "Comunidade (OBRIGAT\u00d3RIO)"
+    },
+    "municipio": {
+      "type": "string",
+      "description": "Munic\u00edpio (OBRIGAT\u00d3RIO)"
+    },
+    "endereco": {
+      "type": "string",
+      "description": "Endere\u00e7o completo (opcional)"
+    },
+    "organizacao": {
+      "type": "string",
+      "description": "Organiza\u00e7\u00e3o vinculada"
+    },
+    "papel_social": {
+      "type": "string",
+      "description": "Papel na comunidade"
+    },
+    "contato": {
+      "type": "object",
+      "properties": {
+        "telefone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "whatsapp": {
+          "type": "string"
+        }
+      }
+    },
+    "contatos_customizados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "description": "Ex: Telegram, LinkedIn, Instagram"
+          },
+          "valor": {
+            "type": "string"
+          },
+          "principal": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "description": "Contatos customizados adicionais"
+    },
+    "primeira_mencao": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da primeira vez que foi citado"
+    },
+    "registro_origem": {
+      "type": "string",
+      "description": "ID do primeiro registro que citou"
+    },
+    "registros_vinculados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de todos registros que mencionaram"
+    },
+    "casos_vinculados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos casos relacionados"
+    },
+    "riscos_vinculados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos riscos sociais relacionados"
+    },
+    "demandas_associadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Demandas hist\u00f3ricas"
+    },
+    "temas_recorrentes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Temas que sempre menciona"
+    },
+    "areas_interesse": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u00c1reas de interesse identificadas"
+    },
+    "nivel_influencia": {
+      "type": "string",
+      "enum": [
+        "baixo",
+        "medio",
+        "alto",
+        "muito_alto"
+      ],
+      "description": "N\u00edvel de influ\u00eancia"
+    },
+    "score_influencia": {
+      "type": "number",
+      "description": "Score calculado de influ\u00eancia (0-100)"
+    },
+    "score_engajamento": {
+      "type": "number",
+      "description": "Score de engajamento baseado em intera\u00e7\u00f5es (0-100)"
+    },
+    "nivel_atividade": {
+      "type": "string",
+      "enum": [
+        "inativo",
+        "baixo",
+        "moderado",
+        "alto"
+      ],
+      "description": "N\u00edvel de atividade"
+    },
+    "historico_interacoes": {
+      "type": "number",
+      "description": "Total de intera\u00e7\u00f5es"
+    },
+    "ultima_interacao": {
+      "type": "string",
+      "format": "date"
+    },
+    "timeline_interacoes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "registro_id": {
+            "type": "string"
+          },
+          "caso_id": {
+            "type": "string"
+          },
+          "autor": {
+            "type": "string"
+          },
+          "impacto": {
+            "type": "string",
+            "enum": [
+              "positivo",
+              "neutro",
+              "negativo"
+            ]
+          }
+        }
+      },
+      "description": "Linha do tempo detalhada de intera\u00e7\u00f5es"
+    },
+    "notas_customizadas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "conteudo": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "autor": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "observacao",
+              "alerta",
+              "conquista",
+              "dificuldade",
+              "outro"
+            ]
+          },
+          "privada": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "description": "Notas customizadas sobre o stakeholder"
+    },
+    "rede_contatos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stakeholder_id": {
+            "type": "string"
+          },
+          "tipo_relacao": {
+            "type": "string",
+            "enum": [
+              "colaborador",
+              "aliado",
+              "opositor",
+              "neutro",
+              "familiar",
+              "profissional"
+            ]
+          },
+          "forca_relacao": {
+            "type": "string",
+            "enum": [
+              "fraca",
+              "moderada",
+              "forte"
+            ]
+          },
+          "descricao": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Rede de relacionamentos"
+    },
+    "segmentos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags de segmenta\u00e7\u00e3o para comunica\u00e7\u00e3o direcionada"
+    },
+    "engajamento_temas_criticos": {
+      "type": "number",
+      "description": "Score de engajamento em temas cr\u00edticos"
+    },
+    "feedbacks_recebidos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "autor": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Feedbacks sobre o stakeholder"
+    },
+    "historico_evolucao": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "campo_atualizado": {
+            "type": "string"
+          },
+          "valor_novo": {
+            "type": "string"
+          },
+          "registro_fonte": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Hist\u00f3rico de como o cadastro evoluiu"
+    },
+    "status_cadastro": {
+      "type": "string",
+      "enum": [
+        "provisorio",
+        "parcial",
+        "completo"
+      ],
+      "default": "provisorio",
+      "description": "Status da completude do cadastro"
+    },
+    "alertas_ativos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string"
+          },
+          "mensagem": {
+            "type": "string"
+          },
+          "prioridade": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Alertas ativos sobre este stakeholder"
+    },
+    "notas": {
+      "type": "string"
+    },
+    "foto_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "nome",
+    "tipo",
+    "comunidade",
+    "municipio"
+  ]
+}

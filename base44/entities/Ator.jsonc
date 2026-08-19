@@ -1,0 +1,92 @@
+{
+  "name": "Ator",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome completo"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "lideranca",
+        "representante",
+        "morador",
+        "associacao",
+        "ong",
+        "governo",
+        "outro"
+      ],
+      "description": "Tipo de ator"
+    },
+    "comunidade": {
+      "type": "string",
+      "description": "Comunidade principal"
+    },
+    "organizacao": {
+      "type": "string",
+      "description": "Organiza\u00e7\u00e3o/associa\u00e7\u00e3o que representa"
+    },
+    "cargo": {
+      "type": "string",
+      "description": "Cargo ou fun\u00e7\u00e3o"
+    },
+    "contato": {
+      "type": "object",
+      "properties": {
+        "telefone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "whatsapp": {
+          "type": "string"
+        }
+      }
+    },
+    "nivel_influencia": {
+      "type": "string",
+      "enum": [
+        "baixo",
+        "medio",
+        "alto"
+      ],
+      "description": "N\u00edvel de influ\u00eancia na comunidade"
+    },
+    "nivel_atividade": {
+      "type": "string",
+      "enum": [
+        "inativo",
+        "baixo",
+        "moderado",
+        "alto"
+      ],
+      "description": "N\u00edvel de atividade recente"
+    },
+    "temas_interesse": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "historico_interacoes": {
+      "type": "number",
+      "description": "N\u00famero total de intera\u00e7\u00f5es"
+    },
+    "ultima_interacao": {
+      "type": "string",
+      "format": "date"
+    },
+    "notas": {
+      "type": "string"
+    },
+    "foto_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "nome",
+    "tipo"
+  ]
+}

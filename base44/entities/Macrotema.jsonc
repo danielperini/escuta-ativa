@@ -1,0 +1,125 @@
+{
+  "name": "Macrotema",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do macrotema"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "ambiental",
+        "social",
+        "governanca"
+      ],
+      "description": "Categoria ESG"
+    },
+    "nivel_impacto": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "N\u00edvel de Impacto (1-5)"
+    },
+    "nivel_presenca": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "N\u00edvel de Presen\u00e7a no Territ\u00f3rio (1-5)"
+    },
+    "percepcao_comunidade": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Percep\u00e7\u00e3o da Comunidade (1-5)"
+    },
+    "classificacao_cor": {
+      "type": "string",
+      "enum": [
+        "critico",
+        "medio",
+        "positivo",
+        "ausente"
+      ],
+      "description": "Classifica\u00e7\u00e3o visual: critico=vermelho, medio=amarelo, positivo=verde, ausente=branco"
+    },
+    "drives_avaliacao": {
+      "type": "object",
+      "properties": {
+        "impacto_cotidiano": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "clima_dialogo": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "influencia_stakeholders": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "presenca_equipes": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "incidencia_protestos": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "confianca_reputacao": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        }
+      }
+    },
+    "risco_social_calculado": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "M\u00e9dia ponderada de risco social"
+    },
+    "categoria_risco": {
+      "type": "string",
+      "enum": [
+        "baixo",
+        "medio",
+        "alto"
+      ],
+      "description": "Classifica\u00e7\u00e3o de risco"
+    },
+    "localidades": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "observacoes_qualitativas": {
+      "type": "string",
+      "description": "Insights contextuais e observa\u00e7\u00f5es estrat\u00e9gicas"
+    },
+    "stakeholders_relacionados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "acoes_sugeridas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "nome",
+    "nivel_impacto",
+    "nivel_presenca",
+    "percepcao_comunidade"
+  ]
+}

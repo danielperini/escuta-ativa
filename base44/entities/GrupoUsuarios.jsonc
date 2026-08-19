@@ -1,0 +1,50 @@
+{
+  "name": "GrupoUsuarios",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do grupo"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do grupo"
+    },
+    "role_id": {
+      "type": "string",
+      "description": "ID do role associado"
+    },
+    "usuarios": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "E-mails dos usu\u00e1rios do grupo"
+    },
+    "comunidades_acesso": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Comunidades que o grupo pode acessar"
+    },
+    "nivel_organizacional": {
+      "type": "string",
+      "enum": [
+        "corporativo",
+        "regional",
+        "local",
+        "projeto"
+      ],
+      "description": "N\u00edvel organizacional do grupo"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "nome",
+    "role_id"
+  ]
+}

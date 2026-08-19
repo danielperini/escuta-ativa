@@ -1,0 +1,495 @@
+{
+  "name": "Registro",
+  "type": "object",
+  "properties": {
+    "codigo_unico": {
+      "type": "string",
+      "description": "C\u00f3digo \u00fanico autom\u00e1tico (RE-UT-XXXXXX-AAAA)"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo do registro"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "reuniao",
+        "conversa_campo",
+        "visita",
+        "demanda",
+        "ocorrencia"
+      ],
+      "default": "conversa_campo",
+      "description": "Tipo de intera\u00e7\u00e3o"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o geral do registro"
+    },
+    "transcricao": {
+      "type": "string",
+      "description": "Transcri\u00e7\u00e3o completa se aplic\u00e1vel"
+    },
+    "equipe_id": {
+      "type": "string",
+      "description": "ID da equipe respons\u00e1vel"
+    },
+    "equipe_nome": {
+      "type": "string",
+      "description": "Nome da equipe"
+    },
+    "usuario_criador": {
+      "type": "string",
+      "description": "Email do criador (redundante com created_by)"
+    },
+    "usuario_ultima_atualizacao": {
+      "type": "string",
+      "description": "Email de quem atualizou por \u00faltimo"
+    },
+    "comunidade": {
+      "type": "string",
+      "description": "Comunidade territorial (bairro, vila, distrito)"
+    },
+    "grupo_coletivo": {
+      "type": "string",
+      "description": "Grupo ou coletivo envolvido (cultural, art\u00edstico, etc)"
+    },
+    "organizacao": {
+      "type": "string",
+      "description": "Organiza\u00e7\u00e3o envolvida (ONG, associa\u00e7\u00e3o, etc)"
+    },
+    "local": {
+      "type": "string",
+      "description": "Local espec\u00edfico"
+    },
+    "localizacao": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number"
+        },
+        "lng": {
+          "type": "number"
+        },
+        "endereco": {
+          "type": "string"
+        },
+        "municipio": {
+          "type": "string"
+        },
+        "estado": {
+          "type": "string"
+        }
+      },
+      "description": "Coordenadas e localiza\u00e7\u00e3o completa"
+    },
+    "data_registro": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do registro"
+    },
+    "participantes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de participantes"
+    },
+    "temas_identificados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Temas discutidos"
+    },
+    "tipo_demanda": {
+      "type": "string",
+      "enum": [
+        "Informa\u00e7\u00e3o",
+        "Reclama\u00e7\u00e3o",
+        "Solicita\u00e7\u00e3o",
+        "Den\u00fancia",
+        "Sugest\u00e3o",
+        "Elogio",
+        "Conflito",
+        "N\u00e3o identificado"
+      ],
+      "description": "Tipo de demanda classificada"
+    },
+    "sentimento": {
+      "type": "string",
+      "enum": [
+        "positivo",
+        "neutro",
+        "negativo",
+        "misto"
+      ],
+      "description": "Sentimento predominante"
+    },
+    "temperatura_territorio": {
+      "type": "string",
+      "enum": [
+        "baixo",
+        "medio",
+        "alto",
+        "critico"
+      ],
+      "description": "N\u00edvel de tens\u00e3o social"
+    },
+    "indicadores_risco": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Sinais de risco identificados"
+    },
+    "demandas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "descricao": {
+            "type": "string"
+          },
+          "urgencia": {
+            "type": "string",
+            "enum": [
+              "baixa",
+              "media",
+              "alta",
+              "critica"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pendente",
+              "em_andamento",
+              "atendida",
+              "nao_atendida"
+            ],
+            "default": "pendente"
+          },
+          "requer_devolutiva": {
+            "type": "boolean",
+            "default": true
+          },
+          "prazo_devolutiva": {
+            "type": "string",
+            "format": "date"
+          },
+          "devolutiva_realizada": {
+            "type": "boolean",
+            "default": false
+          },
+          "data_devolutiva": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "description": "Demandas da comunidade"
+    },
+    "compromissos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "descricao": {
+            "type": "string"
+          },
+          "responsavel": {
+            "type": "string"
+          },
+          "prazo": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pendente",
+              "em_andamento",
+              "concluido",
+              "cancelado"
+            ],
+            "default": "pendente"
+          }
+        }
+      },
+      "description": "Compromissos assumidos"
+    },
+    "proximos_passos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Pr\u00f3ximos passos identificados"
+    },
+    "arquivos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "codigo_documento": {
+            "type": "string",
+            "description": "C\u00f3digo DOC gerado para o arquivo"
+          },
+          "transcricao": {
+            "type": "string",
+            "description": "Transcri\u00e7\u00e3o PT-BR do \u00e1udio/v\u00eddeo"
+          }
+        }
+      },
+      "description": "Arquivos anexados"
+    },
+    "resumo_automatico": {
+      "type": "string",
+      "description": "Resumo gerado pela IA"
+    },
+    "ata_gerada": {
+      "type": "string",
+      "description": "Ata gerada pela IA"
+    },
+    "encaminhamento_realizado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se houve encaminhamento formal"
+    },
+    "descricao_encaminhamento": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do encaminhamento realizado"
+    },
+    "avaliacao_qualidade": {
+      "type": "object",
+      "properties": {
+        "nota_final": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Nota final de qualidade (1-10)"
+        },
+        "nota_base": {
+          "type": "number",
+          "description": "Nota base antes dos pesos"
+        },
+        "forca_fonte": {
+          "type": "string",
+          "enum": [
+            "forte",
+            "intermediaria",
+            "fraca"
+          ],
+          "description": "Classifica\u00e7\u00e3o da for\u00e7a da fonte"
+        },
+        "tipo_fonte": {
+          "type": "string",
+          "enum": [
+            "documento_formal",
+            "ata_reuniao",
+            "relato_presencial",
+            "fala_direta",
+            "reuniao_online",
+            "audio_contexto",
+            "email_identificado",
+            "whatsapp_grupo",
+            "audio_sem_contexto",
+            "relato_indireto"
+          ]
+        },
+        "peso_fonte": {
+          "type": "number",
+          "description": "Peso aplicado pela fonte (0-1)"
+        },
+        "revisao_humana_certificada": {
+          "type": "boolean",
+          "default": false
+        },
+        "peso_revisao_humana": {
+          "type": "number",
+          "description": "Peso da revis\u00e3o conforme criticidade (0-0.5)"
+        },
+        "criticidade_caso": {
+          "type": "string",
+          "enum": [
+            "baixa",
+            "media",
+            "alta",
+            "critica"
+          ],
+          "description": "Criticidade para ponderar revis\u00e3o humana"
+        },
+        "revisor_nome": {
+          "type": "string"
+        },
+        "revisor_email": {
+          "type": "string"
+        },
+        "data_revisao": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "justificativa_revisao": {
+          "type": "string"
+        },
+        "componentes_nota": {
+          "type": "object",
+          "properties": {
+            "clareza": {
+              "type": "number"
+            },
+            "identificacao_territorial": {
+              "type": "number"
+            },
+            "tipo_demanda": {
+              "type": "number"
+            },
+            "encaminhamentos": {
+              "type": "number"
+            },
+            "responsavel_identificado": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "nota_qualidade": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "DEPRECATED - usar avaliacao_qualidade"
+    },
+    "validado_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da \u00faltima valida\u00e7\u00e3o"
+    },
+    "observacao_validacao": {
+      "type": "string",
+      "description": "Observa\u00e7\u00e3o t\u00e9cnica da valida\u00e7\u00e3o"
+    },
+    "preenchimento_automatico": {
+      "type": "object",
+      "properties": {
+        "origem": {
+          "type": "string"
+        },
+        "campos_preenchidos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confianca": {
+          "type": "number"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      },
+      "description": "Metadados do preenchimento autom\u00e1tico"
+    },
+    "auditoria": {
+      "type": "object",
+      "properties": {
+        "arquivos_originais": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transcricao_raw": {
+          "type": "string"
+        },
+        "versao_estruturada": {
+          "type": "object"
+        },
+        "insights_ia": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "materialidade_detectada": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "historico_alteracoes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "description": "Trilha de auditoria completa"
+    },
+    "caso_relacionado": {
+      "type": "string",
+      "description": "ID do caso (continuidade) ao qual este registro pertence"
+    },
+    "registros_continuidade": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de registros de continuidade"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "rascunho",
+        "finalizado",
+        "arquivado"
+      ],
+      "default": "rascunho",
+      "description": "Status do registro"
+    },
+    "status_sincronizacao": {
+      "type": "string",
+      "enum": [
+        "sincronizando",
+        "concluido",
+        "erro",
+        "pendente"
+      ],
+      "default": "concluido",
+      "description": "Status da sincroniza\u00e7\u00e3o"
+    },
+    "liderancas_vinculadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de lideran\u00e7as vinculadas automaticamente"
+    },
+    "organizacoes_vinculadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de organiza\u00e7\u00f5es vinculadas automaticamente"
+    },
+    "agendas_geradas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de agendas criadas a partir deste registro"
+    }
+  },
+  "required": [
+    "titulo"
+  ]
+}

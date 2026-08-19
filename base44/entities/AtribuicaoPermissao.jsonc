@@ -1,0 +1,46 @@
+{
+  "name": "AtribuicaoPermissao",
+  "type": "object",
+  "properties": {
+    "usuario_email": {
+      "type": "string",
+      "description": "E-mail do usu\u00e1rio"
+    },
+    "role_id": {
+      "type": "string",
+      "description": "ID do role atribu\u00eddo"
+    },
+    "grupo_id": {
+      "type": "string",
+      "description": "ID do grupo (opcional)"
+    },
+    "permissoes_customizadas": {
+      "type": "object",
+      "description": "Permiss\u00f5es espec\u00edficas sobrescrevendo o role"
+    },
+    "comunidades_acesso": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Comunidades espec\u00edficas permitidas"
+    },
+    "data_inicio": {
+      "type": "string",
+      "format": "date"
+    },
+    "data_fim": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de expira\u00e7\u00e3o (opcional)"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "usuario_email",
+    "role_id"
+  ]
+}

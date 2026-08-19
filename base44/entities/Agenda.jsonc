@@ -1,0 +1,89 @@
+{
+  "name": "Agenda",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo do compromisso agendado"
+    },
+    "data": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do compromisso"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "reuniao",
+        "visita",
+        "devolutiva",
+        "encontro",
+        "outro"
+      ],
+      "description": "Tipo de encontro"
+    },
+    "comunidade": {
+      "type": "string",
+      "description": "Comunidade relacionada"
+    },
+    "responsaveis": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Respons\u00e1veis pelo compromisso"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "confirmada",
+        "prevista",
+        "solicitada",
+        "acordada",
+        "realizada",
+        "nao_realizada",
+        "em_atraso"
+      ],
+      "default": "prevista",
+      "description": "Status da agenda"
+    },
+    "justificativa_nao_realizacao": {
+      "type": "string",
+      "description": "Justificativa quando n\u00e3o realizada"
+    },
+    "evidencias_realizacao": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de evid\u00eancias (ata, foto, \u00e1udio, etc)"
+    },
+    "alerta_atraso_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se alerta de atraso foi enviado"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do compromisso"
+    },
+    "registro_origem_id": {
+      "type": "string",
+      "description": "ID do registro que originou esta agenda"
+    },
+    "participantes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "titulo",
+    "data",
+    "status"
+  ]
+}

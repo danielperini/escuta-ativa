@@ -1,0 +1,95 @@
+{
+  "name": "ConfiguracaoESG",
+  "type": "object",
+  "properties": {
+    "nome_empresa": {
+      "type": "string",
+      "description": "Nome da empresa"
+    },
+    "cnpj": {
+      "type": "string",
+      "description": "CNPJ da empresa"
+    },
+    "setor_atuacao": {
+      "type": "string",
+      "description": "Setor de atua\u00e7\u00e3o"
+    },
+    "territorios_influencia": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Territ\u00f3rios de influ\u00eancia"
+    },
+    "estrategia_esg": {
+      "type": "string",
+      "description": "Estrat\u00e9gia ESG declarada"
+    },
+    "compromissos_publicos": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "GRI",
+          "Pacto Global",
+          "ODS",
+          "CSRD",
+          "B Corp",
+          "ISO 26000",
+          "Outro"
+        ]
+      }
+    },
+    "referenciais_prioritarios": {
+      "type": "object",
+      "properties": {
+        "gri_standards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ods_prioritarios": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "esrs_aplicaveis": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "contato_responsavel": {
+      "type": "object",
+      "properties": {
+        "nome": {
+          "type": "string"
+        },
+        "cargo": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "telefone": {
+          "type": "string"
+        }
+      }
+    },
+    "metodologia_classificacao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da metodologia de classifica\u00e7\u00e3o"
+    },
+    "logo_empresa_url": {
+      "type": "string",
+      "description": "URL do logo da empresa"
+    }
+  },
+  "required": [
+    "nome_empresa"
+  ]
+}

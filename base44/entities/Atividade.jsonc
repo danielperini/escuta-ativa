@@ -1,0 +1,224 @@
+{
+  "name": "Atividade",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "reuniao",
+        "conversa_de_campo",
+        "visita",
+        "visita_institucional",
+        "dialogo_individualizado"
+      ],
+      "description": "Tipo da atividade"
+    },
+    "origem": {
+      "type": "string",
+      "enum": [
+        "Comunidade",
+        "Poder P\u00fablico",
+        "Organiza\u00e7\u00e3o da Sociedade Civil",
+        "Empresa"
+      ],
+      "description": "Origem da atividade"
+    },
+    "data": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora da atividade"
+    },
+    "local": {
+      "type": "string",
+      "description": "Local da atividade"
+    },
+    "geolocalizacao": {
+      "type": "string",
+      "description": "Coordenadas geogr\u00e1ficas"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo da atividade"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o detalhada"
+    },
+    "anexos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de anexos (foto, v\u00eddeo, doc, \u00e1udio)"
+    },
+    "participantes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de participantes detectados pela IA"
+    },
+    "demandas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Demandas identificadas"
+    },
+    "compromissos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Compromissos assumidos"
+    },
+    "status_etapa": {
+      "type": "string",
+      "enum": [
+        "Etapa 1",
+        "Etapa 2",
+        "Finalizado"
+      ],
+      "default": "Etapa 1",
+      "description": "Status do fluxo"
+    },
+    "transcricao_ia": {
+      "type": "string",
+      "description": "Transcri\u00e7\u00e3o gerada pela IA"
+    },
+    "alertas_eticos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Alertas \u00e9ticos identificados pela IA"
+    },
+    "temas_identificados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Temas identificados pela IA"
+    },
+    "proximos_passos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Pr\u00f3ximos passos identificados"
+    },
+    "datas_futuras": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Datas futuras mencionadas (Agenda)"
+    },
+    "liderancas_relacionadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de lideran\u00e7as relacionadas"
+    },
+    "organizacoes_relacionadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de organiza\u00e7\u00f5es relacionadas"
+    },
+    "demanda_requer_devolutiva": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a atividade cont\u00e9m demanda que exige devolutiva"
+    },
+    "devolutiva_realizada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a devolutiva foi realizada"
+    },
+    "data_devolutiva": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data em que a devolutiva foi registrada"
+    },
+    "conteudo_devolutiva": {
+      "type": "string",
+      "description": "Conte\u00fado da devolutiva"
+    },
+    "resultado_devolutiva": {
+      "type": "string",
+      "enum": [
+        "atendida",
+        "parcialmente_atendida",
+        "nao_atendida",
+        "em_andamento"
+      ],
+      "description": "Resultado da devolutiva"
+    },
+    "encaminhamento_realizado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se foi feito encaminhamento para empresa/setor"
+    },
+    "detalhes_encaminhamento": {
+      "type": "string",
+      "description": "Detalhes do encaminhamento realizado"
+    },
+    "data_encaminhamento": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data do encaminhamento"
+    },
+    "registros_continuidade": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de registros relacionados como continuidade"
+    },
+    "registro_origem_continuidade": {
+      "type": "string",
+      "description": "ID do registro do qual este \u00e9 continuidade"
+    },
+    "linha_tempo_demanda": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "evento": {
+            "type": "string"
+          },
+          "registro_id": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Linha do tempo completa da demanda"
+    },
+    "status_devolutiva": {
+      "type": "string",
+      "enum": [
+        "nao_requerida",
+        "pendente",
+        "em_atraso",
+        "realizada"
+      ],
+      "default": "nao_requerida",
+      "description": "Status da devolutiva obrigat\u00f3ria"
+    },
+    "prazo_devolutiva": {
+      "type": "string",
+      "format": "date",
+      "description": "Data limite para devolutiva (15 dias ap\u00f3s registro)"
+    }
+  },
+  "required": [
+    "titulo",
+    "descricao"
+  ]
+}

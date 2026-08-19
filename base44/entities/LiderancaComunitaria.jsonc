@@ -1,0 +1,148 @@
+{
+  "name": "LiderancaComunitaria",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome completo da lideran\u00e7a"
+    },
+    "nome_social": {
+      "type": "string",
+      "description": "Nome social (opcional)"
+    },
+    "cpf": {
+      "type": "string",
+      "description": "CPF - \u00e1rea restrita (LGPD)"
+    },
+    "nascimento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de nascimento"
+    },
+    "endereco": {
+      "type": "string",
+      "description": "Endere\u00e7o completo"
+    },
+    "comunidade": {
+      "type": "string",
+      "description": "Comunidade de origem"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone de contato"
+    },
+    "whatsapp": {
+      "type": "string",
+      "description": "WhatsApp"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail"
+    },
+    "redes_sociais": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Links de redes sociais"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Minibiografia"
+    },
+    "papel_na_comunidade": {
+      "type": "string",
+      "description": "Ex: articulador, lideran\u00e7a cultural"
+    },
+    "avaliacao_interlocucao": {
+      "type": "string",
+      "enum": [
+        "boa",
+        "m\u00e9dia",
+        "dif\u00edcil",
+        "neutro"
+      ],
+      "description": "Avalia\u00e7\u00e3o da interlocu\u00e7\u00e3o"
+    },
+    "demandas_relacionadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de demandas relacionadas"
+    },
+    "ultima_interacao": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da \u00faltima intera\u00e7\u00e3o"
+    },
+    "necessidade_atualizacao": {
+      "type": "boolean",
+      "default": false,
+      "description": "IA determina se precisa atualiza\u00e7\u00e3o"
+    },
+    "autorizado_LGPD": {
+      "type": "boolean",
+      "default": false,
+      "description": "Autoriza\u00e7\u00e3o LGPD concedida"
+    },
+    "historico_auditoria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "campo_alterado": {
+            "type": "string"
+          },
+          "valor_anterior": {
+            "type": "string"
+          },
+          "valor_novo": {
+            "type": "string"
+          },
+          "data_alteracao": {
+            "type": "string"
+          },
+          "usuario_responsavel": {
+            "type": "string"
+          },
+          "tipo_operacao": {
+            "type": "string"
+          },
+          "aprovacao_necessaria": {
+            "type": "boolean"
+          },
+          "fonte_origem": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Hist\u00f3rico completo de altera\u00e7\u00f5es"
+    },
+    "dados_concorrentes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "campo": {
+            "type": "string"
+          },
+          "valor": {
+            "type": "string"
+          },
+          "fonte": {
+            "type": "string"
+          },
+          "data_deteccao": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Dados divergentes detectados aguardando resolu\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "nome",
+    "comunidade"
+  ]
+}

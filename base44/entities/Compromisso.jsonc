@@ -1,0 +1,78 @@
+{
+  "name": "Compromisso",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo do compromisso"
+    },
+    "descricao": {
+      "type": "string"
+    },
+    "registro_origem_id": {
+      "type": "string",
+      "description": "ID do registro de origem"
+    },
+    "comunidade": {
+      "type": "string"
+    },
+    "responsavel": {
+      "type": "string"
+    },
+    "prazo": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "em_andamento",
+        "concluido",
+        "cancelado",
+        "atrasado"
+      ],
+      "default": "pendente"
+    },
+    "prioridade": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta",
+        "urgente"
+      ],
+      "default": "media"
+    },
+    "evidencias": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "data_conclusao": {
+      "type": "string",
+      "format": "date"
+    },
+    "observacoes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "titulo",
+    "comunidade",
+    "responsavel"
+  ]
+}

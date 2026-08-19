@@ -1,0 +1,76 @@
+{
+  "name": "TemplateRegistro",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do template"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do template"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "reuniao",
+        "conversa_campo",
+        "visita",
+        "demanda",
+        "ocorrencia"
+      ],
+      "description": "Tipo de registro"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categoria do template (ex: Reuni\u00e3o Comunit\u00e1ria, Visita T\u00e9cnica)"
+    },
+    "campos_padrao": {
+      "type": "object",
+      "properties": {
+        "titulo": {
+          "type": "string"
+        },
+        "descricao": {
+          "type": "string"
+        },
+        "tipo": {
+          "type": "string"
+        },
+        "temas_identificados": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "proximos_passos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Campos pr\u00e9-preenchidos do template"
+    },
+    "campos_obrigatorios": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de campos obrigat\u00f3rios"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    },
+    "uso_total": {
+      "type": "number",
+      "default": 0,
+      "description": "Contador de vezes que foi usado"
+    }
+  },
+  "required": [
+    "nome",
+    "tipo"
+  ]
+}

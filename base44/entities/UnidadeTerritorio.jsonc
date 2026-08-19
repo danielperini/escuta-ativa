@@ -1,0 +1,36 @@
+{
+  "name": "UnidadeTerritorio",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome da unidade/territ\u00f3rio"
+    },
+    "codigo": {
+      "type": "string",
+      "description": "C\u00f3digo curto (2-3 letras, ex: AIM, GV, ILH)"
+    },
+    "municipio": {
+      "type": "string",
+      "description": "Munic\u00edpio relacionado"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "unidade_operacional",
+        "territorio",
+        "municipio",
+        "regional"
+      ],
+      "description": "Tipo da unidade"
+    },
+    "ativa": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "nome",
+    "codigo"
+  ]
+}

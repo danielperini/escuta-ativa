@@ -1,0 +1,81 @@
+{
+  "name": "GrupoColetivo",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do grupo ou coletivo"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "cultural",
+        "artistico",
+        "esportivo",
+        "religioso",
+        "educacional",
+        "ambiental",
+        "profissional",
+        "outro"
+      ],
+      "description": "Tipo de grupo/coletivo"
+    },
+    "area_atuacao": {
+      "type": "string",
+      "description": "\u00c1rea de atua\u00e7\u00e3o (ex: m\u00fasica, dan\u00e7a, artesanato)"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do grupo"
+    },
+    "comunidade_origem": {
+      "type": "string",
+      "description": "Comunidade territorial de origem"
+    },
+    "municipio": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string"
+    },
+    "numero_membros": {
+      "type": "number",
+      "description": "N\u00famero estimado de membros"
+    },
+    "contato_principal": {
+      "type": "string"
+    },
+    "telefone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "redes_sociais": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    },
+    "data_fundacao": {
+      "type": "string",
+      "format": "date"
+    },
+    "ultima_interacao": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "total_registros": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "nome",
+    "tipo"
+  ]
+}

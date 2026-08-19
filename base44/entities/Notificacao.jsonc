@@ -1,0 +1,61 @@
+{
+  "name": "Notificacao",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "atualizacao_cadastro",
+        "nova_conexao",
+        "nova_demanda",
+        "novo_compromisso",
+        "alerta_etico"
+      ],
+      "description": "Tipo de notifica\u00e7\u00e3o"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo da notifica\u00e7\u00e3o"
+    },
+    "mensagem": {
+      "type": "string",
+      "description": "Mensagem detalhada"
+    },
+    "lida": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se foi lida"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "resolvida"
+      ],
+      "default": "pendente",
+      "description": "Status da notifica\u00e7\u00e3o"
+    },
+    "entidade_relacionada_tipo": {
+      "type": "string",
+      "description": "Tipo da entidade (Atividade, LiderancaComunitaria, etc.)"
+    },
+    "entidade_relacionada_id": {
+      "type": "string",
+      "description": "ID da entidade relacionada"
+    },
+    "prioridade": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta"
+      ],
+      "default": "media"
+    }
+  },
+  "required": [
+    "tipo",
+    "titulo",
+    "mensagem"
+  ]
+}

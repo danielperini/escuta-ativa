@@ -1,0 +1,37 @@
+{
+  "name": "ContadorCodigo",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "RE",
+        "CA",
+        "DOC"
+      ],
+      "description": "Tipo do c\u00f3digo (RE=Registro, CA=Caso, DOC=Documento)"
+    },
+    "unidade_territorio": {
+      "type": "string",
+      "description": "C\u00f3digo da unidade ou territ\u00f3rio (ex: AIM, GV, ILH)"
+    },
+    "ano": {
+      "type": "number",
+      "description": "Ano do contador"
+    },
+    "ultimo_numero": {
+      "type": "number",
+      "default": 0,
+      "description": "\u00daltimo n\u00famero sequencial usado"
+    },
+    "chave_composta": {
+      "type": "string",
+      "description": "Chave \u00fanica: TIPO-UT-ANO (ex: RE-AIM-2026)"
+    }
+  },
+  "required": [
+    "tipo",
+    "unidade_territorio",
+    "ano"
+  ]
+}

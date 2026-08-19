@@ -1,0 +1,49 @@
+{
+  "name": "LogAcesso",
+  "type": "object",
+  "properties": {
+    "usuario_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio"
+    },
+    "usuario_nome": {
+      "type": "string",
+      "description": "Nome do usu\u00e1rio"
+    },
+    "equipe_id": {
+      "type": "string",
+      "description": "ID da equipe"
+    },
+    "equipe_nome": {
+      "type": "string",
+      "description": "Nome da equipe"
+    },
+    "acao": {
+      "type": "string",
+      "enum": [
+        "login",
+        "logout",
+        "acesso_pagina",
+        "criacao",
+        "edicao"
+      ],
+      "description": "Tipo de a\u00e7\u00e3o"
+    },
+    "dispositivo": {
+      "type": "string",
+      "description": "Informa\u00e7\u00f5es do dispositivo"
+    },
+    "ip": {
+      "type": "string",
+      "description": "Endere\u00e7o IP"
+    },
+    "navegador": {
+      "type": "string",
+      "description": "Navegador utilizado"
+    }
+  },
+  "required": [
+    "usuario_email",
+    "acao"
+  ]
+}
