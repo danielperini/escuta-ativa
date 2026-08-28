@@ -108,8 +108,9 @@ Seja preciso. Base-se APENAS no texto.
       setCompromissos(analiseCompromissos);
 
       // Detecção de continuidade
+      let resultadoContinuidade = null;
       if (formData.comunidade) {
-        const resultadoContinuidade = await detectarContinuidadeInteligente(
+        resultadoContinuidade = await detectarContinuidadeInteligente(
           { ...formData, ...analiseBasica },
           registrosHistoricos
         );

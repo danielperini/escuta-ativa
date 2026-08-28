@@ -11,10 +11,9 @@ import {
   TrendingUp,
   Calendar,
   CheckCircle2,
-  XCircle,
   AlertCircle
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function HistoricoDemandas({ registros, onClose }) {
@@ -54,7 +53,9 @@ export default function HistoricoDemandas({ registros, onClose }) {
       }
     });
 
-    return eventos.sort((a, b) => new Date(b.data) - new Date(a.data));
+    return eventos
+      .filter(e => e.data && !isNaN(new Date(e.data).getTime()))
+      .sort((a, b) => new Date(b.data) - new Date(a.data));
   }, [registros]);
 
   // Filtrar histórico
@@ -169,7 +170,7 @@ export default function HistoricoDemandas({ registros, onClose }) {
                     <div className="flex items-center gap-3 text-xs text-slate-500">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {format(parseISO(evento.data), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        {format(new Date(evento.data), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                       </div>
                       {evento.comunidade && (
                         <>

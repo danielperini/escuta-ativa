@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Mail, AlertTriangle, Calendar, CheckCircle, Users, Target, Save } from 'lucide-react';
+import { Bell, Mail, AlertTriangle, Calendar, CheckCircle, Users, Target, Save, Clock, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { Separator } from "@/components/ui/separator";
 

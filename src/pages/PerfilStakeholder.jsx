@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
+import { cn } from "@/lib/utils";
 import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, MapPin, Phone, Mail, Building, Users, FileText,

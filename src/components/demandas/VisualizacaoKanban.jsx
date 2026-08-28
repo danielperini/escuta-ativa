@@ -33,7 +33,9 @@ export default function VisualizacaoKanban({ demandas, onAtualizarDemanda, onSel
 
   const verificarAtraso = (demanda) => {
     if (!demanda.prazo_devolutiva || demanda.devolutiva_realizada) return null;
-    const dias = differenceInDays(new Date(), new Date(demanda.prazo_devolutiva));
+    const prazoDate = new Date(demanda.prazo_devolutiva);
+    if (isNaN(prazoDate.getTime())) return null;
+    const dias = differenceInDays(new Date(), prazoDate);
     return dias > 0 ? dias : null;
   };
 
@@ -91,7 +93,7 @@ export default function VisualizacaoKanban({ demandas, onAtualizarDemanda, onSel
                           </div>
                         )}
 
-                        {demanda.prazo_devolutiva && (
+                        {demanda.prazo_devolutiva && !isNaN(new Date(demanda.prazo_devolutiva).getTime()) && (
                           <div className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             Prazo: {format(new Date(demanda.prazo_devolutiva), 'dd/MM/yyyy')}

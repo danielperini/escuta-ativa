@@ -33,7 +33,9 @@ export default function VisualizacaoLista({ demandas, onAtualizarDemanda, onSele
 
   const verificarAtraso = (demanda) => {
     if (!demanda.prazo_devolutiva || demanda.devolutiva_realizada) return null;
-    const dias = differenceInDays(new Date(), new Date(demanda.prazo_devolutiva));
+    const prazoDate = new Date(demanda.prazo_devolutiva);
+    if (isNaN(prazoDate.getTime())) return null;
+    const dias = differenceInDays(new Date(), prazoDate);
     return dias > 0 ? dias : null;
   };
 
@@ -67,7 +69,7 @@ export default function VisualizacaoLista({ demandas, onAtualizarDemanda, onSele
                 </p>
                 <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
                   <span>Registro: {demanda.registroTitulo}</span>
-                  {demanda.prazo_devolutiva && (
+                  {demanda.prazo_devolutiva && !isNaN(new Date(demanda.prazo_devolutiva).getTime()) && (
                     <>
                       <span>•</span>
                       <Clock className="w-3 h-3" />

@@ -2,6 +2,8 @@
  * Configurações otimizadas de queries para performance
  */
 
+import { base44 } from '@/api/base44Client';
+
 export const QUERY_LIMITS = {
   dashboard: 20,
   list_default: 50,

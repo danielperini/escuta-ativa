@@ -187,10 +187,11 @@ RETORNE APENAS: O texto transcrito, sem comentários.`,
     setEnviandoArquivo(true);
     setTranscrevendo(true);
 
+    // Validar formato
+    const formatosSuportados = ['.ogg', '.opus', '.mp3', '.wav', '.m4a', '.aac', '.webm'];
+    const extensao = '.' + file.name.split('.').pop().toLowerCase();
+
     try {
-      // Validar formato
-      const formatosSuportados = ['.ogg', '.opus', '.mp3', '.wav', '.m4a', '.aac', '.webm'];
-      const extensao = '.' + file.name.split('.').pop().toLowerCase();
       
       if (!formatosSuportados.some(f => extensao.endsWith(f))) {
         throw new Error(`Formato ${extensao} não reconhecido. Use: ${formatosSuportados.join(', ')}`);

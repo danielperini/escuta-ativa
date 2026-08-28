@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -42,6 +44,19 @@ export default function Relatorios() {
     const [tendenciasAnomalias, setTendenciasAnomalias] = useState(null);
     const [analisandoTendencias, setAnalisandoTendencias] = useState(false);
     const [relatorioPersonalizado, setRelatorioPersonalizado] = useState(null);
+    const [filtroPeriodo, setFiltroPeriodo] = useState(30);
+
+    // Funções auxiliares para geração de relatórios (stubs - funcionalidade pendente)
+    const gerarResumoExecutivo = async () => {};
+    const analisarTendenciasAnomalias = async () => {};
+    const gerarRelatorioPersonalizado = async () => {
+        setLoading(true);
+        try {
+            await gerarRelatorio();
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const { data: atividades = [] } = useQuery({
         queryKey: ['atividades'],

@@ -4,8 +4,7 @@ import {
   AlertCircle, 
   Clock, 
   CheckCircle2, 
-  TrendingUp,
-  XCircle
+  TrendingUp
 } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 
@@ -19,7 +18,9 @@ export default function EstatisticasDemandas({ demandas }) {
     
     const atrasadas = demandas.filter(d => {
       if (!d.prazo_devolutiva || d.devolutiva_realizada) return false;
-      return differenceInDays(new Date(), new Date(d.prazo_devolutiva)) > 0;
+      const prazoDate = new Date(d.prazo_devolutiva);
+      if (isNaN(prazoDate.getTime())) return false;
+      return differenceInDays(new Date(), prazoDate) > 0;
     }).length;
 
     const criticas = demandas.filter(d => d.urgencia === 'critica').length;

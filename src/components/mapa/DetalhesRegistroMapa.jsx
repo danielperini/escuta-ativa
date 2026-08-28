@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, MapPin, Calendar, Users, ThermometerSun, MessageSquare, AlertTriangle, CheckCircle2, ExternalLink } from 'lucide-react';
+import { X, MapPin, Calendar, Users, ThermometerSun, MessageSquare, AlertTriangle, CheckCircle2, ExternalLink, Target } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 
