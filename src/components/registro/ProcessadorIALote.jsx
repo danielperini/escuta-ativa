@@ -2,210 +2,22 @@ import { base44 } from '@/api/base44Client';
 
 /**
  * Processamento IA em LOTE ÚNICO
- * Extrai TUDO em uma chamada: temas, atores, demandas, compromissos, riscos, localização, sentimento
+ * Extrai TUDO em uma chamada: temas, atores, demandas, compromissos, riscos, localização, sentimento.
+ *
+ * Agora roteia à função backend `analisarNovoRegistro` (que usa a API GPT/OpenAI
+ * diretamente, com a secreta OPENAI_API_KEY), em vez de InvokeLLM.
  */
 export async function processarRegistroCompleto(textoConsolidado, comunidade) {
   try {
-    const resultado = await base44.integrations.Core.InvokeLLM({
-      prompt: `Você é um sistema de análise territorial para registro comunitário.
-
-TEXTO DO REGISTRO:
-${textoConsolidado}
-
-COMUNIDADE MENCIONADA: ${comunidade || 'não especificada'}
-
-TAREFA: Extrair TODAS as informações relevantes em UMA ÚNICA ANÁLISE:
-
-1. IDENTIFICAÇÃO BÁSICA
-   - Título sugerido (máx 80 caracteres)
-   - Tipo de registro (reuniao, conversa_campo, visita, demanda, ocorrencia)
-   - Comunidade principal
-   - Município (OBRIGATÓRIO)
-   - Local específico
-
-2. ANÁLISE DE CONTEÚDO
-   - Temas identificados (lista)
-   - Sentimento predominante (positivo, neutro, negativo, misto)
-   - Temperatura do território (baixo, medio, alto, critico)
-   - Resumo executivo (máx 200 palavras)
-
-3. DEMANDAS
-   Para cada demanda:
-   - Descrição clara
-   - Urgência (baixa, media, alta, critica)
-   - Requer devolutiva? (sim/não)
-   - Prazo sugerido para devolutiva
-
-4. COMPROMISSOS ASSUMIDOS
-   Para cada compromisso:
-   - Descrição
-   - Responsável (se mencionado)
-   - Prazo sugerido
-   - Prioridade (baixa, media, alta, urgente)
-
-5. STAKEHOLDERS IDENTIFICADOS (PESSOAS E ENTIDADES)
-   REGRA CRÍTICA: Incluir TODOS os nomes mencionados, mesmo incompletos
-   
-   Para cada pessoa mencionada:
-   - Nome (mesmo incompleto: "Dona Maria", "Sr. João")
-   - Tipo: pessoa ou entidade
-   - Papel social (se mencionado)
-   - Organização (se mencionado)
-   - Contato (apenas se explicitamente dito)
-   - Município (OBRIGATÓRIO - inferir do contexto)
-   
-   Para cada entidade mencionada:
-   - Nome
-   - Tipo (associacao, ong, governo, outro)
-   - Área de atuação
-   - Município
-
-6. RISCOS SOCIAIS
-   Se identificar riscos:
-   - Título do risco
-   - Nível (baixo, moderado, alto, critico)
-   - Tipo de risco
-   - Causas
-   - Ações preventivas sugeridas
-
-7. MATERIALIDADE
-   - Temas prioritários para comunidade
-   - Temas prioritários para empresa
-   - Relevância comunitária (1-10)
-   - Relevância corporativa (1-10)
-   - Divergências identificadas
-
-8. LOCALIZAÇÃO
-   - Coordenadas aproximadas (lat/lng)
-   - Se não houver endereço exato, usar centro do município
-
-9. AGENDA FUTURA
-   Se houver menção a:
-   - Reuniões futuras
-   - Datas acordadas
-   - Prazos de devolutiva
-
-10. PRÓXIMOS PASSOS
-    - Lista de ações recomendadas
-
-IMPORTANTE:
-- Seja preciso e objetivo
-- Não invente informações
-- Se algo não estiver claro, marque como null
-- Priorize qualidade sobre quantidade`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          identificacao: {
-            type: "object",
-            properties: {
-              titulo: { type: "string" },
-              tipo: { type: "string", enum: ["reuniao", "conversa_campo", "visita", "demanda", "ocorrencia"] },
-              comunidade: { type: "string" },
-              municipio: { type: "string" },
-              local: { type: "string" },
-              resumo: { type: "string" }
-            }
-          },
-          analise: {
-            type: "object",
-            properties: {
-              temas: { type: "array", items: { type: "string" } },
-              sentimento: { type: "string", enum: ["positivo", "neutro", "negativo", "misto"] },
-              temperatura: { type: "string", enum: ["baixo", "medio", "alto", "critico"] },
-              participantes: { type: "array", items: { type: "string" } }
-            }
-          },
-          demandas: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                descricao: { type: "string" },
-                urgencia: { type: "string", enum: ["baixa", "media", "alta", "critica"] },
-                requer_devolutiva: { type: "boolean" },
-                prazo_sugerido: { type: "string" }
-              }
-            }
-          },
-          compromissos: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                descricao: { type: "string" },
-                responsavel: { type: "string" },
-                prazo: { type: "string" },
-                prioridade: { type: "string", enum: ["baixa", "media", "alta", "urgente"] }
-              }
-            }
-          },
-          stakeholders: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                nome: { type: "string" },
-                tipo: { type: "string", enum: ["pessoa", "entidade"] },
-                papel_social: { type: "string" },
-                organizacao: { type: "string" },
-                municipio: { type: "string" },
-                contato_telefone: { type: "string" },
-                contato_email: { type: "string" }
-              }
-            }
-          },
-          riscos: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                titulo: { type: "string" },
-                nivel: { type: "string", enum: ["baixo", "moderado", "alto", "critico"] },
-                tipo: { type: "string" },
-                causas: { type: "array", items: { type: "string" } },
-                acoes_preventivas: { type: "array", items: { type: "string" } }
-              }
-            }
-          },
-          materialidade: {
-            type: "object",
-            properties: {
-              temas_comunidade: { type: "array", items: { type: "string" } },
-              temas_empresa: { type: "array", items: { type: "string" } },
-              relevancia_comunidade: { type: "number" },
-              relevancia_empresa: { type: "number" },
-              divergencias: { type: "array", items: { type: "string" } }
-            }
-          },
-          localizacao: {
-            type: "object",
-            properties: {
-              lat: { type: "number" },
-              lng: { type: "number" },
-              endereco: { type: "string" }
-            }
-          },
-          agenda_futura: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                titulo: { type: "string" },
-                data: { type: "string" },
-                tipo: { type: "string" }
-              }
-            }
-          },
-          proximos_passos: {
-            type: "array",
-            items: { type: "string" }
-          }
-        }
-      }
+    const res = await base44.functions.invoke('analisarNovoRegistro', {
+      textoConsolidado,
+      comunidade: comunidade || ''
     });
-
-    return resultado;
+    const data = res?.data ?? res;
+    if (data && data.error && !data.identificacao) {
+      throw new Error(data.error);
+    }
+    return data;
   } catch (error) {
     console.error('Erro no processamento IA em lote:', error);
     throw error;
