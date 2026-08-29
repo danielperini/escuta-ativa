@@ -66,7 +66,6 @@ const navigation = [
   { name: 'Casos', href: 'Casos', icon: CheckSquare },
   { name: 'Comunidades e Grupos', href: 'ComunidadesGrupos', icon: Home },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
-  { name: 'Assistente IA', href: 'AssistenteIA', icon: Sparkles },
   { name: 'Análise Demográfica', href: 'AnaliseDemografica', icon: UsersRound },
   { name: 'Dados Secundários', href: 'DadosSecundarios', icon: Database },
   { name: 'Saúde das Fontes', href: 'SaudeFontes', icon: Activity, secao: 'admin_fontes' },
