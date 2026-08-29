@@ -10,6 +10,7 @@ import {
   MessageSquare, Tag, Loader2
 } from 'lucide-react';
 import { corParaChave } from '@/lib/odsCores';
+import ChipComunidade from '@/components/shared/ChipComunidade';
 
 const ROTACAO_MS = 8000;
 
@@ -122,9 +123,7 @@ export default function VozesTerritorio({ vozes = [], controle, onControleChange
                             <Tag className="w-3.5 h-3.5" /> {labelNatureza(atual.natureza)}
                           </span>
                           {atual.comunidade && (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5" /> {atual.comunidade}
-                            </span>
+                            <ChipComunidade nome={atual.comunidade} />
                           )}
                           {atual.tipo_interacao && (
                             <Badge variant="outline" className="text-[11px] font-normal capitalize">

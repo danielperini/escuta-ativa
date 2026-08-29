@@ -18,6 +18,7 @@ import {
   Loader2, BookOpen, Database, Globe, AlertTriangle,
   MapPin, Lightbulb, MessageSquare, Shield, Info, X
 } from 'lucide-react';
+import ChipComunidade from '@/components/shared/ChipComunidade';
 
 // ── Ícone SVG original do Botão do Pânico ──────────────────────────────────
 const IconePanico = ({ className }) => (
@@ -68,9 +69,7 @@ function CardOrientacao({ dica, onOcultar, onFixar, onNaoPertinente, onSolicitar
             </Badge>
           )}
           {dica.territorio && (
-            <Badge className="text-xs px-2 py-0.5 bg-slate-100 text-slate-700 border-0">
-              <MapPin className="w-3 h-3 mr-1" /> {dica.territorio}
-            </Badge>
+            <ChipComunidade nome={dica.territorio} variant="neutro" />
           )}
         </div>
         <div className="flex items-center gap-0.5 shrink-0">
