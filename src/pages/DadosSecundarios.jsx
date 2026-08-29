@@ -3,9 +3,10 @@ import { BuscaTerritorio } from '@/components/dados-secundarios/BuscaTerritorio'
 import { FontesDropdown } from '@/components/dados-secundarios/FontesDropdown';
 import { IndicadorComFonte } from '@/components/dados-secundarios/IndicadorComFonte';
 import { SecaoNaoDisponivel } from '@/components/dados-secundarios/SecaoNaoDisponivel';
+import { SecaoTelecomunicacoes } from '@/components/dados-secundarios/SecaoTelecomunicacoes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, Database, Sparkles, Info } from 'lucide-react';
+import { Loader2, Database, Sparkles, Info, Radio } from 'lucide-react';
 import {
   coletarDemografiaIBGE, registrarDemografiaEmCache,
   buscarTodosCaches, pesquisarViaIA, FONTES
@@ -24,7 +25,8 @@ const SECOES = [
   { id: 'politicas_publicas', label: 'Políticas', icon: Database, viaIA: true },
   { id: 'legislacao', label: 'Regulatório', icon: Database, viaIA: true },
   { id: 'meio_ambiente', label: 'Meio Ambiente', icon: Database, viaIA: true },
-  { id: 'mineracao', label: 'Mineração', icon: Database, viaIA: true }
+  { id: 'mineracao', label: 'Mineração', icon: Database, viaIA: true },
+  { id: 'telecomunicacoes', label: 'Telecom', icon: Radio, viaIA: true }
 ];
 
 function formatarData(iso) {
@@ -182,6 +184,18 @@ export default function DadosSecundarios() {
             )}
           </CardContent>
         </Card>
+      );
+    }
+
+    // Telecomunicações (card específico — via IA em fontes ANATEL)
+    if (catId === 'telecomunicacoes') {
+      return (
+        <SecaoTelecomunicacoes
+          key={key}
+          mun={mun}
+          estado={estado}
+          onColetar={() => coletarViaIA(mun, catId)}
+        />
       );
     }
 

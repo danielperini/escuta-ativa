@@ -12,11 +12,14 @@ const CATEGORIAS_PERMITIDAS = new Set([
   'resumo', 'demografia', 'fiscal', 'social', 'saude', 'educacao',
   'economia', 'cultura', 'esporte', 'saneamento', 'meio_ambiente',
   'mineracao', 'conselhos', 'osc', 'governo_municipal',
-  'camara_municipal', 'legislacao', 'politicas_publicas'
+  'camara_municipal', 'legislacao', 'politicas_publicas',
+  'telecomunicacoes'
 ]);
 
 const TEMPLATE_PROMPT = (categoria, municipio, uf, ibge, fontes, perguntaExtra) =>
-  `Você é um agente de pesquisa pública territorial para a plataforma societá.ai.
+  `${categoria === 'telecomunicacoes' ? `CATEGORIA ESPECIAL: Telecomunicações e Conectividade. Use fontes oficiais da ANATEL (Painel de Cobertura Móvel, RQUAL, Estações Licenciadas/SMA-IE, Acessos de SMP, Painel de Infraestrutura). Para cada operadora de SMP presente no município (Claro, TIM, Vivo, Algar e demais que prestam SMP), gere um item por tecnologia (2G/3G/4G/5G) com: indicator = "Cobertura {Tecnologia} {Operadora}", value_number = percentual da população coberta (%), unit = "%", reference_period = ano. Gere também: indicator = "Operadoras presentes" (value_text = lista em vírgulas — apenas quem presta SMP no município), "ERBs identificadas" (value_number = total de estações/ERBs licenciadas), "Cobertura populacional" (value_number = %), "Intensidade estimada de sinal - {Operadora}" (value_text). É OBRIGATÓRIO diferenciar PRESENÇA da operadora (autorização/atividade municipal) ≠ COBERTURA geográfica estimada ≠ INTENSIDADE de sinal ≠ EXPERIÊNCIA relatada pela comunidade. Use o campo observacao para distinguir cada item. NUNCA afirme que toda a área municipal tem sinal apenas porque a operadora atende o município.
+
+` : ``}Você é um agente de pesquisa pública territorial para a plataforma societá.ai.
 Sua tarefa é buscar, em fontes oficiais brasileiras, INDICADORES PÚBLICOS para o
 município indicado e devolver um JSON estruturado com ${perguntaExtra ? 'a seguinte pergunta: ' + perguntaExtra : 'a categoria: ' + categoria}.
 
