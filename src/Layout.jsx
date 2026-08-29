@@ -25,7 +25,8 @@ import {
                       CheckCircle2,
                       Plug,
                       Book,
-                      Globe
+                      Globe,
+                      Palette
                     } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -68,7 +69,8 @@ const navigation = [
   { name: 'Usuários', href: 'GerenciarUsuarios', icon: User },
   { name: 'Integrações', href: 'Integracoes', icon: Plug },
   { name: 'Documentação', href: 'Documentacao', icon: Book },
-  { name: 'Limpeza de Dados', href: 'LimpezaDados', icon: Shield }
+  { name: 'Limpeza de Dados', href: 'LimpezaDados', icon: Shield },
+  { name: 'Aparência', href: 'Aparencia', icon: Palette }
   ];
 
 export default function Layout({ children, currentPageName }) {
@@ -100,7 +102,7 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: estiloTema.background }}>
+    <div className="min-h-screen bg-background text-foreground">
       <PWASetup />
       <NotificationGenerator />
       <MonitorAgendaAtraso />
@@ -144,7 +146,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed top-0 left-0 z-50 h-full w-64 bg-gradient-to-b from-[#E31E24] to-[#B01419] transform transition-transform duration-300 ease-in-out lg:translate-x-0",
+        "fixed top-0 left-0 z-50 h-full w-64 bg-sidebar text-sidebar-foreground transform transition-transform duration-300 ease-in-out lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex flex-col h-full">
@@ -223,10 +225,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Main content */}
             <div className="lg:pl-64 pb-16 lg:pb-8">
               {/* Top bar */}
-              <header className="sticky top-0 z-30 h-14 md:h-16 border-b px-3 md:px-4 lg:px-8 bg-white" style={{
-                backgroundColor: estiloTema.backgroundAlt,
-                borderColor: estiloTema.border
-              }}>
+              <header className="sticky top-0 z-30 h-14 md:h-16 border-b border-border px-3 md:px-4 lg:px-8 bg-background text-foreground">
                 <div className="flex items-center justify-between h-full gap-2">
                   <button 
                     onClick={() => setSidebarOpen(true)}
@@ -236,7 +235,7 @@ export default function Layout({ children, currentPageName }) {
                   </button>
 
             <div className="hidden lg:block flex-1 min-w-0">
-              <h1 className="text-base md:text-lg font-semibold truncate" style={{ color: estiloTema.text }}>
+              <h1 className="text-base md:text-lg font-semibold truncate text-foreground">
                 {navigation.find(n => n.href === currentPageName)?.name || currentPageName}
               </h1>
             </div>
@@ -251,7 +250,7 @@ export default function Layout({ children, currentPageName }) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-1 md:gap-2 pl-1 md:pl-2 pr-2 md:pr-3 h-9 md:h-10">
-                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-[#E31E24] flex items-center justify-center text-white text-xs md:text-sm font-medium">
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs md:text-sm font-medium">
                       {user?.full_name?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <span className="hidden md:block text-sm font-medium text-slate-700 max-w-[100px] truncate">

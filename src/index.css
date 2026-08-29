@@ -2,157 +2,256 @@
 @tailwind components;
 @tailwind utilities;
 
-
-/* :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-} */
-
-
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 356 82% 50%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 356 82% 50%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
+  h1, h2, h3, h4, h5, h6 { font-weight: 700; letter-spacing: -0.02em; }
+
+  /* ===== PONTE SOCIAL (padrão) ===== */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 146 50% 36%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 100% 97%;
+    --muted-foreground: 215 25% 35%;
+    --accent: 221 83% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 146 50% 36%;
+    --warning: 38 92% 50%;
+    --border: 215 32% 91%;
+    --input: 215 32% 91%;
+    --ring: 221 83% 53%;
+    --radius: 0.5rem;
+    --header: 0 0% 100%;
+    --sidebar-background: 221 76% 48%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 221 76% 48%;
+    --sidebar-accent: 0 0% 100%;
+    --sidebar-accent-foreground: 221 76% 48%;
+    --sidebar-border: 0 0% 100%;
+    --sidebar-ring: 221 83% 53%;
+    --chart-1: 221 83% 53%;
+    --chart-2: 146 50% 36%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 258 90% 66%;
+    --chart-5: 0 72% 51%;
+  }
+
+  /* ===== NOITE (escuro sofisticado) ===== */
+  [data-theme="noite"] {
+    --background: 205 32% 8%;
+    --foreground: 208 36% 93%;
+    --card: 202 30% 10%;
+    --card-foreground: 208 36% 93%;
+    --popover: 202 30% 10%;
+    --popover-foreground: 208 36% 93%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 130 39% 53%;
+    --secondary-foreground: 205 32% 8%;
+    --muted: 206 32% 13%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 258 90% 66%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 57%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 130 39% 53%;
+    --warning: 38 92% 50%;
+    --border: 206 24% 16%;
+    --input: 206 24% 16%;
+    --ring: 221 83% 53%;
+    --header: 207 33% 5%;
+    --sidebar-background: 207 33% 5%;
+    --sidebar-foreground: 215 20% 65%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 207 33% 5%;
+    --sidebar-accent: 0 0% 100%;
+    --sidebar-accent-foreground: 207 33% 5%;
+    --sidebar-border: 0 0% 100%;
+    --sidebar-ring: 221 83% 53%;
+    --chart-1: 221 83% 53%;
+    --chart-2: 130 39% 53%;
+    --chart-3: 258 90% 66%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 0 84% 57%;
+    color-scheme: dark;
+  }
+
+  /* ===== MATO (verde / natureza) ===== */
+  [data-theme="mato"] {
+    --background: 100 18% 97%;
+    --foreground: 138 24% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 138 24% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 138 24% 13%;
+    --primary: 136 45% 28%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 126 27% 43%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 100 28% 92%;
+    --muted-foreground: 132 8% 39%;
+    --accent: 100 38% 63%;
+    --accent-foreground: 138 24% 13%;
+    --destructive: 2 59% 44%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 136 45% 28%;
+    --warning: 38 92% 50%;
+    --border: 120 20% 89%;
+    --input: 120 20% 89%;
+    --ring: 136 45% 28%;
+    --header: 0 0% 100%;
+    --sidebar-background: 136 45% 28%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 136 45% 28%;
+    --sidebar-accent: 0 0% 100%;
+    --sidebar-accent-foreground: 136 45% 28%;
+    --sidebar-border: 0 0% 100%;
+    --sidebar-ring: 136 45% 28%;
+    --chart-1: 136 45% 28%;
+    --chart-2: 126 27% 43%;
+    --chart-3: 100 38% 63%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 2 59% 44%;
+  }
+
+  /* ===== TERRA (tons terrosos) ===== */
+  [data-theme="terra"] {
+    --background: 40 41% 94%;
+    --foreground: 28 35% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 28 35% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 28 35% 17%;
+    --primary: 22 45% 30%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 22 53% 47%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 39 38% 90%;
+    --muted-foreground: 30 19% 40%;
+    --accent: 33 49% 71%;
+    --accent-foreground: 28 35% 17%;
+    --destructive: 16 56% 41%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 69 36% 36%;
+    --warning: 38 92% 50%;
+    --border: 38 38% 84%;
+    --input: 38 38% 84%;
+    --ring: 22 45% 30%;
+    --header: 0 0% 100%;
+    --sidebar-background: 22 45% 30%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 22 45% 30%;
+    --sidebar-accent: 0 0% 100%;
+    --sidebar-accent-foreground: 22 45% 30%;
+    --sidebar-border: 0 0% 100%;
+    --sidebar-ring: 22 45% 30%;
+    --chart-1: 22 45% 30%;
+    --chart-2: 22 53% 47%;
+    --chart-3: 33 49% 71%;
+    --chart-4: 69 36% 36%;
+    --chart-5: 16 56% 41%;
+  }
+
+  /* ===== PERINI PROJETOS (laranja / preto / branco) ===== */
+  [data-theme="perini"] {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+    --primary: 21 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 4%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 42%;
+    --accent: 21 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 8 78% 47%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 146 50% 36%;
+    --warning: 38 92% 50%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 21 100% 50%;
+    --header: 0 0% 100%;
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 21 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 100%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 100%;
+    --sidebar-ring: 21 100% 50%;
+    --chart-1: 21 100% 50%;
+    --chart-2: 0 0% 4%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 146 50% 36%;
+    --chart-5: 8 78% 47%;
   }
 }
+
+/* ===== Transição suave de tema (ativada após o primeiro paint) ===== */
+.theme-transitions,
+.theme-transitions * {
+  transition: background-color .25s ease, border-color .25s ease, color .25s ease, fill .25s ease;
+}
+
+@media (max-width: 768px) {
+  input, textarea, select { font-size: 16px !important; }
+}
+
+/* ===== NOITE: remapeia utilitários claros hardcoded para o tema escuro ===== */
+[data-theme="noite"] .bg-white,
+[data-theme="noite"] .bg-slate-50,
+[data-theme="noite"] .bg-gray-50,
+[data-theme="noite"] .bg-slate-100,
+[data-theme="noite"] .bg-gray-100 { background-color: hsl(var(--card)); }
+[data-theme="noite"] .bg-slate-200,
+[data-theme="noite"] .bg-gray-200 { background-color: hsl(var(--muted)); }
+[data-theme="noite"] .hover\:bg-slate-100:hover,
+[data-theme="noite"] .hover\:bg-slate-200:hover,
+[data-theme="noite"] .hover\:bg-gray-100:hover,
+[data-theme="noite"] .hover\:bg-gray-200:hover { background-color: hsl(var(--muted)); }
+[data-theme="noite"] .text-slate-900,
+[data-theme="noite"] .text-slate-800,
+[data-theme="noite"] .text-slate-700,
+[data-theme="noite"] .text-gray-900,
+[data-theme="noite"] .text-gray-800,
+[data-theme="noite"] .text-gray-700 { color: hsl(var(--foreground)); }
+[data-theme="noite"] .text-slate-600,
+[data-theme="noite"] .text-slate-500,
+[data-theme="noite"] .text-slate-400,
+[data-theme="noite"] .text-gray-600,
+[data-theme="noite"] .text-gray-500 { color: hsl(var(--muted-foreground)); }
+[data-theme="noite"] .border-slate-200,
+[data-theme="noite"] .border-slate-100,
+[data-theme="noite"] .border-gray-200,
+[data-theme="noite"] .border-gray-100 { border-color: hsl(var(--border)); }
+[data-theme="noite"] .border-t,
+[data-theme="noite"] .border-b { border-color: hsl(var(--border)); }
