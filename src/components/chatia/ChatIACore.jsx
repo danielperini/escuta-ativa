@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
+import { getModuloByRoute } from '@/lib/tourModuleRegistry';
 import {
   MessageSquareText,
   Sparkles,
@@ -18,6 +19,7 @@ import {
   MapPin,
   Copy,
   Trash2,
+  Lightbulb,
 } from 'lucide-react';
 
 const STORAGE_KEY = 'societa_chat_ia_historico_v1';
@@ -60,7 +62,8 @@ O Assistente IA ajuda você a investigar comunidades e territórios usando os da
 
 **Território:** informe o município no campo "Município (ex: Matozinhos/MG)" no topo. A IA usa o contexto da página atual automaticamente; "aqui" se refere ao app/dados cadastrados.`;
 
-export default function ChatIACore({ onCloseLink, className, contextoForcado }) {
+export default function ChatIACore({ onCloseLink, className, contextoForcado, perguntaInicial, onPerguntaConsumida }) {
+  const location = useLocation();
   const [mensagens, setMensagens] = useState([]);
   const [conversaAtual, setConversaAtual] = useState(null);
   const [input, setInput] = useState('');
@@ -72,8 +75,8 @@ export default function ChatIACore({ onCloseLink, className, contextoForcado }) 
   const endRef = useRef(null);
 
   useEffect(() => {
-    setContextoPagina(contextoForcado || (window.location.pathname.replace('/', '') || 'Home'));
-  }, [contextoForcado]);
+    setContextoPagina(contextoForcado || (location.pathname.replace('/', '').split('?')[0] || 'Home'));
+  }, [contextoForcado, location.pathname]);
 
   useEffect(() => {
     if (endRef.current) endRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -120,16 +123,15 @@ export default function ChatIACore({ onCloseLink, className, contextoForcado }) 
     navigator.clipboard?.writeText(texto).catch(() => {});
   };
 
-  const enviar = async () => {
-    if (!input.trim() || loading) return;
-    const pergunta = input.trim();
-    setInput('');
-    const novas = [...mensagens, { role: 'user', content: pergunta }];
+  // Envia uma pergunta — recebe o texto pronto (usado por enviar(), Explique esta tela e Tour)
+  const enviarPergunta = async (pergunta) => {
+    if (!pergunta || !pergunta.trim() || loading) return;
+    const novas = [...mensagens, { role: 'user', content: pergunta.trim() }];
     setMensagens(novas);
     setLoading(true);
     try {
       const res = await base44.functions.invoke('chatIATerritorial', {
-        pergunta,
+        pergunta: pergunta.trim(),
         municipio: territorioInput.split('/')[0].trim(),
         uf: territorioInput.includes('/') ? territorioInput.split('/')[1].trim() : '',
         ibge: '',
@@ -155,6 +157,31 @@ export default function ChatIACore({ onCloseLink, className, contextoForcado }) 
       setLoading(false);
     }
   };
+
+  const enviar = () => {
+    if (!input.trim() || loading) return;
+    const pergunta = input.trim();
+    setInput('');
+    enviarPergunta(pergunta);
+  };
+
+  // "Explique esta tela": usa o Manual (TourModuleRegistry) como fonte prioritária + envia contexto ao backend
+  const explicarTela = () => {
+    const modulo = getModuloByRoute(contextoPagina);
+    const descManual = modulo
+      ? `Módulo "${modulo.title}": ${modulo.description}. Principais recursos: ${(modulo.features || []).slice(0, 5).join('; ')}.`
+      : '';
+    const pergunta = `Explique a funcionalidade desta tela (${contextoPagina}). Descreva o que ela faz, seus principais controles e como posso usá-la na prática. Contexto do manual: ${descManual}`;
+    enviarPergunta(pergunta);
+  };
+
+  // Recebe pergunta forçada do Tour Guiado
+  useEffect(() => {
+    if (perguntaInicial) {
+      enviarPergunta(perguntaInicial);
+      onPerguntaConsumida?.();
+    }
+  }, [perguntaInicial]);
 
   const onKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -198,6 +225,9 @@ export default function ChatIACore({ onCloseLink, className, contextoForcado }) 
           </Button>
           <Button size="sm" variant="outline" onClick={() => setMostrarManual(!mostrarManual)} className="h-7 text-xs">
             <HelpCircle className="w-3 h-3 mr-1" /> Como usar
+          </Button>
+          <Button size="sm" variant="secondary" onClick={explicarTela} className="h-7 text-xs" title="Explica a tela atual usando o Manual">
+            <Lightbulb className="w-3 h-3 mr-1" /> Explique esta tela
           </Button>
         </div>
       </div>
