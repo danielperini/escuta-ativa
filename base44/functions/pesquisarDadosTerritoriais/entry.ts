@@ -14,9 +14,9 @@ import { secrets } from 'base44:runtime';
 // ===================================================================
 
 const CATEGORIAS_PERMITIDAS = new Set([
-  'resumo', 'demografia', 'fiscal', 'social', 'saude', 'educacao',
-  'economia', 'cultura', 'esporte', 'saneamento', 'meio_ambiente',
-  'mineracao', 'conselhos', 'osc', 'governo_municipal',
+  'resumo', 'demografia', 'fiscal', 'social', 'assistencia_vulnerabilidade',
+  'saude', 'educacao', 'economia', 'cultura', 'esporte', 'saneamento',
+  'meio_ambiente', 'mineracao', 'conselhos', 'osc', 'governo_municipal',
   'camara_municipal', 'legislacao', 'politicas_publicas',
   'telecomunicacoes', 'agua_recursos_hidricos'
 ]);

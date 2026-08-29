@@ -4,7 +4,7 @@
   "properties": {
     "source_id": {
       "type": "string",
-      "description": "ID \u00fanico da fonte (ex: IBGE_LOCALIDADES, SICONFI)"
+      "description": "ID \u00fanico da fonte (ex: IBGE_LOCALIDADES, SICONFI, PREFEITURA)"
     },
     "source_name": {
       "type": "string",
@@ -13,6 +13,25 @@
     "category": {
       "type": "string",
       "description": "Categoria tem\u00e1tica associada (demografia, fiscal, resumo, telecomunicacoes, etc.)"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "API",
+        "DOWNLOAD",
+        "GEOSPATIAL",
+        "WEB_OFFICIAL_AI"
+      ],
+      "description": "M\u00e9todo de coleta: API=endpoint estruturado; DOWNLOAD=base oficial sob demanda; GEOSPATIAL=cruzamento por coordenada; WEB_OFFICIAL_AI=GPT localiza em fontes oficiais"
+    },
+    "cadence_days": {
+      "type": "number",
+      "default": 30,
+      "description": "TTL de cache em dias (1=di\u00e1rio, 7=semanal, 30=mensal, 365=publica\u00e7\u00e3o)"
+    },
+    "auth_secret": {
+      "type": "string",
+      "description": "Nome da secret necess\u00e1ria (ex: PORTAL_TRANSPARENCIA_CHAVE)"
     },
     "endpoint": {
       "type": "string",
@@ -28,15 +47,18 @@
       "enum": [
         "ATIVA",
         "DEGRADADA",
+        "AUTH_REQUIRED",
+        "NO_COVERAGE",
+        "TEMP_UNAVAILABLE",
+        "INVALID_SCHEMA",
+        "DISCONTINUED",
         "EM_TESTE",
-        "INDISPONIVEL",
         "ERRO_DE_AUTENTICACAO",
         "ERRO_DE_ENDPOINT",
         "SEM_DADOS_PARA_O_MUNICIPIO",
-        "RESPOSTA_INVALIDA",
-        "DESCONTINUADA"
+        "RESPOSTA_INVALIDA"
       ],
-      "description": "Status exposto ao usu\u00e1rio"
+      "description": "Status exposto ao usu\u00e1rio. Valores novo padr\u00e3o spec: ATIVA, DEGRADADA, AUTH_REQUIRED, NO_COVERAGE, TEMP_UNAVAILABLE, INVALID_SCHEMA, DISCONTINUED. Legado aceito: ERRO_DE_AUTENTICACAO=AUTH_REQUIRED, ERRO_DE_ENDPOINT=TEMP_UNAVAILABLE, SEM_DADOS_PARA_O_MUNICIPIO=NO_COVERAGE, RESPOSTA_INVALIDA=INVALID_SCHEMA"
     },
     "status_tecnico": {
       "type": "string",
@@ -44,53 +66,43 @@
     },
     "last_test_at": {
       "type": "string",
-      "format": "date-time",
-      "description": "Quando o \u00faltimo teste foi executado"
+      "format": "date-time"
     },
     "response_time_ms": {
-      "type": "number",
-      "description": "Tempo de resposta em milissegundos"
+      "type": "number"
     },
     "http_status": {
-      "type": "number",
-      "description": "C\u00f3digo HTTP retornado"
+      "type": "number"
     },
     "error_message": {
-      "type": "string",
-      "description": "Mensagem t\u00e9cnica do erro (se houver)"
+      "type": "string"
     },
     "sample_municipality": {
-      "type": "string",
-      "description": "Munic\u00edpio usado como amostra no teste"
+      "type": "string"
     },
     "sample_result_count": {
-      "type": "number",
-      "description": "N\u00famero de itens v\u00e1lidos retornados no teste"
+      "type": "number"
     },
     "schema_valid": {
-      "type": "boolean",
-      "description": "Schema/estrutura da resposta validada"
+      "type": "boolean"
     },
     "data_valid": {
       "type": "boolean",
       "description": "Dados tecnicamente + coerentemente v\u00e1lidos (IA n\u00e3o sinalizou inconsist\u00eancia)"
     },
     "coherence_observacao": {
-      "type": "string",
-      "description": "Observa\u00e7\u00e3o da IA sobre coer\u00eancia dos dados"
+      "type": "string"
     },
     "coherence_consistente": {
-      "type": "boolean",
-      "description": "IA: munic\u00edpio/estrutura corresponde ao esperado"
+      "type": "boolean"
     },
     "coherence_magnitude_ok": {
-      "type": "boolean",
-      "description": "IA: magnitude plaus\u00edvel"
+      "type": "boolean"
     },
     "consecutive_failures": {
       "type": "number",
       "default": 0,
-      "description": "Falhas consecutivas \u2014 2=DEGRADADA, 3=INDISPONIVEL/oculta"
+      "description": "Falhas consecutivas \u2014 2=DEGRADADA, 3=DISCONTINUED/oculta"
     },
     "visible": {
       "type": "boolean",

@@ -34,6 +34,13 @@
       },
       "description": "IDs dos registros inclu\u00eddos"
     },
+    "casos_incluidos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos casos inclu\u00eddos"
+    },
     "comunidade": {
       "type": "string",
       "description": "Comunidade analisada"
@@ -45,6 +52,42 @@
     "total_registros": {
       "type": "number",
       "description": "Total de registros analisados"
+    },
+    "total_casos": {
+      "type": "number",
+      "description": "Total de casos analisados"
+    },
+    "dados_secundarios": {
+      "type": "object",
+      "description": "Dados Secund\u00e1rios do Territ\u00f3rio inclu\u00eddos no relat\u00f3rio (spec \u00a717): categorias, contexto territorial e indicadores por categoria. Cada indicador carrega source_name/source_url/reference_period rastre\u00e1veis (spec \u00a718, \u00a721).",
+      "properties": {
+        "categorias": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IDs das categorias selecionadas (demografia, economia, saude, ...)"
+        },
+        "contexto": {
+          "type": "object",
+          "description": "Contexto territorial (municipio, uf, ibge) identificado a partir do escopo selecionado",
+          "properties": {
+            "municipio": {
+              "type": "string"
+            },
+            "uf": {
+              "type": "string"
+            },
+            "ibge": {
+              "type": "string"
+            }
+          }
+        },
+        "indicadoresPorCategoria": {
+          "type": "object",
+          "description": "Mapa categoria \u2192 array de DadoSecundario no momento da gera\u00e7\u00e3o (snapshot para rastreabilidade futura)"
+        }
+      }
     },
     "classificacoes_acoes": {
       "type": "object",

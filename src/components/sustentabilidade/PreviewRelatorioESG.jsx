@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Leaf, Globe, Users, Target, BarChart3, FileText } from 'lucide-react';
 import ClassificadorAutomaticoESG from './ClassificadorAutomaticoESG.jsx';
+import { SecaoDadosSecundariosPreview } from '@/components/relatorios/PainelDadosSecundarios.jsx';
 
-export default function PreviewRelatorioESG({ configuracao, registros, casos = [], configuracaoESG }) {
+export default function PreviewRelatorioESG({ configuracao, registros, casos = [], configuracaoESG, dadosSecundarios = null }) {
   const todosItens = [...registros, ...casos];
   const classificador = new ClassificadorAutomaticoESG(todosItens);
   const dados = classificador.classificar();
@@ -234,6 +235,18 @@ export default function PreviewRelatorioESG({ configuracao, registros, casos = [
           </div>
         </CardContent>
       </Card>
+
+      {/* Dados Secundários do Território (spec §17, §18, §19, §20) */}
+      {dadosSecundarios && dadosSecundarios.categorias && dadosSecundarios.categorias.length > 0 && (
+        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
+          <CardContent className="pt-6 space-y-4">
+            <SecaoDadosSecundariosPreview
+              indicadoresPorCategoria={dadosSecundarios.indicadoresPorCategoria || {}}
+              contexto={dadosSecundarios.contexto || {}}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Metodologia */}
       <Card className="bg-slate-50">

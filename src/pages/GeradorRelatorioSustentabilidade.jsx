@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import ClassificadorAutomaticoESG from '@/components/sustentabilidade/ClassificadorAutomaticoESG.jsx';
 import PreviewRelatorioESG from '@/components/sustentabilidade/PreviewRelatorioESG.jsx';
+import PainelDadosSecundarios from '@/components/relatorios/PainelDadosSecundarios.jsx';
 
 export default function GeradorRelatorioSustentabilidade() {
   const navigate = useNavigate();
@@ -35,6 +36,7 @@ export default function GeradorRelatorioSustentabilidade() {
   });
   
   const [dadosClassificados, setDadosClassificados] = useState(null);
+  const [dadosSecundarios, setDadosSecundarios] = useState(null);
 
   const { data: registros = [] } = useQuery({
     queryKey: ['registros-sustentabilidade'],
@@ -141,6 +143,11 @@ export default function GeradorRelatorioSustentabilidade() {
       territorio: configuracao.territorio,
       total_registros: registrosFiltrados.length,
       total_casos: casosFiltrados.length,
+      dados_secundarios: dadosSecundarios ? {
+        categorias: dadosSecundarios.categorias,
+        indicadoresPorCategoria: dadosSecundarios.indicadoresPorCategoria,
+        contexto: dadosSecundarios.contexto,
+      } : undefined,
       ...dadosClassificados,
       status: 'concluido',
       versao: '1.0'
@@ -260,6 +267,7 @@ export default function GeradorRelatorioSustentabilidade() {
           registros={registrosFiltrados}
           casos={casosFiltrados}
           configuracaoESG={configuracaoESG}
+          dadosSecundarios={dadosSecundarios}
         />
       </div>
     );
@@ -440,6 +448,13 @@ export default function GeradorRelatorioSustentabilidade() {
           </div>
         </CardContent>
       </Card>
+
+      <PainelDadosSecundarios
+        configuracao={configuracao}
+        registrosFiltrados={registrosFiltrados}
+        comunidades={comunidades}
+        onChange={setDadosSecundarios}
+      />
 
       <div className="flex justify-end gap-3">
         <Button onClick={handleAvancarEtapa} className="bg-emerald-600 hover:bg-emerald-700" size="lg">

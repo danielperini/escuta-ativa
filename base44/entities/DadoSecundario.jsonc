@@ -4,11 +4,11 @@
   "properties": {
     "source_id": {
       "type": "string",
-      "description": "ID da fonte/origem (ex: IBGE_POP_2022, SICONFI_DESP_PESSOAL_2023)"
+      "description": "ID da fonte/origem (ex: IBGE_POP_2022, SICONFI_DESP_PESSOAL_2023, PREFEITA_NOME_PREFEITO)"
     },
     "source_name": {
       "type": "string",
-      "description": "Nome leg\u00edvel da fonte (ex: IBGE/SIDRA, Tesouro/SICONFI, Portal Transpar\u00eancia)"
+      "description": "Nome leg\u00edvel da fonte (ex: IBGE/SIDRA, Tesouro/SICONFI, Portal Transpar\u00eancia, Prefeitura Municipal)"
     },
     "municipality_ibge_code": {
       "type": "string",
@@ -20,12 +20,18 @@
     "state": {
       "type": "string"
     },
+    "community_id": {
+      "type": "string",
+      "description": "ID da comunidade quando geographic_level=COMUNITARIO/GEOESPACIAL; vazio para MUNICIPAL"
+    },
     "category": {
       "type": "string",
       "enum": [
+        "resumo",
         "demografia",
         "fiscal",
         "social",
+        "assistencia_vulnerabilidade",
         "saude",
         "educacao",
         "economia",
@@ -40,15 +46,14 @@
         "camara_municipal",
         "legislacao",
         "politicas_publicas",
-        "resumo",
         "telecomunicacoes",
         "agua_recursos_hidricos"
       ],
-      "description": "Categoria tem\u00e1tica do dado secund\u00e1rio"
+      "description": "Categoria tem\u00e1tica do dado secund\u00e1rio (alinhada \u00e0 tela Dados Secund\u00e1rios)"
     },
     "indicator": {
       "type": "string",
-      "description": "Nome do indicador (ex: Popula\u00e7\u00e3o total, Despesa com pessoal, Cobertura 4G Claro, Bacia hidrogr\u00e1fica)"
+      "description": "Nome do indicador (ex: Popula\u00e7\u00e3o total, Despesa com pessoal, Cobertura 4G Claro)"
     },
     "value_number": {
       "type": "number",
@@ -64,11 +69,11 @@
     },
     "reference_period": {
       "type": "string",
-      "description": "Per\u00edodo de refer\u00eancia (AAAA, AAAA-MM, intervalo)"
+      "description": "Per\u00edodo de refer\u00eancia (AAAA, AAAA-MM, intervalo). NUNCA confundir com collected_at."
     },
     "source_url": {
       "type": "string",
-      "description": "URL rastre\u00e1vel da fonte"
+      "description": "URL rastre\u00e1vel da fonte (fonte oficial, nunca 'https://openai.com')"
     },
     "orgao": {
       "type": "string",
@@ -97,7 +102,7 @@
     },
     "raw_metadata": {
       "type": "object",
-      "description": "Metadados completos da fonte original (CDC/DDF). Para telecom: { operadora, tecnologia, tipo_indicador }. Para \u00e1gua: { codigo_estacao, sistema, coordenadas }"
+      "description": "Metadados completos da fonte original (CDC/DDF). Telecom: { operadora, tecnologia, tipo_indicador }. \u00c1gua: { codigo_estacao, sistema, coordenadas }"
     },
     "data_publicacao": {
       "type": "string",
@@ -110,10 +115,11 @@
         "DOWNLOAD_OFICIAL",
         "PORTAL_OFICIAL",
         "PESQUISA_WEB_IA",
-        "CACHE"
+        "CACHE",
+        "GEOSPATIAL"
       ],
       "default": "PESQUISA_WEB_IA",
-      "description": "M\u00e9todo de coleta: API=endpoint oficial estruturado; DOWNLOAD_OFICIAL=base/download governamental; PORTAL_OFICIAL=portal/painel oficial; PESQUISA_WEB_IA=pesquisa web assistida por IA em fontes oficiais; CACHE=exibido a partir do cache local"
+      "description": "M\u00e9todo de coleta: API=endpoint oficial estruturado; DOWNLOAD_OFICIAL=base/download governamental; PORTAL_OFICIAL=portal/painel oficial; PESQUISA_WEB_IA=pesquisa web assistida por IA em fontes oficiais; GEOSPATIAL=cruzamento geoespacial; CACHE=exibido a partir do cache local"
     },
     "validation_status": {
       "type": "string",
@@ -133,10 +139,11 @@
         "SUBMUNICIPAL",
         "COMUNITARIO",
         "GEOESPACIAL",
-        "INTERNO_SOCIEDATA"
+        "INTERNO_SOCIEDATA",
+        "CONTEXTO_TERRITORIAL"
       ],
       "default": "MUNICIPAL",
-      "description": "N\u00edvel territorial do dado: MUNICIPAL=dado municipal agregado; SUBMUNICIPAL=dado de sub-bairro/distrito; COMUNITARIO=dado espec\u00edfico da comunidade; GEOESPACIAL=dado geoespacial (buffer, bacia); INTERNO_SOCIEDATA=dado interno da societ\u00e1.ai (registro/stakeholder)"
+      "description": "N\u00edvel territorial do dado: MUNICIPAL=agregado municipal; SUBMUNICIPAL=distrito/sub-bairro; COMUNITARIO=espec\u00edfico da comunidade; GEOESPACIAL=pol\u00edgono/buffer/bacia; INTERNO_SOCIEDATA=registro interno; CONTEXTO_TERRITORIAL=equipamento/fei\u00e7\u00e3o cruzada por coordenada da comunidade (escolas, UBS, rios) \u2014 nunca apresentado com estat\u00edstica comunit\u00e1ria"
     }
   },
   "required": [
