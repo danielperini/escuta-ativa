@@ -432,8 +432,10 @@ export default function VozComunidade() {
               <Card className="p-12 text-center">
                 <MessageCircle className="w-12 h-12 mx-auto mb-4 text-slate-300" />
                 <h3 className="text-lg font-medium text-slate-900 mb-2">Nenhuma demanda encontrada</h3>
-                <p className="text-slate-500">
-                  Registre interações comunitárias para ver as demandas aqui
+                <p className="text-slate-600 mt-1 max-w-md mx-auto text-base leading-relaxed">
+                  <span className="text-3xl leading-none text-slate-300 mr-1 align-top">“</span>
+                  <em>Registre interações comunitárias para ver as demandas aqui</em>
+                  <span className="text-3xl leading-none text-slate-300 ml-1 align-top">”</span>
                 </p>
               </Card>
             ) : (
@@ -455,7 +457,11 @@ export default function VozComunidade() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                          <p className="text-slate-900">{demanda.descricao}</p>
+                          <p className="text-slate-900 leading-relaxed text-base">
+                            <span className="text-3xl leading-none text-slate-300 mr-1 align-top">“</span>
+                            {demanda.descricao}
+                            <span className="text-3xl leading-none text-slate-300 ml-1 align-top">”</span>
+                          </p>
                           <div className="flex items-center gap-3 mt-2 flex-wrap">
                             <Badge variant="secondary" className={cn("text-xs", urgencia.color)}>
                               {urgencia.label}

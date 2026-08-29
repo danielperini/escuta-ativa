@@ -326,7 +326,7 @@ export default function Materialidade() {
             )}
             <div 
               className={cn(
-                "relative aspect-square bg-gradient-to-br from-emerald-50 via-amber-50 to-red-50 rounded-lg border",
+                "relative aspect-square bg-gradient-to-br from-emerald-50 via-amber-50 to-red-50 rounded-lg border p-6",
                 modoAdicaoInterativa && "cursor-crosshair ring-2 ring-blue-400"
               )}
               onClick={handleMatrixClick}
@@ -365,12 +365,12 @@ export default function Materialidade() {
                     }}
                     >
                     <div className={cn(
-                     "w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-transform group-hover:scale-125",
-                     categoriaColors[tema.categoria]?.split(' ')[0] || 'bg-slate-100'
+                      "w-7 h-7 rounded-full flex items-center justify-center shadow-md ring-2 ring-white transition-transform group-hover:scale-110",
+                      categoriaColors[tema.categoria]?.split(' ')[0] || 'bg-slate-100'
                     )}>
                      <TrendIcon className={cn("w-4 h-4", tendenciaColor[tema.tendencia])} />
                     </div>
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white px-2 py-1 rounded shadow-lg text-xs whitespace-nowrap z-10">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-white text-slate-900 px-2 py-1 rounded-md shadow-lg border border-slate-300 text-xs font-semibold whitespace-nowrap z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity max-w-[220px] overflow-hidden text-ellipsis">
                       {tema.nome}
                     </div>
                   </div>
