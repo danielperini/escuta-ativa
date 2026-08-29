@@ -48,7 +48,7 @@
     },
     "indicator": {
       "type": "string",
-      "description": "Nome do indicador (ex: Popula\u00e7\u00e3o total, Despesa com pessoal, Bolsa Fam\u00edlia - fam\u00edlias, Cobertura 4G Claro, Bacia hidrogr\u00e1fica)"
+      "description": "Nome do indicador (ex: Popula\u00e7\u00e3o total, Despesa com pessoal, Cobertura 4G Claro, Bacia hidrogr\u00e1fica)"
     },
     "value_number": {
       "type": "number",
@@ -102,6 +102,41 @@
     "data_publicacao": {
       "type": "string",
       "description": "Data de publica\u00e7\u00e3o na fonte, quando dispon\u00edvel"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "API",
+        "DOWNLOAD_OFICIAL",
+        "PORTAL_OFICIAL",
+        "PESQUISA_WEB_IA",
+        "CACHE"
+      ],
+      "default": "PESQUISA_WEB_IA",
+      "description": "M\u00e9todo de coleta: API=endpoint oficial estruturado; DOWNLOAD_OFICIAL=base/download governamental; PORTAL_OFICIAL=portal/painel oficial; PESQUISA_WEB_IA=pesquisa web assistida por IA em fontes oficiais; CACHE=exibido a partir do cache local"
+    },
+    "validation_status": {
+      "type": "string",
+      "enum": [
+        "verificado",
+        "divergente",
+        "nao_verificado",
+        "sem_consulta"
+      ],
+      "default": "nao_verificado",
+      "description": "verificado=fonte oficial consultada e coerente; divergente=h\u00e1 conflito entre fontes; nao_verificado=ainda n\u00e3o validado; sem_consulta=dado n\u00e3o localizado"
+    },
+    "geographic_level": {
+      "type": "string",
+      "enum": [
+        "MUNICIPAL",
+        "SUBMUNICIPAL",
+        "COMUNITARIO",
+        "GEOESPACIAL",
+        "INTERNO_SOCIEDATA"
+      ],
+      "default": "MUNICIPAL",
+      "description": "N\u00edvel territorial do dado: MUNICIPAL=dado municipal agregado; SUBMUNICIPAL=dado de sub-bairro/distrito; COMUNITARIO=dado espec\u00edfico da comunidade; GEOESPACIAL=dado geoespacial (buffer, bacia); INTERNO_SOCIEDATA=dado interno da societ\u00e1.ai (registro/stakeholder)"
     }
   },
   "required": [

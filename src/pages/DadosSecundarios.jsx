@@ -13,7 +13,7 @@ import { SeletorComunidades } from '@/components/dados-secundarios/SeletorComuni
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, Database, Sparkles, Info, Radio, Droplets, RefreshCw } from 'lucide-react';
+import { Loader2, Database, Sparkles, Info, Radio, Droplets, RefreshCw, AlertTriangle } from 'lucide-react';
 import {
   buscarTodosCaches, FONTES
 } from '@/lib/publicTerritorialDataService';
@@ -84,6 +84,8 @@ export default function DadosSecundarios() {
 
   // Coletor único usando resolver centralizado — substitui coletarDemografia/coletarViaIA
   const coletarSeccaoParaMun = useCallback(async (mun, categoria, opts = {}) => {
+    const ampliar = !!(opts && opts.ampliar);
+    const ampliarExtra = ampliar ? (opts.pergunta || 'descritivo geral') : undefined;
     const key = keyDados(mun.ibge, categoria);
     setDados(d => ({
       ...d,
@@ -94,7 +96,8 @@ export default function DadosSecundarios() {
         mun,
         categoria,
         fontesSel,
-        forceRefresh: !!opts.forceRefresh
+        forceRefresh: !!opts.forceRefresh || ampliar,
+        ampliarExtra
       });
       setDados(d => ({
         ...d,
@@ -175,8 +178,8 @@ export default function DadosSecundarios() {
       const e = dados[key];
       if (!e) continue;
       if (e.status === STATUS_DADO.DADO_DISPONIVEL && (e.items || []).length > 0) encontrados += 1;
-      else if (e.status === STATUS_DADO.SOURCE_TEMPORARILY_UNAVAILABLE) indisponiveis += 1;
-      else if (e.status === STATUS_DADO.SEM_COBERTURA || e.status === STATUS_DADO.DADO_NAO_LOCALIZADO) semCobertura += 1;
+      else if (e.status === STATUS_DADO.EMERGENCIA_CACHE) indisponiveis += 1;
+      else if (e.status === STATUS_DADO.SEM_DADO) semCobertura += 1;
     }
     return { encontrados, indisponiveis, semCobertura };
   }, [dados, secaoAtiva, municipiosSelecionados, keyDados]);
@@ -203,7 +206,7 @@ export default function DadosSecundarios() {
 
     // Demografia (via IBGE — conhece campos diretos)
     if (catId === 'demografia') {
-      const isDisponivel = estado.status === STATUS_DADO.DADO_DISPONIVEL && (estado.items || []).length > 0;
+      const isDisponivel = (estado.status === STATUS_DADO.DADO_DISPONIVEL || estado.status === STATUS_DADO.EMERGENCIA_CACHE) && (estado.items || []).length > 0;
       return (
         <Card key={key} className="p-4">
           <CardHeader className="pb-2">
@@ -220,8 +223,10 @@ export default function DadosSecundarios() {
                 unit={it.unit || ''}
                 fonte={{ nome: it.source_name, url: it.source_url }}
                 confidence={it.confidence || 'oficial'}
+                method={it.method}
+                geographic_level={it.geographic_level}
                 periodo={it.reference_period}
-              />
+                />
             ))}
             {!isDisponivel && (
               <div className="col-span-full">
@@ -268,7 +273,7 @@ export default function DadosSecundarios() {
     }
 
     // Outras seções via IA/web
-    if (estado.status !== STATUS_DADO.DADO_DISPONIVEL || (estado.items || []).length === 0) {
+    if ((estado.status !== STATUS_DADO.DADO_DISPONIVEL && estado.status !== STATUS_DADO.EMERGENCIA_CACHE) || (estado.items || []).length === 0) {
       return (
         <SecaoNaoDisponivel
           key={key}
@@ -311,6 +316,8 @@ export default function DadosSecundarios() {
                   unit={it.unit || ''}
                   fonte={{ nome: it.source_name, url: it.source_url, data_consulta: formatarData(it.updated_at) }}
                   confidence={it.confidence}
+                  method={it.method}
+                  geographic_level={it.geographic_level}
                   periodo={it.reference_period}
                 />
               ))}
@@ -326,8 +333,11 @@ export default function DadosSecundarios() {
               </ul>
             </div>
           )}
-          {estado.aviso_validade && (
-            <p className="text-xs italic text-amber-700">{estado.aviso_validade}</p>
+          {(estado.aviso_validade || estado.status === STATUS_DADO.EMERGENCIA_CACHE) && (
+            <p className="text-xs italic text-amber-700 flex items-start gap-1">
+              <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+              {estado.aviso_validade || 'Exibindo último dado disponível em cache — não foi possível atualizar a coleta agora.'}
+            </p>
           )}
         </CardContent>
       </Card>

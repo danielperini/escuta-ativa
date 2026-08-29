@@ -186,6 +186,9 @@ Deno.serve(async (req) => {
           updated_at: dataConsulta,
           confidence: it.confidence || 'nao_verificado',
           data_publicacao: it.data_publicacao || '',
+          method: 'PESQUISA_WEB_IA',
+          validation_status: (it.confidence === 'oficial' && it.source_url) ? 'verificado' : (it.confidence === 'inferido_ia' ? 'nao_verificado' : 'nao_verificado'),
+          geographic_level: 'MUNICIPAL',
           raw_metadata: { observacao: it.observacao || '' }
         });
         registrosCache.push(criado);
@@ -208,6 +211,9 @@ Deno.serve(async (req) => {
           collected_at: dataConsulta,
           updated_at: dataConsulta,
           confidence: 'inferido_ia',
+          method: 'PESQUISA_WEB_IA',
+          validation_status: 'nao_verificado',
+          geographic_level: 'MUNICIPAL',
           raw_metadata: {}
         });
         registrosCache.unshift(r);
@@ -229,6 +235,9 @@ Deno.serve(async (req) => {
           collected_at: dataConsulta,
           updated_at: dataConsulta,
           confidence: 'inferido_ia',
+          method: 'PESQUISA_WEB_IA',
+          validation_status: 'nao_verificado',
+          geographic_level: 'MUNICIPAL',
           raw_metadata: {}
         });
         registrosCache.push(r);
