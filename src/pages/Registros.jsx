@@ -135,14 +135,22 @@ export default function Registros() {
       <ErrorBoundary>
         <div className="space-y-4 md:space-y-6 pb-4">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Registros de Campo</h2>
-          <p className="text-slate-500 mt-1">
-            {filteredRegistros.length} de {registros.length} registro(s)
-          </p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-1.5 h-10 rounded-full bg-gradient-to-b from-[#2D6A4F] to-[#1B4332]" />
+          <div>
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900 leading-tight">
+              Registros de Campo
+            </h2>
+            <p className="text-sm text-slate-500 mt-0.5">
+              <span className="font-semibold text-slate-700">{filteredRegistros.length}</span>
+              {' de '}
+              <span className="font-semibold text-slate-700">{registros.length}</span>
+              {' registro(s)'}
+            </p>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <ExportadorDados
             dados={filteredRegistros}
             colunas={[
@@ -156,16 +164,16 @@ export default function Registros() {
             nomeArquivo="registros"
             titulo="Relatório de Registros"
           />
-          <Link to={createPageUrl('RegistroUnificado')}>
-            <Button className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2">
-              <Plus className="w-4 h-4" />
-              Novo Registro
-            </Button>
-          </Link>
           <Link to={createPageUrl('RegistroUnificado') + '?manual=true'}>
             <Button variant="outline" className="gap-2">
               <FileText className="w-4 h-4" />
               Registro Manual
+            </Button>
+          </Link>
+          <Link to={createPageUrl('RegistroUnificado')}>
+            <Button className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2 shadow-sm">
+              <Plus className="w-4 h-4" />
+              Novo Registro
             </Button>
           </Link>
         </div>
