@@ -148,6 +148,11 @@ export default function ChatIACore({ onCloseLink, className, contextoForcado, pe
           fontesInternas: data.fontesInternas || [],
           fontesPublicas: data.fontesPublicas || [],
           territorio: data.territorio,
+          categoria_detectada: data.categoria_detectada,
+          consultou_externo: !!data.consultou_externo,
+          fonte_status: data.fonte_status,
+          fontes_consultadas: data.fontes_consultadas || [],
+          indicadores_encontrados: data.indicadores_encontrados || [],
         },
       ];
       salvarConversa(final);
@@ -335,6 +340,20 @@ export default function ChatIACore({ onCloseLink, className, contextoForcado, pe
                   ))}
                 </div>
               )}
+
+              {m.consultou_externo && (
+                <div className="mt-2 pt-2 border-t border-border/50">
+                  <p className="text-[10px] text-amber-700 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Consulta externa: GPT localizou fontes oficiais e o resultado foi salvo em Dados Secundários.
+                  </p>
+                  {m.categoria_detectada && (
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Categoria: <span className="font-medium">{m.categoria_detectada}</span> · Status: <span className="font-medium">{m.fonte_status || '—'}</span>
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -342,7 +361,8 @@ export default function ChatIACore({ onCloseLink, className, contextoForcado, pe
         {loading && (
           <div className="flex justify-start">
             <div className="rounded-lg px-3 py-2 text-sm bg-muted/40 border border-border flex items-center gap-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Pensando…
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Buscando em dados internos, documentos, Dados Secundários e fontes oficiais…</span>
             </div>
           </div>
         )}
