@@ -100,27 +100,31 @@ export default function ComparadorPeriodos() {
                 <CardContent className="space-y-4">
                     <div className="space-y-3">
                         {periodos.map((periodo, idx) => (
-                            <div key={periodo.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                <div 
-                                    className="w-4 h-4 rounded-full flex-shrink-0" 
-                                    style={{ backgroundColor: periodo.cor }}
-                                />
-                                <Input
-                                    placeholder="Nome do período"
-                                    value={periodo.nome}
-                                    onChange={(e) => atualizarPeriodo(periodo.id, 'nome', e.target.value)}
-                                    className="w-32"
-                                />
+                            <div key={periodo.id} className="flex flex-wrap items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2 w-full sm:w-auto">
+                                    <div
+                                        className="w-4 h-4 rounded-full flex-shrink-0"
+                                        style={{ backgroundColor: periodo.cor }}
+                                    />
+                                    <Input
+                                        placeholder="Nome do período"
+                                        value={periodo.nome}
+                                        onChange={(e) => atualizarPeriodo(periodo.id, 'nome', e.target.value)}
+                                        className="w-full sm:w-32"
+                                    />
+                                </div>
                                 <Input
                                     type="date"
                                     value={periodo.dataInicio}
                                     onChange={(e) => atualizarPeriodo(periodo.id, 'dataInicio', e.target.value)}
+                                    className="flex-1 min-w-[130px]"
                                 />
                                 <span className="text-gray-500">até</span>
                                 <Input
                                     type="date"
                                     value={periodo.dataFim}
                                     onChange={(e) => atualizarPeriodo(periodo.id, 'dataFim', e.target.value)}
+                                    className="flex-1 min-w-[130px]"
                                 />
                                 {periodos.length > 1 && (
                                     <Button

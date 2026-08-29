@@ -120,7 +120,7 @@ export default function MonitorDevolutivas() {
     if (!notificacoesVisiveis || totalPendencias === 0) return null;
 
     return (
-        <div className="fixed bottom-6 right-6 w-96 max-w-[calc(100vw-3rem)] space-y-2 z-50">
+        <div className="fixed z-40 left-2 right-2 top-16 sm:left-auto sm:right-6 sm:top-auto sm:bottom-6 sm:w-96 sm:max-w-[calc(100vw-3rem)] space-y-2">
             {/* Devolutivas atrasadas */}
             {pendencias.atrasadas.length > 0 && (
                 <Card className="border-2 border-red-500 bg-red-50 shadow-xl">

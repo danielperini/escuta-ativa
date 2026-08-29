@@ -378,10 +378,10 @@ export default function Materialidade() {
               })}
 
               {/* Axis labels */}
-              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-slate-500">
+              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs text-slate-500">
                 Relevância para a Empresa →
               </div>
-              <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-slate-500 whitespace-nowrap">
+              <div className="absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-slate-500 whitespace-nowrap origin-center">
                 Relevância para a Comunidade →
               </div>
             </div>
