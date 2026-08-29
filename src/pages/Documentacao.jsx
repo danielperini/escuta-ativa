@@ -34,14 +34,16 @@ const sections = [
     icon: Book,
     color: 'bg-blue-100 text-blue-600',
     content: {
-      description: 'O societa.ai é uma plataforma de escuta social ativa desenvolvida para gestão de relacionamento comunitário, análise territorial e prevenção de riscos sociais.',
+      description: 'O societa.ai é uma plataforma de escuta social ativa desenvolvida para gestão de relacionamento comunitário, análise territorial e prevenção de riscos sociais. O menu lateral agora está organizado em grupos colapsáveis.',
       features: [
-        'Sistema de registro inteligente com IA',
-        'Análise automática de riscos sociais',
-        'Matriz de materialidade ESG',
-        'Gestão de stakeholders e casos',
-        'Visualização geográfica interativa',
-        'Análises preditivas e insights estratégicos'
+        'Dashboard — visão executiva com o Motor Global de Decisões',
+        'Escuta & Registro — Registros, Voz da Comunidade, Gestão de Demandas, Casos',
+        'Território — Mapa, Comunidades e Grupos, Análise Demográfica, Dados Secundários',
+        'Relacionamento — Stakeholders, Mapa de Stakeholders, Agenda, Materialidade',
+        'Relatórios & ESG — Gerador de Relatório, Relatórios Gerados, Referenciais ESG, ODS, Configurações ESG',
+        'Sistema — Equipes, Usuários, Integrações, Saúde das Fontes, Limpeza de Dados, Aparência, Documentação',
+        'Chat IA — assistente contextual acessível pelo canto inferior em qualquer página',
+        'Tour Guiado — ícone de ônibus à esquerda do Chat IA'
       ]
     }
   },
@@ -59,7 +61,8 @@ const sections = [
         'Monitor de devolutivas pendentes',
         'Vozes do Território (citações reais e anonimizadas)',
         'Dicas de Relacionamento contextualizadas',
-        'Painel de Orientação Territorial com 3 cards diários de IA'
+        'Painel de Orientação Territorial com 3 cards diários de IA',
+        'Widget Prioridades do Motor — insights automáticos com evidências'
       ],
       howTo: [
         'Personalize os widgets clicando em "Personalizar Widgets"',
@@ -387,7 +390,7 @@ const sections = [
         'Cada conversa é independente — inicie nova a qualquer momento'
       ],
       howTo: [
-        'Acesse "Assistente de IA" no menu lateral',
+        'Acesse pelo Chat IA no canto inferior direito (disponível em qualquer página)',
         'Use as sugestões rápidas ou digite sua pergunta',
         'Para perguntas sobre dados, cite comunidade/território quando possível',
         'O assistente consulta as entidades e responde com números reais',

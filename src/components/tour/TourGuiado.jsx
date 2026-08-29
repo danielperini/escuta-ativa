@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import {
-  TOUR_VERSION, getModulosVisiveis, getModuloByRoute, buildSidebarSelector
+  TOUR_VERSION, TOUR_GROUPS, getModulosVisiveis, getSidebarModules, getModuloByRoute, buildSidebarSelector
 } from '@/lib/tourModuleRegistry';
 
 export default function TourGuiado({
@@ -42,18 +42,45 @@ export default function TourGuiado({
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Constrói lista de passos
+  // Constrói lista de passos — sidebar mode insere um passo de "grupo" antes do
+  // primeiro subitem de cada grupo colapsável, e expande o grupo ao destacar cada subitem.
   const steps = useMemo(() => {
     if (mode === 'sidebar') {
-      return getModulosVisiveis(userRole).map(m => ({
-        tipo: 'sidebar',
-        modulo: m,
-        title: m.title,
-        description: m.description,
-        features: m.features,
-        selector: buildSidebarSelector(m.route),
-        icon: m.icon,
-      }));
+      const mods = getSidebarModules(userRole);
+      const out = [];
+      let lastGroup = '__none__';
+      mods.forEach(m => {
+        const g = m.sidebar_group;
+        if (g && g !== lastGroup) {
+          const grp = TOUR_GROUPS.find(x => x.key === g);
+          if (grp) {
+            out.push({
+              tipo: 'group',
+              modulo: null,
+              groupKey: grp.key,
+              groupTitle: grp.title,
+              title: grp.title,
+              description: grp.description,
+              features: [],
+              selector: null,
+              icon: grp.icon,
+            });
+          }
+          lastGroup = g;
+        }
+        out.push({
+          tipo: 'sidebar',
+          modulo: m,
+          groupKey: g,
+          groupTitle: g ? (TOUR_GROUPS.find(x => x.key === g)?.title || null) : null,
+          title: m.title,
+          description: m.description,
+          features: m.features,
+          selector: buildSidebarSelector(m.route),
+          icon: m.icon,
+        });
+      });
+      return out;
     }
     if (mode === 'page' && moduloAtual) {
       const m = getModuloByRoute(moduloAtual);
@@ -111,11 +138,22 @@ export default function TourGuiado({
     };
     updateFnRef.current = updateRect;
 
+    // Garante que o grupo colapsável da sidebar esteja aberto. Retorna o botão do grupo.
+    const ensureGroupExpanded = (groupTitle) => {
+      if (!groupTitle) return null;
+      const btns = Array.from(document.querySelectorAll('aside nav button[type="button"]'));
+      const btn = btns.find(b => (b.innerText || '').trim().startsWith(groupTitle));
+      if (!btn) return null;
+      const childContainer = btn.parentElement.querySelector('.ml-2.border-l');
+      const isOpen = !!(childContainer && childContainer.querySelector('a'));
+      if (!isOpen) btn.click();
+      return btn;
+    };
+
     const setupStep = async () => {
-      // Mobile: garante sidebar aberto para passos da sidebar
-      if (step.tipo === 'sidebar' && isMobile) {
+      // Mobile: garante sidebar aberto para passos da sidebar/grupo
+      if ((step.tipo === 'sidebar' || step.tipo === 'group') && isMobile) {
         const aside = document.querySelector('aside');
-        // Detecta se está visualmente fechado (off-canvas) via bounding rect negativo
         const r = aside?.getBoundingClientRect();
         const visualmenteFechado = !aside || (r && r.right <= 0);
         if (visualmenteFechado) {
@@ -127,6 +165,22 @@ export default function TourGuiado({
             await new Promise(r => setTimeout(r, 450));
           }
         }
+      }
+
+      // Passo de grupo: destaca o cabeçalho colapsável do grupo
+      if (step.tipo === 'group') {
+        targetEl = ensureGroupExpanded(step.groupTitle);
+        if (!targetEl) { setRect(null); return; }
+        try { targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }); } catch {}
+        await new Promise(r => setTimeout(r, 400));
+        updateRect();
+        return;
+      }
+
+      // Passo de subitem: abre o grupo pai antes de localizar o link
+      if (step.tipo === 'sidebar' && step.groupTitle) {
+        ensureGroupExpanded(step.groupTitle);
+        await new Promise(r => setTimeout(r, 220));
       }
 
       // Localiza alvo
@@ -292,6 +346,7 @@ export default function TourGuiado({
                 <p className="text-xs text-muted-foreground">
                   Passo {stepIdx + 1} de {steps.length}
                   {mode === 'page' && ' · Tour da página'}
+                  {step.tipo === 'group' && ' · Grupo do menu'}
                 </p>
                 <h3 className="font-semibold text-base truncate">{step.title}</h3>
               </div>
@@ -307,18 +362,20 @@ export default function TourGuiado({
             <p className="text-sm mt-1">{step.description}</p>
           </div>
 
-          {/* O que você encontra aqui */}
-          <div>
-            <p className="text-xs font-semibold uppercase text-muted-foreground">O que você encontra aqui</p>
-            <ul className="mt-1 space-y-1">
-              {step.features.map((f, i) => (
-                <li key={i} className="text-xs flex items-start gap-1.5">
-                  <span className="text-primary mt-0.5">•</span>
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* O que você encontra aqui (apenas em passos de módulo) */}
+          {step.features?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold uppercase text-muted-foreground">O que você encontra aqui</p>
+              <ul className="mt-1 space-y-1">
+                {step.features.map((f, i) => (
+                  <li key={i} className="text-xs flex items-start gap-1.5">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Aviso caso o alvo não tenha sido localizado */}
           {!rect && step.selector && (
@@ -336,15 +393,21 @@ export default function TourGuiado({
               {isLast ? 'Concluir' : 'Próximo'}
               {!isLast && <ChevronRight className="w-3 h-3 ml-1" />}
             </Button>
-            <Button size="sm" variant="outline" onClick={handleAbrirModulo} className="h-7 text-xs">
-              <ExternalLink className="w-3 h-3 mr-1" /> Abrir módulo
-            </Button>
-            <Button size="sm" variant="outline" onClick={handlePerguntar} className="h-7 text-xs">
-              <MessageSquareText className="w-3 h-3 mr-1" /> Perguntar ao Chat IA
-            </Button>
-            <Button size="sm" variant="outline" onClick={handleAjuda} className="h-7 text-xs">
-              <BookOpen className="w-3 h-3 mr-1" /> Ajuda
-            </Button>
+            {step.modulo && (
+              <Button size="sm" variant="outline" onClick={handleAbrirModulo} className="h-7 text-xs">
+                <ExternalLink className="w-3 h-3 mr-1" /> Abrir módulo
+              </Button>
+            )}
+            {step.modulo && (
+              <Button size="sm" variant="outline" onClick={handlePerguntar} className="h-7 text-xs">
+                <MessageSquareText className="w-3 h-3 mr-1" /> Perguntar ao Chat IA
+              </Button>
+            )}
+            {step.modulo && (
+              <Button size="sm" variant="outline" onClick={handleAjuda} className="h-7 text-xs">
+                <BookOpen className="w-3 h-3 mr-1" /> Ajuda
+              </Button>
+            )}
           </div>
 
           {/* Link Fechar */}
