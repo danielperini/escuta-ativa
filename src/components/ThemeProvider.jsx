@@ -6,8 +6,8 @@ export const TEMAS = ['ponte', 'noite', 'mato', 'terra', 'perini'];
 export const TEMA_INFO = {
   ponte: {
     nome: 'PONTE SOCIAL',
-    descricao: 'Verde escuro, verde e branco. Visual institucional, confiável e colaborativo.',
-    swatches: ['#1B5E20', '#2E8B57', '#FFFFFF', '#EFF6FF'],
+    descricao: 'Verde escuro, verde, verde claro e branco. Visual institucional, confiável e colaborativo.',
+    swatches: ['#1B5E20', '#2E8B57', '#A5D6A7', '#FFFFFF'],
     dark: false,
   },
   noite: {
