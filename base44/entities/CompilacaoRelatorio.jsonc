@@ -1,0 +1,145 @@
+{
+  "name": "CompilacaoRelatorio",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo da compila\u00e7\u00e3o de dados para relat\u00f3rio"
+    },
+    "escopo": {
+      "type": "string",
+      "enum": [
+        "registro_unico",
+        "multiplos_registros",
+        "comunidade",
+        "territorio",
+        "plataforma_completa"
+      ],
+      "default": "territorio",
+      "description": "Escopo da compila\u00e7\u00e3o"
+    },
+    "municipio": {
+      "type": "string",
+      "description": "Munic\u00edpio do territ\u00f3rio compilado"
+    },
+    "uf": {
+      "type": "string",
+      "description": "Estado (UF)"
+    },
+    "municipality_ibge_code": {
+      "type": "string",
+      "description": "C\u00f3digo IBGE do munic\u00edpio (chave de integra\u00e7\u00e3o com DadoSecundario)"
+    },
+    "comunidade": {
+      "type": "string",
+      "description": "Comunidade espec\u00edfica quando escopo=comunidade"
+    },
+    "data_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "In\u00edcio do per\u00edodo analisado"
+    },
+    "data_fim": {
+      "type": "string",
+      "format": "date",
+      "description": "Fim do per\u00edodo analisado"
+    },
+    "registros_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos Registro (dados prim\u00e1rios) compilados"
+    },
+    "casos_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos Casos inclu\u00eddos"
+    },
+    "dados_secundarios_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de DadoSecundario (fontes oficiais) compilados"
+    },
+    "devolutivas_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de registro de devolutivas vinculadas"
+    },
+    "categorias_secundarias": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categorias de dados secund\u00e1rios selecionadas (demografia, saude, economia, ...)"
+    },
+    "indicadores_compilados": {
+      "type": "object",
+      "description": "Snapshot dos indicadores prim\u00e1rios + secund\u00e1rios no momento da compila\u00e7\u00e3o. Mapa categoria { indicador, valor, unidade, fonte, periodo, origem (primario|secundario) }."
+    },
+    "totais": {
+      "type": "object",
+      "properties": {
+        "registros": {
+          "type": "number",
+          "default": 0
+        },
+        "demandas": {
+          "type": "number",
+          "default": 0
+        },
+        "devolutivas": {
+          "type": "number",
+          "default": 0
+        },
+        "dados_secundarios": {
+          "type": "number",
+          "default": 0
+        },
+        "casos": {
+          "type": "number",
+          "default": 0
+        },
+        "stakeholders": {
+          "type": "number",
+          "default": 0
+        }
+      },
+      "description": "Contadores agregados da compila\u00e7\u00e3o"
+    },
+    "vinculado_relatorio_id": {
+      "type": "string",
+      "description": "ID do RelatorioSustentabilidade gerado a partir desta compila\u00e7\u00e3o"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "rascunho",
+        "compilada",
+        "em_revisao",
+        "finalizada",
+        "exportada"
+      ],
+      "default": "rascunho",
+      "description": "Rascunho=em montagem; compilada=dados reunidos; em_revisao=sob revis\u00e3o; finalizada=revisada; exportada=relat\u00f3rio gerado."
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre a compila\u00e7\u00e3o"
+    },
+    "criado_por": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que montou a compila\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "titulo",
+    "escopo"
+  ]
+}
