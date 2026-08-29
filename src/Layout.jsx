@@ -27,8 +27,10 @@ import {
                       Plug,
                       Book,
                       Globe,
-                      Palette
-                    } from 'lucide-react';
+                      Palette,
+                      PieChart,
+                      UsersRound
+                      } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
 import NotificationGenerator from "@/components/NotificationGenerator";
@@ -62,6 +64,7 @@ const navigation = [
   { name: 'Comunidades e Grupos', href: 'ComunidadesGrupos', icon: Home },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
   { name: 'Assistente de IA', href: 'AssistenteIA', icon: Sparkles },
+  { name: 'Análise Demográfica', href: 'AnaliseDemografica', icon: UsersRound },
   { name: 'Central de Análise', href: 'CentralAnalise', icon: Sparkles },
   { name: 'Gerador de Relatório', href: 'GeradorRelatorioSustentabilidade', icon: Sparkles, secao: 'sustentabilidade' },
   { name: 'Referenciais ESG', href: 'ReferenciaisESG', icon: ShieldCheck, secao: 'sustentabilidade' },

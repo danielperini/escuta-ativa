@@ -13,6 +13,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import Aparencia from './pages/Aparencia';
 import ReferenciaisESG from './pages/ReferenciaisESG';
 import AssistenteIA from './pages/AssistenteIA';
+import AnaliseDemografica from './pages/AnaliseDemografica';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -77,6 +78,11 @@ const AuthenticatedApp = () => {
       <Route path="/AssistenteIA" element={
         <LayoutWrapper currentPageName="AssistenteIA">
           <AssistenteIA />
+        </LayoutWrapper>
+      } />
+      <Route path="/AnaliseDemografica" element={
+        <LayoutWrapper currentPageName="AnaliseDemografica">
+          <AnaliseDemografica />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />
