@@ -4,26 +4,97 @@
   "properties": {
     "nome_empresa": {
       "type": "string",
-      "description": "Nome da empresa"
+      "description": "Nome do Grupo/Organiza\u00e7\u00e3o (n\u00edvel 1 da hierarquia Organiza\u00e7\u00e3o \u2192 Unidade)"
+    },
+    "nome_institucional_completo": {
+      "type": "string",
+      "description": "Nome institucional completo (raz\u00e3o social), quando distinto do nome fantasia"
+    },
+    "tipo_organizacao": {
+      "type": "string",
+      "enum": [
+        "Grupo Empresarial",
+        "Empresa",
+        "Instituto",
+        "Funda\u00e7\u00e3o",
+        "Organiza\u00e7\u00e3o da Sociedade Civil",
+        "\u00d3rg\u00e3o P\u00fablico",
+        "Prefeitura",
+        "Autarquia",
+        "Universidade",
+        "Outro"
+      ],
+      "description": "Tipo de Organiza\u00e7\u00e3o (n\u00edvel 1)"
     },
     "cnpj": {
       "type": "string",
-      "description": "CNPJ da empresa"
+      "description": "CNPJ principal do Grupo/Organiza\u00e7\u00e3o"
     },
     "setor_atuacao": {
       "type": "string",
-      "description": "Setor de atua\u00e7\u00e3o"
+      "description": "Setor principal do Grupo/Organiza\u00e7\u00e3o (ex: Siderurgia, Minera\u00e7\u00e3o, Cimento, Setor P\u00fablico)"
+    },
+    "site_institucional": {
+      "type": "string",
+      "description": "Site institucional"
+    },
+    "descricao_grupo": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o geral do Grupo/Organiza\u00e7\u00e3o"
     },
     "territorios_influencia": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Territ\u00f3rios de influ\u00eancia"
+      "description": "Territ\u00f3rios de influ\u00eancia (lista de munic\u00edpios/territ\u00f3rios onde o grupo atua)"
     },
     "estrategia_esg": {
       "type": "string",
-      "description": "Estrat\u00e9gia ESG declarada"
+      "description": "Estrat\u00e9gia do Grupo/Organiza\u00e7\u00e3o (texto corporativo, n\u00edvel 1)"
+    },
+    "objetivos_grupo": {
+      "type": "string",
+      "description": "Objetivos da estrat\u00e9gia de relacionamento do grupo"
+    },
+    "publicos_prioritarios": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "P\u00fablicos priorit\u00e1rios do grupo"
+    },
+    "territorios_prioritarios": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Territ\u00f3rios priorit\u00e1rios do grupo"
+    },
+    "temas_prioritarios": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Temas priorit\u00e1rios do grupo"
+    },
+    "canais_relacionamento": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Canais de relacionamento do grupo (ex: WhatsApp, reuni\u00f5es presenciais, comit\u00eas)"
+    },
+    "periodicidade_relacionamento": {
+      "type": "string",
+      "description": "Periodicidade de relacionamento do grupo (ex: Mensal, Trimestral)"
+    },
+    "responsaveis_grupo": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs/usu\u00e1rios respons\u00e1veis pelo relacionamento do grupo"
     },
     "compromissos_publicos": {
       "type": "array",
@@ -43,7 +114,7 @@
           "B Corp"
         ]
       },
-      "description": "Referenciais e Compromissos ESG adotados. CSRD e B Corp mantidos apenas para legado hist\u00f3rico."
+      "description": "Referenciais e Compromissos ESG adotados pelo grupo. CSRD e B Corp mantidos apenas para legado."
     },
     "referenciais_prioritarios": {
       "type": "object",
@@ -63,7 +134,7 @@
               "GRI 413"
             ]
           },
-          "description": "Detalhamento interno do GRI (n\u00e3o compromisso independente). Extens\u00edvel para futuros padr\u00f5es."
+          "description": "Detalhamento interno do GRI (n\u00e3o compromisso independente). Extens\u00edvel."
         },
         "ods_prioritarios": {
           "type": "array",
@@ -81,7 +152,7 @@
           "description": "ESRS (legado CSRD). N\u00e3o oferecido para novos cadastros."
         }
       },
-      "description": "Referenciais priorit\u00e1rios e detalhamentos"
+      "description": "Referenciais priorit\u00e1rios do Grupo/Organiza\u00e7\u00e3o (n\u00edvel 1)"
     },
     "contato_responsavel": {
       "type": "object",
@@ -106,7 +177,7 @@
     },
     "logo_empresa_url": {
       "type": "string",
-      "description": "URL do logo da empresa"
+      "description": "URL do logo do Grupo/Organiza\u00e7\u00e3o"
     }
   },
   "required": [

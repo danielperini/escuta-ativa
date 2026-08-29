@@ -1,0 +1,245 @@
+{
+  "name": "UnidadeOperacional",
+  "type": "object",
+  "properties": {
+    "organizacao_id": {
+      "type": "string",
+      "description": "ID do Grupo/Organiza\u00e7\u00e3o (ConfiguracaoESG) ao qual pertence"
+    },
+    "organizacao_nome": {
+      "type": "string",
+      "description": "Nome do Grupo/Organiza\u00e7\u00e3o denormalizado para exibi\u00e7\u00e3o"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome da Unidade/Planta/Opera\u00e7\u00e3o (n\u00edvel 2)"
+    },
+    "tipo_unidade": {
+      "type": "string",
+      "enum": [
+        "Planta Industrial",
+        "Mina",
+        "Unidade Operacional",
+        "Escrit\u00f3rio",
+        "Centro de Distribui\u00e7\u00e3o",
+        "Unidade Administrativa",
+        "Funda\u00e7\u00e3o/Instituto",
+        "Projeto",
+        "Empreendimento",
+        "Unidade de Servi\u00e7o",
+        "Outro"
+      ],
+      "description": "Tipo de unidade"
+    },
+    "cnpj": {
+      "type": "string",
+      "description": "CNPJ da unidade (quando existir)"
+    },
+    "setor_atividade": {
+      "type": "string",
+      "description": "Setor/atividade espec\u00edfico da unidade (pode diferir do setor do grupo)"
+    },
+    "descricao_operacao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da opera\u00e7\u00e3o da unidade"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativa",
+        "implantacao",
+        "temporariamente_inativa",
+        "encerrada"
+      ],
+      "default": "ativa",
+      "description": "Status da unidade"
+    },
+    "logradouro": {
+      "type": "string"
+    },
+    "numero": {
+      "type": "string"
+    },
+    "complemento": {
+      "type": "string"
+    },
+    "bairro": {
+      "type": "string"
+    },
+    "municipio": {
+      "type": "string",
+      "description": "Munic\u00edpio onde a unidade est\u00e1 localizada"
+    },
+    "uf": {
+      "type": "string"
+    },
+    "cep": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "municipality_ibge_code": {
+      "type": "string",
+      "description": "C\u00f3digo IBGE do munic\u00edpio (chave de integra\u00e7\u00e3o com Dados Secund\u00e1rios)"
+    },
+    "municipios_relacionamento": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Munic\u00edpios que comp\u00f5em o territ\u00f3rio de relacionamento da unidade"
+    },
+    "comunidades_vinculadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de comunidades vinculadas a esta unidade"
+    },
+    "stakeholders_vinculados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "liderancas_vinculadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "grupos_vinculados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "area_influencia": {
+      "type": "object",
+      "properties": {
+        "raio_km": {
+          "type": "number"
+        },
+        "lat": {
+          "type": "number"
+        },
+        "lng": {
+          "type": "number"
+        },
+        "municipios_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "comunidades_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "\u00c1rea de relacionamento/influ\u00eancia \u2014 distinta de \u00e1rea de impacto ambiental"
+    },
+    "estrategia_unidade": {
+      "type": "object",
+      "properties": {
+        "diretrizes": {
+          "type": "string"
+        },
+        "objetivos": {
+          "type": "string"
+        },
+        "publicos_prioritarios": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "territorios_prioritarios": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "temas_prioritarios": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "canais_relacionamento": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "periodicidade_relacionamento": {
+          "type": "string"
+        },
+        "responsaveis_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Estrat\u00e9gia de relacionamento espec\u00edfica da unidade (n\u00edvel 2)"
+    },
+    "referenciais_unidade": {
+      "type": "object",
+      "properties": {
+        "gri_detalhamento": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "GRI 2-29",
+              "GRI 413"
+            ]
+          }
+        },
+        "ods_prioritarios": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 17
+          }
+        },
+        "compromissos_publicos": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "GRI",
+              "Pacto Global",
+              "ODS",
+              "ISO 26000",
+              "IFC Performance Standards",
+              "Princ\u00edpios do Equador",
+              "AA1000",
+              "Direitos Humanos / UNGP",
+              "Outro",
+              "CSRD",
+              "B Corp"
+            ]
+          }
+        }
+      },
+      "description": "Referenciais ESG associados \u00e0 unidade (podem diferir do n\u00edvel grupo)"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "organizacao_id",
+    "nome"
+  ]
+}
