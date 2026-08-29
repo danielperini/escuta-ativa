@@ -3,7 +3,6 @@ import FiltroLocalidade from '@/components/demografia/FiltroLocalidade';
 import IndicadorCard from '@/components/demografia/IndicadorCard';
 import PiramideEtaria from '@/components/demografia/PiramideEtaria';
 import DistribuicaoCorRaca from '@/components/demografia/DistribuicaoCorRaca';
-import EvolucaoHistorica from '@/components/demografia/EvolucaoHistorica';
 import { Users, Gauge, MapPin, Layers } from 'lucide-react';
 import {
   obterPopulacao, obterAreaDensidade, obterPiramide, obterCorRaca,
@@ -107,7 +106,7 @@ export default function AnaliseDemografica() {
         </h1>
         <p className="text-muted-foreground mt-1.5 max-w-3xl flex items-center gap-2 flex-wrap">
           <MapPin className="w-4 h-4" />
-          Dados reais do IBGE (Censo 2022 e 2010) e séries históricas do Ipeadata —
+          Dados reais do IBGE (Censo 2022 e 2010) —
           população, pirâmide etária, cor/raça e densidade. <span className="text-foreground font-medium">{localLabel}</span>
         </p>
       </div>
@@ -158,7 +157,7 @@ export default function AnaliseDemografica() {
           <ul className="list-disc list-inside space-y-0.5">
             {Object.entries(erros).map(([k, v]) => <li key={k}>{v}</li>)}
           </ul>
-          <p className="mt-1 text-xs">As APIs governamentais (IBGE / Ipeadata) podem falhar esporadicamente.</p>
+          <p className="mt-1 text-xs">As APIs governamentais (IBGE) podem falhar esporadicamente.</p>
         </div>
       )}
 
@@ -168,15 +167,11 @@ export default function AnaliseDemografica() {
         <DistribuicaoCorRaca dados={corRaca} carregando={carregando} erro={erros.corRaca} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-1">
-        <EvolucaoHistorica />
-      </div>
-
       {/* Nota de fonte */}
       <div className="text-xs text-muted-foreground border-t border-border pt-4 flex items-center gap-2">
         <Layers className="w-3.5 h-3.5" />
         <span>
-          Fontes: IBGE — SIDRA/Agregados (Censo 2022 e 2010) e Ipeadata API de consulta.
+          Fontes: IBGE — SIDRA/Agregados (Censo 2022 e 2010).
           Dados abertos governamentais. Atualização conforme disponibilidade das APIs.
         </span>
       </div>
