@@ -55,7 +55,8 @@ import {
   UserCheck,
   Clock,
   Activity,
-  Lock
+  Lock,
+  Briefcase
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -63,6 +64,7 @@ import { ptBR } from 'date-fns/locale';
 import GerenciadorPermissoesGranular from '@/components/permissoes/GerenciadorPermissoesGranular';
 import HistoricoPermissoes from '@/components/permissoes/HistoricoPermissoes';
 import GerenciadorPapeisCustomizados from '@/components/permissoes/GerenciadorPapeisCustomizados';
+import GestaoFuncoes from '@/components/permissoes/GestaoFuncoes';
 
 const ROLES_CONFIG = {
   admin: {
@@ -97,13 +99,17 @@ export default function GerenciarUsuarios() {
     email: '',
     full_name: '',
     role: 'user',
+    funcao: '',
     equipes_vincular: []
   });
 
   const [editData, setEditData] = useState({
     role: 'user',
+    funcao: '',
     ativo: true
   });
+
+  const [filtroFuncao, setFiltroFuncao] = useState('todas');
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser-gestao'],
@@ -128,6 +134,11 @@ export default function GerenciarUsuarios() {
   const { data: roles = [] } = useQuery({
     queryKey: ['roles-usuarios'],
     queryFn: () => base44.entities.Role.list()
+  });
+
+  const { data: funcoes = [] } = useQuery({
+    queryKey: ['funcoes-usuario'],
+    queryFn: () => base44.entities.Funcao.list('ordem', 100)
   });
 
   const updateUserMutation = useMutation({
@@ -243,6 +254,7 @@ export default function GerenciarUsuarios() {
     setSelectedUser(usuario);
     setEditData({
       role: usuario.role || 'user',
+      funcao: usuario.funcao || '',
       ativo: usuario.ativo !== false
     });
     setShowEditDialog(true);
@@ -251,10 +263,28 @@ export default function GerenciarUsuarios() {
   const handleUpdateUser = async () => {
     try {
       const alteracoes = [];
-      if (editData.role !== selectedUser.role) alteracoes.push(`Role: ${selectedUser.role} → ${editData.role}`);
+      if (editData.role !== selectedUser.role) alteracoes.push(`Nível de acesso: ${ROLES_CONFIG[selectedUser.role]?.label || selectedUser.role} → ${ROLES_CONFIG[editData.role]?.label || editData.role}`);
+      if (editData.funcao !== (selectedUser.funcao || '')) {
+        alteracoes.push(`Função: ${selectedUser.funcao || '—'} → ${editData.funcao || '—'}`);
+      }
       if (editData.ativo !== selectedUser.ativo) alteracoes.push(`Status: ${selectedUser.ativo ? 'Ativo' : 'Inativo'} → ${editData.ativo ? 'Ativo' : 'Inativo'}`);
 
       await base44.entities.User.update(selectedUser.id, editData);
+
+      if (editData.funcao !== (selectedUser.funcao || '')) {
+        try {
+          await base44.entities.HistoricoFuncao.create({
+            usuario_id: selectedUser.id,
+            usuario_email: selectedUser.email,
+            usuario_nome: selectedUser.full_name,
+            funcao_anterior: selectedUser.funcao || '',
+            nova_funcao: editData.funcao || '',
+            alterado_por_email: currentUser?.email,
+            alterado_por_nome: currentUser?.full_name,
+            data: new Date().toISOString()
+          });
+        } catch (_) {}
+      }
       
       // Log de auditoria detalhado
       await base44.entities.LogAcesso.create({
@@ -320,10 +350,18 @@ export default function GerenciarUsuarios() {
     );
   };
 
-  const usuariosFiltrados = usuarios.filter(u =>
-    u.email?.toLowerCase().includes(search.toLowerCase()) ||
-    u.full_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const usuariosFiltrados = usuarios.filter(u => {
+    const matchBusca = u.email?.toLowerCase().includes(search.toLowerCase()) ||
+      u.full_name?.toLowerCase().includes(search.toLowerCase());
+    if (!matchBusca) return false;
+    if (filtroFuncao !== 'todas' && u.funcao !== filtroFuncao) return false;
+    return true;
+  });
+
+  const handleSelecionarFuncao = (nome) => {
+    setFiltroFuncao(nome);
+    setActiveTab('usuarios');
+  };
 
   const usuariosAtivos = usuariosFiltrados.filter(u => u.ativo !== false);
   const usuariosInativos = usuariosFiltrados.filter(u => u.ativo === false);
@@ -424,7 +462,7 @@ export default function GerenciarUsuarios() {
       </div>
 
       <Card className="p-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col md:flex-row md:items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
@@ -434,6 +472,17 @@ export default function GerenciarUsuarios() {
               className="pl-10"
             />
           </div>
+          <Select value={filtroFuncao} onValueChange={setFiltroFuncao}>
+            <SelectTrigger className="md:w-60">
+              <SelectValue placeholder="Filtrar por função" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas as funções</SelectItem>
+              {funcoes.filter(f => f.ativo !== false).map(f => (
+                <SelectItem key={f.id} value={f.nome}>{f.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             variant={agruparPorEquipe ? "default" : "outline"}
             onClick={() => setAgruparPorEquipe(!agruparPorEquipe)}
@@ -492,7 +541,7 @@ export default function GerenciarUsuarios() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="usuarios">
             <Users className="w-4 h-4 mr-2" />
             Ativos ({usuariosAtivos.length})
@@ -500,6 +549,10 @@ export default function GerenciarUsuarios() {
           <TabsTrigger value="inativos">
             <UserX className="w-4 h-4 mr-2" />
             Inativos ({usuariosInativos.length})
+          </TabsTrigger>
+          <TabsTrigger value="funcoes">
+            <Briefcase className="w-4 h-4 mr-2" />
+            Funções
           </TabsTrigger>
           <TabsTrigger value="papeis">
             <Shield className="w-4 h-4 mr-2" />
@@ -569,9 +622,15 @@ export default function GerenciarUsuarios() {
                               <p className="text-sm text-slate-500">{usuario.email}</p>
                               <div className="flex items-center gap-2 mt-2 flex-wrap">
                                 <Badge className={ROLES_CONFIG[usuario.role]?.color || 'bg-slate-100'}>
-                                  <RoleIcon className="w-3 h-3 mr-1" />
-                                  {ROLES_CONFIG[usuario.role]?.label || 'Usuário'}
-                                </Badge>
+                                      <RoleIcon className="w-3 h-3 mr-1" />
+                                      {ROLES_CONFIG[usuario.role]?.label || 'Usuário'}
+                                    </Badge>
+                                    {usuario.funcao && (
+                                      <Badge variant="outline" className="text-xs border-[#2D6A4F] text-[#2D6A4F]">
+                                        <Briefcase className="w-3 h-3 mr-1" />
+                                        {usuario.funcao}
+                                      </Badge>
+                                    )}
                                 {usuario.papeis && usuario.papeis.length > 0 && (
                                   <Badge className="bg-purple-100 text-purple-700 text-xs">
                                     <Shield className="w-3 h-3 mr-1" />
@@ -786,6 +845,14 @@ export default function GerenciarUsuarios() {
               </CardContent>
             </Card>
           ))}
+        </TabsContent>
+
+        <TabsContent value="funcoes" className="space-y-3">
+          <GestaoFuncoes
+            usuarios={usuarios}
+            currentUser={currentUser}
+            onSelecionarFuncao={handleSelecionarFuncao}
+          />
         </TabsContent>
 
         <TabsContent value="atividade" className="space-y-3">
@@ -1008,6 +1075,28 @@ export default function GerenciarUsuarios() {
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-slate-500">Define permissões no sistema (distinto da Função profissional).</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Função</Label>
+              <Select
+                value={editData.funcao || 'nenhuma'}
+                onValueChange={(value) => setEditData(prev => ({ ...prev, funcao: value === 'nenhuma' ? '' : value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar função ▼" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nenhuma">Nenhuma função atribuída</SelectItem>
+                  {funcoes.filter(f => f.ativo !== false).map(f => (
+                    <SelectItem key={f.id} value={f.nome}>{f.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {funcoes.length === 0 && (
+                <p className="text-xs text-amber-600">Nenhuma função cadastrada. Use a aba "Funções" para criar.</p>
+              )}
             </div>
 
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">

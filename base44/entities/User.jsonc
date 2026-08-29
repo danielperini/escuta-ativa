@@ -7,6 +7,10 @@
       "default": true,
       "description": "Se o usu\u00e1rio est\u00e1 ativo no sistema"
     },
+    "funcao": {
+      "type": "string",
+      "description": "Fun\u00e7\u00e3o profissional do usu\u00e1rio (refer\u00eancia ao nome na entidade Funcao). Distinto do n\u00edvel de acesso (role)."
+    },
     "papeis": {
       "type": "array",
       "items": {
