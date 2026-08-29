@@ -144,9 +144,17 @@ export async function buscarTodosCaches(ibgeCodes, categoria) {
 }
 
 // ─── Pesquisa web via IA (backend) ────────────────────────────────
-export async function pesquisarViaIA({ ibge_code, municipio, uf, categoria, fontes, pergunta }) {
+// Política: uma vez coletado, o cache DadoSecundario é reutilizado por 30 dias.
+// Para forçar nova coleta (admin), passe { force_refresh: true }.
+export async function pesquisarViaIA({ ibge_code, municipio, uf, categoria, fontes, pergunta, force_refresh }) {
   const res = await base44.functions.invoke('pesquisarDadosTerritoriais', {
-    ibge_code, municipio, uf, categoria, fontes, pergunta
+    ibge_code,
+    municipio,
+    uf,
+    categoria,
+    fontes,
+    pergunta,
+    force_refresh: !!force_refresh
   });
   return res?.data ?? res;
 }

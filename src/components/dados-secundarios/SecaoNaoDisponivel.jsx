@@ -1,10 +1,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Database, Sparkles, AlertTriangle, CalendarClock } from 'lucide-react';
+import { Loader2, Sparkles, AlertTriangle, CalendarClock } from 'lucide-react';
 
 /**
- * Estado vazio para conectores ainda não integrados via API estruturada.
- * Oferece ação "Coletar via IA web" que chama o backend pesquisarDadosTerritoriais.
+ * Estado vazio para seções que ainda não têm coleta automática.
+ * Oferece ação "Coletar via IA" que dispara o backend pesquisarDadosTerritoriais.
+ * Política determinística: após a primeira coleta, o resultado fica em cache por
+ * 30 dias (uma vez ao mês) e é tratado como referência revisada.
  */
 export function SecaoNaoDisponivel({
   categoria,
@@ -16,23 +18,23 @@ export function SecaoNaoDisponivel({
   return (
     <div className="bg-card border border-dashed border-border rounded-lg p-8 flex flex-col items-center text-center gap-3">
       <div className="p-3 rounded-full bg-muted">
-        {erro ? <AlertTriangle className="w-6 h-6 text-amber-500" /> : <Database className="w-6 h-6 text-muted-foreground" />}
+        {erro ? <AlertTriangle className="w-6 h-6 text-amber-500" /> : <Sparkles className="w-6 h-6 text-primary" />}
       </div>
-      <div>
+      <div className="space-y-1">
         <p className="font-medium text-foreground">
-          {erro ? 'Falha na coleta' : 'Conector ainda não ativado via API estruturada'}
+          {erro ? 'Falha na coleta' : 'Coleta oficial via IA — uma vez ao mês'}
         </p>
         <p className="text-sm text-muted-foreground mt-1 max-w-md">
           {erro
             ? erro
-            : 'Não existem dados públicos estruturados disponíveis para este território. Você pode acionar a coleta via IA (pesquisa em fontes oficiais na web).' }
+            : 'Esta seção é coletada pela IA em fontes oficiais brasileiras (prefeitura, câmara, conselhos, IBGE, SICONFI, TSE…). Após a primeira coleta, os indicadores ficam congelados por 30 dias como uma referência revisada — sem novas chamadas de IA até o próximo mês.'}
         </p>
       </div>
 
       {ultimaAtualizacao && !erro && (
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <CalendarClock className="w-3.5 h-3.5" />
-          Última atualização: {ultimaAtualizacao}
+          Última coleta revisada: {ultimaAtualizacao}
         </div>
       )}
 

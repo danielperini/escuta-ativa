@@ -59,6 +59,8 @@ Deno.serve(async (req) => {
     const ibge = String(body?.ibge_code || body?.ibge || '').trim();
     const fontes = Array.isArray(body?.fontes) ? body.fontes : [];
     const perguntaExtra = String(body?.pergunta || '').trim();
+    // forcer: admin pode forçar nova coleta ignorando o cache de 30 dias
+    const force_refresh = String(body?.force_refresh || '') === 'true' || body?.force_refresh === true;
 
     if (!municipio || !uf || !ibge) {
       return Response.json({ error: 'Informe municipio, uf e ibge_code.' }, { status: 400 });
@@ -76,23 +78,24 @@ Deno.serve(async (req) => {
       }, '-updated_date', 60);
     } catch (_) { cache = []; }
 
+    // Política determinística: uma vez por município+categoria, dados são
+    // reutilizados por 30 dias. A única exceção é force_refresh=true (admin).
     const agora = Date.now();
-    const UM_DIA = 24 * 60 * 60 * 1000;
-    const SETE_DIAS = 7 * UM_DIA;
+    const TRINTA_DIAS = 30 * 24 * 60 * 60 * 1000;
     const FRESH = (cad) => {
       const upd = cad?.updated_at ? Date.parse(cad.updated_at) : 0;
       if (!upd) return false;
-      // Dados fiscais/sociais/legislacao: 1 dia. Demográficos/educação: 7 dias.
-      const janela = ['legislacao', 'fiscal', 'social', 'governo_municipal', 'camara_municipal'].includes(categoria) ? UM_DIA : SETE_DIAS;
-      return (agora - upd) < janela;
+      return (agora - upd) < TRINTA_DIAS;
     };
-    const todosFresh = cache.length > 0 && cache.every(FRESH);
+    const todosFresh = !force_refresh && cache.length > 0 && cache.every(FRESH);
     if (todosFresh) {
+      // Dados "revisados" — cache determinístico (uma vez ao mês).
       return Response.json({
         items: cache,
         resumo: cache.find(i => i.indicator === 'Resumo Executivo Territorial')?.value_text || '',
         insights: cache.filter(i => i.source_id === 'IA_INSIGHT').map(i => i.value_text),
         fresh: true,
+        cache_window_days: 30,
         ultima_atualizacao: cache[0]?.updated_at
       });
     }
