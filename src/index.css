@@ -58,43 +58,43 @@
     --chart-5: 0 72% 51%;
   }
 
-  /* ===== NOITE (escuro sofisticado) ===== */
+  /* ===== NOITE (escuro sofisticado) — ajustado para legibilidade ===== */
   [data-theme="noite"] {
-    --background: 205 32% 8%;
-    --foreground: 208 36% 93%;
-    --card: 202 30% 10%;
-    --card-foreground: 208 36% 93%;
-    --popover: 202 30% 10%;
-    --popover-foreground: 208 36% 93%;
-    --primary: 221 83% 53%;
+    --background: 214 30% 9%;
+    --foreground: 210 40% 96%;
+    --card: 214 28% 13%;
+    --card-foreground: 210 40% 96%;
+    --popover: 214 28% 15%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 221 83% 58%;
     --primary-foreground: 0 0% 100%;
     --secondary: 130 39% 53%;
-    --secondary-foreground: 205 32% 8%;
-    --muted: 206 32% 13%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 258 90% 66%;
+    --secondary-foreground: 214 30% 9%;
+    --muted: 214 20% 18%;
+    --muted-foreground: 215 25% 72%;
+    --accent: 258 80% 70%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 57%;
+    --destructive: 0 84% 62%;
     --destructive-foreground: 0 0% 100%;
-    --success: 130 39% 53%;
-    --warning: 38 92% 50%;
-    --border: 206 24% 16%;
-    --input: 206 24% 16%;
-    --ring: 221 83% 53%;
-    --header: 207 33% 5%;
-    --sidebar-background: 207 33% 5%;
-    --sidebar-foreground: 215 20% 65%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 207 33% 5%;
-    --sidebar-accent: 0 0% 100%;
-    --sidebar-accent-foreground: 207 33% 5%;
-    --sidebar-border: 0 0% 100%;
-    --sidebar-ring: 221 83% 53%;
-    --chart-1: 221 83% 53%;
-    --chart-2: 130 39% 53%;
-    --chart-3: 258 90% 66%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 0 84% 57%;
+    --success: 130 42% 56%;
+    --warning: 38 92% 52%;
+    --border: 214 22% 28%;
+    --input: 214 22% 24%;
+    --ring: 221 83% 58%;
+    --header: 214 30% 11%;
+    --sidebar-background: 214 32% 11%;
+    --sidebar-foreground: 215 30% 82%;
+    --sidebar-primary: 221 83% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 24% 20%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 214 22% 24%;
+    --sidebar-ring: 221 83% 58%;
+    --chart-1: 221 83% 58%;
+    --chart-2: 130 42% 56%;
+    --chart-3: 258 80% 70%;
+    --chart-4: 38 92% 52%;
+    --chart-5: 0 84% 62%;
     color-scheme: dark;
   }
 
@@ -325,11 +325,164 @@
 [data-theme="noite"] .text-slate-600,
 [data-theme="noite"] .text-slate-500,
 [data-theme="noite"] .text-slate-400,
+[data-theme="noite"] .text-slate-300,
 [data-theme="noite"] .text-gray-600,
-[data-theme="noite"] .text-gray-500 { color: hsl(var(--muted-foreground)); }
+[data-theme="noite"] .text-gray-500,
+[data-theme="noite"] .text-gray-400,
+[data-theme="noite"] .text-gray-300 { color: hsl(var(--muted-foreground)); }
+[data-theme="noite"] .border-slate-300,
 [data-theme="noite"] .border-slate-200,
 [data-theme="noite"] .border-slate-100,
+[data-theme="noite"] .border-gray-300,
 [data-theme="noite"] .border-gray-200,
 [data-theme="noite"] .border-gray-100 { border-color: hsl(var(--border)); }
 [data-theme="noite"] .border-t,
-[data-theme="noite"] .border-b { border-color: hsl(var(--border)); }
+[data-theme="noite"] .border-b,
+[data-theme="noite"] .border-l,
+[data-theme="noite"] .border-r { border-color: hsl(var(--border)); }
+/* Placeholder + texto secundário mais visível no tema noite */
+[data-theme="noite"] input::placeholder,
+[data-theme="noite"] textarea::placeholder { color: hsl(215 20% 58%); opacity: 1; }
+/* Inputs claros hardcoded ficam legíveis */
+[data-theme="noite"] .bg-slate-200,
+[data-theme="noite"] .bg-gray-200 { background-color: hsl(var(--muted)); }
+[data-theme="noite"] .text-slate-700,
+[data-theme="noite"] .text-slate-800 { color: hsl(var(--foreground)); }
+
+/* ===== NOITE: fundos claros coloridos (cards de status/painéis) viram superfície escura; textos escuros viram claros ===== */
+[data-theme="noite"] .bg-rose-50,
+[data-theme="noite"] .bg-rose-100,
+[data-theme="noite"] .bg-amber-50,
+[data-theme="noite"] .bg-amber-100,
+[data-theme="noite"] .bg-yellow-50,
+[data-theme="noite"] .bg-yellow-100,
+[data-theme="noite"] .bg-lime-50,
+[data-theme="noite"] .bg-lime-100,
+[data-theme="noite"] .bg-green-50,
+[data-theme="noite"] .bg-green-100,
+[data-theme="noite"] .bg-emerald-50,
+[data-theme="noite"] .bg-emerald-100,
+[data-theme="noite"] .bg-teal-50,
+[data-theme="noite"] .bg-teal-100,
+[data-theme="noite"] .bg-cyan-50,
+[data-theme="noite"] .bg-cyan-100,
+[data-theme="noite"] .bg-sky-50,
+[data-theme="noite"] .bg-sky-100,
+[data-theme="noite"] .bg-blue-50,
+[data-theme="noite"] .bg-blue-100,
+[data-theme="noite"] .bg-indigo-50,
+[data-theme="noite"] .bg-indigo-100,
+[data-theme="noite"] .bg-violet-50,
+[data-theme="noite"] .bg-violet-100,
+[data-theme="noite"] .bg-purple-50,
+[data-theme="noite"] .bg-purple-100,
+[data-theme="noite"] .bg-fuchsia-50,
+[data-theme="noite"] .bg-fuchsia-100,
+[data-theme="noite"] .bg-pink-50,
+[data-theme="noite"] .bg-pink-100,
+[data-theme="noite"] .bg-orange-50,
+[data-theme="noite"] .bg-orange-100,
+[data-theme="noite"] .bg-red-50,
+[data-theme="noite"] .bg-red-100 {
+  background-color: hsl(var(--muted));
+}
+/* Tonalalizações leves usadas como bordas/superfícies — viram borda/superfície do tema */
+[data-theme="noite"] .border-rose-100,
+[data-theme="noite"] .border-rose-200,
+[data-theme="noite"] .border-amber-100,
+[data-theme="noite"] .border-amber-200,
+[data-theme="noite"] .border-yellow-100,
+[data-theme="noite"] .border-yellow-200,
+[data-theme="noite"] .border-green-100,
+[data-theme="noite"] .border-green-200,
+[data-theme="noite"] .border-emerald-100,
+[data-theme="noite"] .border-emerald-200,
+[data-theme="noite"] .border-teal-100,
+[data-theme="noite"] .border-teal-200,
+[data-theme="noite"] .border-cyan-100,
+[data-theme="noite"] .border-cyan-200,
+[data-theme="noite"] .border-sky-100,
+[data-theme="noite"] .border-sky-200,
+[data-theme="noite"] .border-blue-100,
+[data-theme="noite"] .border-blue-200,
+[data-theme="noite"] .border-indigo-100,
+[data-theme="noite"] .border-indigo-200,
+[data-theme="noite"] .border-violet-100,
+[data-theme="noite"] .border-violet-200,
+[data-theme="noite"] .border-purple-100,
+[data-theme="noite"] .border-purple-200,
+[data-theme="noite"] .border-pink-100,
+[data-theme="noite"] .border-pink-200,
+[data-theme="noite"] .border-orange-100,
+[data-theme="noite"] .border-orange-200,
+[data-theme="noite"] .border-red-100,
+[data-theme="noite"] .border-red-200 { border-color: hsl(var(--border)); }
+/* Textos coloridos escuros/médios (vm em fundos claros) viram claros/legíveis no tema noite */
+[data-theme="noite"] .text-rose-600,
+[data-theme="noite"] .text-amber-600,
+[data-theme="noite"] .text-yellow-600,
+[data-theme="noite"] .text-lime-600,
+[data-theme="noite"] .text-green-600,
+[data-theme="noite"] .text-emerald-600,
+[data-theme="noite"] .text-teal-600,
+[data-theme="noite"] .text-cyan-600,
+[data-theme="noite"] .text-sky-600,
+[data-theme="noite"] .text-blue-600,
+[data-theme="noite"] .text-indigo-600,
+[data-theme="noite"] .text-violet-600,
+[data-theme="noite"] .text-purple-600,
+[data-theme="noite"] .text-fuchsia-600,
+[data-theme="noite"] .text-pink-600,
+[data-theme="noite"] .text-orange-600,
+[data-theme="noite"] .text-red-600 { color: hsl(var(--muted-foreground)); }
+[data-theme="noite"] .text-rose-700,
+[data-theme="noite"] .text-rose-800,
+[data-theme="noite"] .text-rose-900,
+[data-theme="noite"] .text-amber-700,
+[data-theme="noite"] .text-amber-800,
+[data-theme="noite"] .text-amber-900,
+[data-theme="noite"] .text-yellow-700,
+[data-theme="noite"] .text-yellow-800,
+[data-theme="noite"] .text-yellow-900,
+[data-theme="noite"] .text-lime-700,
+[data-theme="noite"] .text-lime-800,
+[data-theme="noite"] .text-lime-900,
+[data-theme="noite"] .text-green-700,
+[data-theme="noite"] .text-green-800,
+[data-theme="noite"] .text-green-900,
+[data-theme="noite"] .text-emerald-700,
+[data-theme="noite"] .text-emerald-800,
+[data-theme="noite"] .text-emerald-900,
+[data-theme="noite"] .text-teal-700,
+[data-theme="noite"] .text-teal-800,
+[data-theme="noite"] .text-teal-900,
+[data-theme="noite"] .text-cyan-700,
+[data-theme="noite"] .text-cyan-800,
+[data-theme="noite"] .text-cyan-900,
+[data-theme="noite"] .text-sky-700,
+[data-theme="noite"] .text-sky-800,
+[data-theme="noite"] .text-sky-900,
+[data-theme="noite"] .text-blue-700,
+[data-theme="noite"] .text-blue-800,
+[data-theme="noite"] .text-blue-900,
+[data-theme="noite"] .text-indigo-700,
+[data-theme="noite"] .text-indigo-800,
+[data-theme="noite"] .text-indigo-900,
+[data-theme="noite"] .text-violet-700,
+[data-theme="noite"] .text-violet-800,
+[data-theme="noite"] .text-violet-900,
+[data-theme="noite"] .text-purple-700,
+[data-theme="noite"] .text-purple-800,
+[data-theme="noite"] .text-purple-900,
+[data-theme="noite"] .text-fuchsia-700,
+[data-theme="noite"] .text-fuchsia-800,
+[data-theme="noite"] .text-fuchsia-900,
+[data-theme="noite"] .text-pink-700,
+[data-theme="noite"] .text-pink-800,
+[data-theme="noite"] .text-pink-900,
+[data-theme="noite"] .text-orange-700,
+[data-theme="noite"] .text-orange-800,
+[data-theme="noite"] .text-orange-900,
+[data-theme="noite"] .text-red-700,
+[data-theme="noite"] .text-red-800,
+[data-theme="noite"] .text-red-900 { color: hsl(var(--foreground)); }
