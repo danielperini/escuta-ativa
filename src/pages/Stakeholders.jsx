@@ -226,7 +226,7 @@ export default function Stakeholders() {
               variant={viewMode === 'cards' ? 'default' : 'ghost'}
               size="icon"
               onClick={() => setViewMode('cards')}
-              className={cn("h-8 w-8", viewMode === 'cards' && "bg-[#2D6A4F]")}
+              className={cn("h-8 w-8", viewMode === 'cards' && "bg-[#E31E24]")}
             >
               <Grid3x3 className="w-4 h-4" />
             </Button>
@@ -234,7 +234,7 @@ export default function Stakeholders() {
               variant={viewMode === 'list' ? 'default' : 'ghost'}
               size="icon"
               onClick={() => setViewMode('list')}
-              className={cn("h-8 w-8", viewMode === 'list' && "bg-[#2D6A4F]")}
+              className={cn("h-8 w-8", viewMode === 'list' && "bg-[#E31E24]")}
             >
               <List className="w-4 h-4" />
             </Button>
@@ -372,7 +372,7 @@ export default function Stakeholders() {
                 <Card key={stakeholder.id} className="hover:shadow-md transition-all p-4">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-12 h-12 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-[#E31E24] flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
                         {stakeholder.tipo === 'pessoa' ? '👤' : '🏢'}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -458,7 +458,7 @@ export default function Stakeholders() {
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className="w-12 h-12 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-[#E31E24] flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
                         {stakeholder.tipo === 'pessoa' ? '👤' : '🏢'}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -595,7 +595,7 @@ export default function Stakeholders() {
           {viewingStakeholder && (
             <div className="space-y-4 py-4">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-2xl font-semibold">
+                <div className="w-16 h-16 rounded-full bg-[#E31E24] flex items-center justify-center text-white text-2xl font-semibold">
                   {viewingStakeholder.tipo === 'pessoa' ? '👤' : '🏢'}
                 </div>
                 <div>
@@ -869,7 +869,7 @@ export default function Stakeholders() {
               Cancelar
             </Button>
             <Button 
-              className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+              className="bg-[#E31E24] hover:bg-[#B01419]"
               onClick={handleSave}
               disabled={updateMutation.isPending || !formData.nome || !formData.comunidade}
             >

@@ -388,7 +388,7 @@ export default function Agenda() {
             Agendas são criadas automaticamente pela IA ou você pode adicionar manualmente
           </p>
           <Button 
-            className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+            className="bg-[#E31E24] hover:bg-[#B01419]"
             onClick={() => setShowDialog(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -616,7 +616,7 @@ export default function Agenda() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDialog(false)}>Cancelar</Button>
             <Button 
-              className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+              className="bg-[#E31E24] hover:bg-[#B01419]"
               onClick={handleSubmit}
               disabled={!formData.titulo || !formData.data}
             >

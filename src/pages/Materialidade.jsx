@@ -236,7 +236,7 @@ export default function Materialidade() {
         </div>
         <div className="flex gap-2">
           <Button 
-            className="bg-[#2D6A4F] hover:bg-[#1B4332] gap-2"
+            className="bg-[#E31E24] hover:bg-[#B01419] gap-2"
             onClick={() => setShowDialog(true)}
           >
             <Plus className="w-4 h-4" />
@@ -701,7 +701,7 @@ export default function Materialidade() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDialog(false)}>Cancelar</Button>
             <Button 
-              className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+              className="bg-[#E31E24] hover:bg-[#B01419]"
               onClick={handleSubmit}
               disabled={!formData.nome || createMutation.isPending || updateMutation.isPending}
             >

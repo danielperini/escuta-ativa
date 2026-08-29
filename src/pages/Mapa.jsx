@@ -189,7 +189,7 @@ export default function Mapa() {
         
         <Button
           onClick={() => setModoGeolocalizacao(!modoGeolocalizacao)}
-          className={modoGeolocalizacao ? 'bg-[#E31E24] hover:bg-[#B01419]' : 'bg-slate-600 hover:bg-slate-700'}
+          className={modoGeolocalizacao ? 'bg-[#E31E24] hover:bg-[#B01419]' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'}
         >
           <Target className="w-4 h-4 mr-2" />
           {modoGeolocalizacao ? 'Modo Criação Ativo' : 'Criar Registro no Mapa'}

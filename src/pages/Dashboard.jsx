@@ -159,7 +159,7 @@ export default function Dashboard() {
                         />
                         <Button
                             onClick={() => navigate(createPageUrl("Registros"))}
-                            className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+                            className="bg-[#E31E24] hover:bg-[#B01419]"
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             Novo Registro

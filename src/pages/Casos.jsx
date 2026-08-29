@@ -206,7 +206,7 @@ export default function Casos() {
         <div className="flex gap-2">
           <Button 
             onClick={() => setShowCreateDialog(true)}
-            className="bg-[#2D6A4F] hover:bg-[#1B4332]"
+            className="bg-[#E31E24] hover:bg-[#B01419]"
           >
             <Plus className="w-4 h-4 mr-2" />
             Novo Caso
