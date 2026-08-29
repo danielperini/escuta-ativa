@@ -33,12 +33,17 @@
           "GRI",
           "Pacto Global",
           "ODS",
-          "CSRD",
-          "B Corp",
           "ISO 26000",
-          "Outro"
+          "IFC Performance Standards",
+          "Princ\u00edpios do Equador",
+          "AA1000",
+          "Direitos Humanos / UNGP",
+          "Outro",
+          "CSRD",
+          "B Corp"
         ]
-      }
+      },
+      "description": "Referenciais e Compromissos ESG adotados. CSRD e B Corp mantidos apenas para legado hist\u00f3rico."
     },
     "referenciais_prioritarios": {
       "type": "object",
@@ -49,19 +54,34 @@
             "type": "string"
           }
         },
+        "gri_detalhamento": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "GRI 2-29",
+              "GRI 413"
+            ]
+          },
+          "description": "Detalhamento interno do GRI (n\u00e3o compromisso independente). Extens\u00edvel para futuros padr\u00f5es."
+        },
         "ods_prioritarios": {
           "type": "array",
           "items": {
-            "type": "number"
+            "type": "number",
+            "minimum": 1,
+            "maximum": 17
           }
         },
         "esrs_aplicaveis": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "ESRS (legado CSRD). N\u00e3o oferecido para novos cadastros."
         }
-      }
+      },
+      "description": "Referenciais priorit\u00e1rios e detalhamentos"
     },
     "contato_responsavel": {
       "type": "object",

@@ -1,0 +1,104 @@
+{
+  "name": "ReferencialEvidencia",
+  "type": "object",
+  "properties": {
+    "referencial": {
+      "type": "string",
+      "enum": [
+        "GRI",
+        "Pacto Global",
+        "ODS",
+        "ISO 26000",
+        "IFC Performance Standards",
+        "Princ\u00edpios do Equador",
+        "AA1000",
+        "Direitos Humanos / UNGP",
+        "Outro",
+        "CSRD",
+        "B Corp"
+      ],
+      "description": "Referencial ESG. Valores CSRD e B Corp s\u00e3o mantidos apenas para legado hist\u00f3rico."
+    },
+    "sub_referencial": {
+      "type": "string",
+      "description": "C\u00f3digo/sub-referencial (ex: GRI 2-29, GRI 413, ODS 11). Detalhamento interno, n\u00e3o compromisso independente."
+    },
+    "entidade_tipo": {
+      "type": "string",
+      "enum": [
+        "registro",
+        "reuniao",
+        "stakeholder",
+        "comunidade",
+        "demanda",
+        "compromisso",
+        "caso",
+        "risco_social",
+        "oportunidade",
+        "acao_social",
+        "territorio",
+        "documento"
+      ],
+      "description": "Tipo de entidade da societ\u00e1.ai usada como evid\u00eancia"
+    },
+    "entidade_id": {
+      "type": "string",
+      "description": "ID do registro vinculado"
+    },
+    "entidade_nome": {
+      "type": "string",
+      "description": "Nome/label denormalizado para exibi\u00e7\u00e3o"
+    },
+    "comunidade": {
+      "type": "string",
+      "description": "Comunidade relacionada (denormalizado para agrega\u00e7\u00e3o)"
+    },
+    "territorio": {
+      "type": "string",
+      "description": "Territ\u00f3rio relacionado (denormalizado para agrega\u00e7\u00e3o)"
+    },
+    "responsavel": {
+      "type": "string",
+      "description": "Respons\u00e1vel pela classifica\u00e7\u00e3o"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre a rela\u00e7\u00e3o entre o registro e o referencial"
+    },
+    "documentos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de documentos/evid\u00eancias de apoio"
+    },
+    "data_classificacao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da classifica\u00e7\u00e3o"
+    },
+    "origem": {
+      "type": "string",
+      "enum": [
+        "usuario",
+        "sugerido_ia"
+      ],
+      "default": "usuario",
+      "description": "Origem da classifica\u00e7\u00e3o: usu\u00e1rio ou sugest\u00e3o-da-IA"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "sugerido",
+        "validado"
+      ],
+      "default": "validado",
+      "description": "sugerido = classifica\u00e7\u00e3o da IA; validado = confirmado pelo usu\u00e1rio"
+    }
+  },
+  "required": [
+    "referencial",
+    "entidade_tipo",
+    "entidade_id"
+  ]
+}

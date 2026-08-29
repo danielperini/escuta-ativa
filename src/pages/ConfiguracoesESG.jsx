@@ -7,13 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Building2, Save, Leaf, Globe, Shield, Target, Upload } from 'lucide-react';
+import { Building2, Save, Globe, Shield, Target, Upload, Info } from 'lucide-react';
 import { toast } from 'sonner';
-
-const COMPROMISSOS_DISPONIVEIS = ['GRI', 'Pacto Global', 'ODS', 'CSRD', 'B Corp', 'ISO 26000', 'Outro'];
-const GRI_DISPONIVEIS = ['GRI 102', 'GRI 103', 'GRI 403', 'GRI 404', 'GRI 405', 'GRI 406', 'GRI 408', 'GRI 409', 'GRI 413'];
-const ODS_DISPONIVEIS = [1, 4, 5, 8, 10, 11, 16, 17];
-const ESRS_DISPONIVEIS = ['ESRS 2', 'ESRS S1', 'ESRS S3', 'ESRS G1'];
+import { REFERENCIAIS_ESG, GRI_DETALHAMENTO, ODS_LISTA } from '@/lib/referenciais';
 
 export default function ConfiguracoesESG() {
   const queryClient = useQueryClient();
@@ -35,6 +31,7 @@ export default function ConfiguracoesESG() {
     compromissos_publicos: [],
     referenciais_prioritarios: {
       gri_standards: [],
+      gri_detalhamento: [],
       ods_prioritarios: [],
       esrs_aplicaveis: []
     },
@@ -50,7 +47,16 @@ export default function ConfiguracoesESG() {
 
   React.useEffect(() => {
     if (configuracao) {
-      setFormData(configuracao);
+      const r = configuracao.referenciais_prioritarios || {};
+      setFormData({
+        ...configuracao,
+        referenciais_prioritarios: {
+          gri_standards: r.gri_standards || [],
+          gri_detalhamento: r.gri_detalhamento || [],
+          ods_prioritarios: r.ods_prioritarios || [],
+          esrs_aplicaveis: r.esrs_aplicaveis || []
+        }
+      });
     }
   }, [configuracao]);
 
@@ -64,6 +70,7 @@ export default function ConfiguracoesESG() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['configuracao-esg'] });
+      queryClient.invalidateQueries({ queryKey: ['referenciais-esg-dashboard'] });
       toast.success('Configurações salvas com sucesso!');
     },
     onError: () => {
@@ -76,25 +83,28 @@ export default function ConfiguracoesESG() {
     salvarMutation.mutate(formData);
   };
 
-  const toggleCompromisso = (compromisso) => {
+  const toggleReferencial = (id) => {
     setFormData(prev => ({
       ...prev,
-      compromissos_publicos: prev.compromissos_publicos.includes(compromisso)
-        ? prev.compromissos_publicos.filter(c => c !== compromisso)
-        : [...prev.compromissos_publicos, compromisso]
+      compromissos_publicos: (prev.compromissos_publicos || []).includes(id)
+        ? prev.compromissos_publicos.filter(c => c !== id)
+        : [...(prev.compromissos_publicos || []), id]
     }));
   };
 
-  const toggleGRI = (gri) => {
-    setFormData(prev => ({
-      ...prev,
-      referenciais_prioritarios: {
-        ...prev.referenciais_prioritarios,
-        gri_standards: prev.referenciais_prioritarios.gri_standards.includes(gri)
-          ? prev.referenciais_prioritarios.gri_standards.filter(g => g !== gri)
-          : [...prev.referenciais_prioritarios.gri_standards, gri]
-      }
-    }));
+  const toggleGRIDetalhamento = (codigo) => {
+    setFormData(prev => {
+      const atuais = prev.referenciais_prioritarios.gri_detalhamento || [];
+      return {
+        ...prev,
+        referenciais_prioritarios: {
+          ...prev.referenciais_prioritarios,
+          gri_detalhamento: atuais.includes(codigo)
+            ? atuais.filter(g => g !== codigo)
+            : [...atuais, codigo]
+        }
+      };
+    });
   };
 
   const toggleODS = (ods) => {
@@ -102,21 +112,9 @@ export default function ConfiguracoesESG() {
       ...prev,
       referenciais_prioritarios: {
         ...prev.referenciais_prioritarios,
-        ods_prioritarios: prev.referenciais_prioritarios.ods_prioritarios.includes(ods)
+        ods_prioritarios: (prev.referenciais_prioritarios.ods_prioritarios || []).includes(ods)
           ? prev.referenciais_prioritarios.ods_prioritarios.filter(o => o !== ods)
-          : [...prev.referenciais_prioritarios.ods_prioritarios, ods]
-      }
-    }));
-  };
-
-  const toggleESRS = (esrs) => {
-    setFormData(prev => ({
-      ...prev,
-      referenciais_prioritarios: {
-        ...prev.referenciais_prioritarios,
-        esrs_aplicaveis: prev.referenciais_prioritarios.esrs_aplicaveis.includes(esrs)
-          ? prev.referenciais_prioritarios.esrs_aplicaveis.filter(e => e !== esrs)
-          : [...prev.referenciais_prioritarios.esrs_aplicaveis, esrs]
+          : [...(prev.referenciais_prioritarios.ods_prioritarios || []), ods]
       }
     }));
   };
@@ -125,12 +123,14 @@ export default function ConfiguracoesESG() {
     return <div className="p-8 text-center">Carregando...</div>;
   }
 
+  const griSelecionado = (formData.compromissos_publicos || []).includes('GRI');
+
   return (
     <div className="space-y-6 pb-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Configurações ESG</h1>
-          <p className="text-slate-500 mt-1">Configure os dados da empresa para geração de relatórios</p>
+          <p className="text-slate-500 mt-1">Configure os dados da empresa e os referenciais adotados</p>
         </div>
       </div>
 
@@ -174,95 +174,111 @@ export default function ConfiguracoesESG() {
             </div>
 
             <div className="space-y-2">
-              <Label>Estratégia ESG</Label>
+              <Label>Estratégia de Relacionamento Comunitário e ESG</Label>
               <Textarea
                 value={formData.estrategia_esg}
                 onChange={(e) => setFormData({ ...formData, estrategia_esg: e.target.value })}
-                placeholder="Descreva a estratégia ESG da empresa..."
+                placeholder="Descreva a estratégia de relacionamento comunitário, engajamento de stakeholders e gestão social territorial..."
                 rows={4}
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* Compromissos Públicos */}
+        {/* Referenciais e Compromissos ESG */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-blue-600" />
-              Compromissos Públicos
+              <Shield className="w-5 h-5 text-emerald-600" />
+              Referenciais e Compromissos ESG
             </CardTitle>
+            <p className="text-sm text-slate-500 mt-1 max-w-3xl">
+              Referenciais relacionados ao relacionamento comunitário, engajamento de stakeholders,
+              direitos humanos, impacto social e gestão territorial adotados ou utilizados pela organização.
+            </p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {COMPROMISSOS_DISPONIVEIS.map(compromisso => (
-                <div key={compromisso} className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {REFERENCIAIS_ESG.map((ref) => (
+                <div key={ref.id} className="flex items-start gap-2 p-3 bg-slate-50 rounded-lg">
                   <Checkbox
-                    checked={formData.compromissos_publicos.includes(compromisso)}
-                    onCheckedChange={() => toggleCompromisso(compromisso)}
+                    checked={(formData.compromissos_publicos || []).includes(ref.id)}
+                    onCheckedChange={() => toggleReferencial(ref.id)}
                   />
-                  <label className="text-sm font-medium cursor-pointer" onClick={() => toggleCompromisso(compromisso)}>
-                    {compromisso}
-                  </label>
+                  <div onClick={() => toggleReferencial(ref.id)} className="cursor-pointer">
+                    <label className="text-sm font-medium text-slate-800 cursor-pointer">{ref.nome}</label>
+                    <p className="text-xs text-slate-500 mt-0.5">{ref.descricao}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Referenciais Prioritários */}
+        {/* Detalhamento dos Referenciais */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-purple-600" />
-              Referenciais Prioritários
+              <Target className="w-5 h-5 text-emerald-600" />
+              Detalhamento dos Referenciais
             </CardTitle>
+            <p className="text-xs text-slate-500 mt-1">
+              Os detalhamentos aparecem apenas quando o referencial correspondente é selecionado.
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* GRI Detalhamento */}
             <div>
-              <Label className="text-base mb-3 block">GRI Standards</Label>
-              <div className="grid grid-cols-3 gap-3">
-                {GRI_DISPONIVEIS.map(gri => (
-                  <div key={gri} className="flex items-center gap-2 p-2 bg-indigo-50 rounded">
-                    <Checkbox
-                      checked={formData.referenciais_prioritarios.gri_standards.includes(gri)}
-                      onCheckedChange={() => toggleGRI(gri)}
-                    />
-                    <label className="text-sm cursor-pointer" onClick={() => toggleGRI(gri)}>{gri}</label>
+              <Label className="text-base mb-1 block">GRI — Detalhamento</Label>
+              {!griSelecionado ? (
+                <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                  <Info className="w-3 h-3" /> Selecione "GRI" nos Referenciais acima para detalhar os padrões.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs text-slate-500 mb-3">
+                    Padrões relacionados ao relacionamento social. GRI 2-29 e GRI 413 são detalhamentos
+                    internos do GRI — não compromissos independentes.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {GRI_DETALHAMENTO.map((g) => (
+                      <div key={g.codigo} className="flex items-start gap-2 p-3 bg-emerald-50 rounded border border-emerald-100">
+                        <Checkbox
+                          checked={(formData.referenciais_prioritarios.gri_detalhamento || []).includes(g.codigo)}
+                          onCheckedChange={() => toggleGRIDetalhamento(g.codigo)}
+                        />
+                        <div onClick={() => toggleGRIDetalhamento(g.codigo)} className="cursor-pointer">
+                          <label className="text-sm font-medium text-slate-800 cursor-pointer">{g.codigo}</label>
+                          <p className="text-xs text-slate-600 mt-0.5">{g.nome}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{g.descricao}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
 
+            {/* ODS Prioritários (seleção múltipla) */}
             <div>
-              <Label className="text-base mb-3 block">ODS Prioritários</Label>
-              <div className="grid grid-cols-4 gap-3">
-                {ODS_DISPONIVEIS.map(ods => (
-                  <div key={ods} className="flex items-center gap-2 p-2 bg-blue-50 rounded">
-                    <Checkbox
-                      checked={formData.referenciais_prioritarios.ods_prioritarios.includes(ods)}
-                      onCheckedChange={() => toggleODS(ods)}
-                    />
-                    <label className="text-sm font-medium cursor-pointer" onClick={() => toggleODS(ods)}>
-                      ODS {ods}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-base mb-3 block">ESRS Aplicáveis (CSRD)</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {ESRS_DISPONIVEIS.map(esrs => (
-                  <div key={esrs} className="flex items-center gap-2 p-2 bg-emerald-50 rounded">
-                    <Checkbox
-                      checked={formData.referenciais_prioritarios.esrs_aplicaveis.includes(esrs)}
-                      onCheckedChange={() => toggleESRS(esrs)}
-                    />
-                    <label className="text-sm cursor-pointer" onClick={() => toggleESRS(esrs)}>{esrs}</label>
-                  </div>
-                ))}
+              <Label className="text-base mb-1 block">ODS Prioritários (seleção múltipla)</Label>
+              <p className="text-xs text-slate-500 mb-3">
+                Selecione um ou mais Objetivos de Desenvolvimento Sustentável. Programas, ações,
+                compromissos e registros podem ser associados aos ODS selecionados.
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                {ODS_LISTA.map((ods) => {
+                  const checked = (formData.referenciais_prioritarios.ods_prioritarios || []).includes(ods.id);
+                  return (
+                    <div key={ods.id} className="flex items-center gap-2 p-2 bg-blue-50 rounded cursor-pointer" onClick={() => toggleODS(ods.id)}>
+                      <Checkbox checked={checked} onCheckedChange={() => toggleODS(ods.id)} />
+                      <div>
+                        <span className="text-sm font-medium text-slate-800 block leading-tight">ODS {ods.id}</span>
+                        <span className="text-[11px] text-slate-600 leading-tight block">{ods.nome}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </CardContent>
@@ -281,7 +297,7 @@ export default function ConfiguracoesESG() {
               <div className="space-y-2">
                 <Label>Nome</Label>
                 <Input
-                  value={formData.contato_responsavel.nome}
+                  value={formData.contato_responsavel?.nome || ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     contato_responsavel: { ...formData.contato_responsavel, nome: e.target.value }
@@ -291,7 +307,7 @@ export default function ConfiguracoesESG() {
               <div className="space-y-2">
                 <Label>Cargo</Label>
                 <Input
-                  value={formData.contato_responsavel.cargo}
+                  value={formData.contato_responsavel?.cargo || ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     contato_responsavel: { ...formData.contato_responsavel, cargo: e.target.value }
@@ -305,7 +321,7 @@ export default function ConfiguracoesESG() {
                 <Label>Email</Label>
                 <Input
                   type="email"
-                  value={formData.contato_responsavel.email}
+                  value={formData.contato_responsavel?.email || ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     contato_responsavel: { ...formData.contato_responsavel, email: e.target.value }
@@ -315,7 +331,7 @@ export default function ConfiguracoesESG() {
               <div className="space-y-2">
                 <Label>Telefone</Label>
                 <Input
-                  value={formData.contato_responsavel.telefone}
+                  value={formData.contato_responsavel?.telefone || ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     contato_responsavel: { ...formData.contato_responsavel, telefone: e.target.value }

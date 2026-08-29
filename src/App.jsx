@@ -11,6 +11,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import Aparencia from './pages/Aparencia';
+import ReferenciaisESG from './pages/ReferenciaisESG';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -65,6 +66,11 @@ const AuthenticatedApp = () => {
       <Route path="/Aparencia" element={
         <LayoutWrapper currentPageName="Aparencia">
           <Aparencia />
+        </LayoutWrapper>
+      } />
+      <Route path="/ReferenciaisESG" element={
+        <LayoutWrapper currentPageName="ReferenciaisESG">
+          <ReferenciaisESG />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />

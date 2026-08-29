@@ -36,6 +36,7 @@ import GeradorRelatorioCompleto from "@/components/registro/GeradorRelatorioComp
 import { gerarCodigoUnico } from "@/components/codigos/GeradorCodigoUnico";
 import BadgeQualidade from "@/components/qualidade/BadgeQualidade";
 import AvaliacaoQualidadeRegistro from "@/components/qualidade/AvaliacaoQualidadeRegistro";
+import VinculadorReferenciais from "@/components/referenciais/VinculadorReferenciais";
 
 const tipoConfig = {
   reuniao: { label: 'Reunião', color: 'bg-purple-100 text-purple-700' },
@@ -401,6 +402,15 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
               </CardContent>
             </Card>
           )}
+
+          {/* Referenciais ESG como evidências */}
+          <VinculadorReferenciais
+            entidadeTipo="registro"
+            entidadeId={registro.id}
+            entidadeNome={registro.titulo}
+            comunidade={registro.comunidade}
+            territorio={registro.localizacao?.estado}
+          />
 
           {/* Generated Ata */}
           <Card>
