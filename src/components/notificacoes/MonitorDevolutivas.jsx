@@ -110,6 +110,13 @@ export default function MonitorDevolutivas() {
     const pendencias = analisarPendencias();
     const totalPendencias = pendencias.atrasadas.length + pendencias.proximasVencer.length + pendencias.compromissosAtrasados.length;
 
+    // Auto-dismiss após 7 segundos — pendências permanecem acessíveis pelo sino (NotificationCenter)
+    useEffect(() => {
+        if (totalPendencias === 0 || !notificacoesVisiveis) return;
+        const timer = setTimeout(() => setNotificacoesVisiveis(false), 7000);
+        return () => clearTimeout(timer);
+    }, [totalPendencias, notificacoesVisiveis]);
+
     if (!notificacoesVisiveis || totalPendencias === 0) return null;
 
     return (

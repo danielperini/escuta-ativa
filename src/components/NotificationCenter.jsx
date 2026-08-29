@@ -14,6 +14,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
+import { isBefore, startOfToday } from "date-fns";
+import { AlertTriangle, Clock } from "lucide-react";
 
 export default function NotificationCenter() {
     const navigate = useNavigate();
@@ -71,6 +73,43 @@ export default function NotificationCenter() {
 
     const naoLidas = notificacoes.filter(n => !n.lida && n.status !== 'resolvida');
 
+    // Pendências de devolutivas/compromissos atrasados (mostradas também no sino)
+    const { data: registrosPend = [] } = useQuery({
+        queryKey: ['registros-devolutivas-bell'],
+        queryFn: () => base44.entities.Registro.list('-created_date', 100),
+        staleTime: 60000
+    });
+
+    const { data: compromissosPend = [] } = useQuery({
+        queryKey: ['compromissos-bell'],
+        queryFn: () => base44.entities.Compromisso.list('-prazo', 500),
+        staleTime: 60000
+    });
+
+    const pendenciasSino = React.useMemo(() => {
+        const hoje = new Date();
+        const atrasadas = [];
+        const proximas = [];
+        registrosPend.forEach(registro => {
+            registro.demandas?.forEach((demanda, index) => {
+                if (!demanda.devolutiva_realizada && demanda.requer_devolutiva && demanda.prazo_devolutiva) {
+                    const prazo = new Date(demanda.prazo_devolutiva);
+                    if (isNaN(prazo.getTime())) return;
+                    const dias = Math.ceil((prazo - hoje) / (1000 * 60 * 60 * 24));
+                    if (dias < 0) atrasadas.push({ registro, demanda, diasAtraso: Math.abs(dias), tipo: 'atrasada' });
+                    else if (dias <= 3) atrasadas.push({ registro, demanda, diasRestantes: dias, tipo: 'proxima' });
+                }
+            });
+        });
+        const compAtrasados = compromissosPend.filter(c =>
+            c.status !== 'concluido' && c.status !== 'cancelado' && c.prazo && isBefore(new Date(c.prazo), startOfToday())
+        ).map(c => ({ compromisso: c, diasAtraso: Math.floor((startOfToday() - new Date(c.prazo)) / (1000 * 60 * 60 * 24)), tipo: 'compromisso' }));
+        return { atrasadas, proximas, compAtrasados };
+    }, [registrosPend, compromissosPend]);
+
+    const totalPendenciasSino = pendenciasSino.atrasadas.length + pendenciasSino.proximas.length + pendenciasSino.compAtrasados.length;
+    const totalBadge = naoLidas.length + totalPendenciasSino;
+
     const getIcon = (tipo) => {
         switch(tipo) {
             case "atualizacao_cadastro": return <Users className="w-4 h-4" />;
@@ -105,7 +144,7 @@ export default function NotificationCenter() {
             <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                     <Bell className="w-5 h-5 text-slate-600" />
-                    {naoLidas.length > 0 && (
+                    {totalBadge > 0 && (
                         <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
                     )}
                 </Button>
@@ -126,12 +165,35 @@ export default function NotificationCenter() {
                 </div>
                 
                 <ScrollArea className="h-96">
-                    {notificacoes.length === 0 ? (
+                    {notificacoes.length === 0 && totalPendenciasSino === 0 ? (
                         <div className="p-8 text-center text-gray-500">
                             Nenhuma notificação
                         </div>
                     ) : (
                         <div className="divide-y">
+                            {/* Pendências de devolutivas e compromissos atrasados */}
+                            {totalPendenciasSino > 0 && (
+                                <div className="p-4 space-y-2 bg-red-50/40 border-b">
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-red-900">
+                                        <AlertTriangle className="w-4 h-4" />
+                                        Pendências ({totalPendenciasSino})
+                                    </div>
+                                    {pendenciasSino.atrasadas.slice(0, 3).map((item, idx) => (
+                                        <div key={`at-${idx}`} className="p-2 bg-white rounded border border-red-200 cursor-pointer" onClick={() => navigate(createPageUrl(`VerRegistro?id=${item.registro.id}`))}>
+                                            <p className="text-sm font-medium text-slate-900">{item.registro.titulo}</p>
+                                            <p className="text-xs text-slate-600">{item.demanda.descricao}</p>
+                                            <Badge variant="destructive" className="mt-1 text-xs">{item.diasAtraso} dias de atraso</Badge>
+                                        </div>
+                                    ))}
+                                    {pendenciasSino.compAtrasados.slice(0, 3).map((item, idx) => (
+                                        <div key={`comp-${idx}`} className="p-2 bg-white rounded border border-orange-200">
+                                            <p className="text-sm font-medium text-slate-900">{item.compromisso.titulo}</p>
+                                            <Badge className="mt-1 text-xs bg-orange-100 text-orange-700">{item.diasAtraso} dias de atraso</Badge>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
                             {notificacoes.map((notif) => (
                                 <div 
                                     key={notif.id}
