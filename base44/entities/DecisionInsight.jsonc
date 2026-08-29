@@ -1,0 +1,188 @@
+{
+  "name": "DecisionInsight",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "TENDENCIA",
+        "RECORRENCIA",
+        "SINAL_FRACO",
+        "RISCO",
+        "OPORTUNIDADE",
+        "DEMANDA_PRIORITARIA",
+        "DEVOLUTIVA_PENDENTE",
+        "COMPROMISSO_EM_RISCO",
+        "MUDANCA_DE_PERCEPCAO",
+        "MOVIMENTO_DE_STAKEHOLDER",
+        "TEMA_EM_CRESCIMENTO",
+        "TERRITORIO_COM_ATENCAO",
+        "NECESSIDADE_DE_ESCUTA",
+        "NECESSIDADE_DE_ARTICULACAO",
+        "LACUNA_DE_INFORMACAO",
+        "AGENDA_RECOMENDADA"
+      ],
+      "description": "Tipo do insight gerado pelo motor"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo curto do insight (at\u00e9 100 caracteres)"
+    },
+    "resumo": {
+      "type": "string",
+      "description": "Resumo do que est\u00e1 acontecendo, com base nas evid\u00eancias"
+    },
+    "o_que_esta_acontecendo": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o factual do padr\u00e3o detectado"
+    },
+    "por_que_merece_atencao": {
+      "type": "string",
+      "description": "Justificativa da relev\u00e2ncia, com base em evid\u00eancias concretas"
+    },
+    "possiveis_caminhos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Poss\u00edveis a\u00e7\u00f5es recomendadas (nunca como ordem definitiva)"
+    },
+    "prioridade": {
+      "type": "string",
+      "enum": [
+        "CRITICA",
+        "ALTA",
+        "MEDIA",
+        "BAIXA",
+        "MONITORAR"
+      ],
+      "default": "MEDIA"
+    },
+    "confianca": {
+      "type": "string",
+      "enum": [
+        "ALTA",
+        "MEDIA",
+        "BAIXA"
+      ],
+      "default": "MEDIA",
+      "description": "N\u00edvel de confian\u00e7a baseado em diversidade de fontes, recorr\u00eancia e qualidade dos registros"
+    },
+    "confianca_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Score num\u00e9rico de confian\u00e7a (0-100)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativo",
+        "arquivado",
+        "resolvido",
+        "em_acompanhamento"
+      ],
+      "default": "ativo"
+    },
+    "comunidade_id": {
+      "type": "string"
+    },
+    "comunidade_nome": {
+      "type": "string"
+    },
+    "municipio": {
+      "type": "string"
+    },
+    "territorio": {
+      "type": "string"
+    },
+    "temas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidencia_count": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de evid\u00eancias que sustentam este insight"
+    },
+    "evidencias_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos registros, demandas, casos ou stakeholders usados como evid\u00eancia"
+    },
+    "trend": {
+      "type": "string",
+      "enum": [
+        "crescente",
+        "estavel",
+        "decrescente",
+        "novo"
+      ],
+      "default": "novo"
+    },
+    "first_detected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_detected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "regra_disparada": {
+      "type": "string",
+      "description": "Nome da regra ou padr\u00e3o que gerou este insight"
+    },
+    "versao_motor": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "classificacao_evidencia": {
+      "type": "string",
+      "enum": [
+        "FATO_REGISTRADO",
+        "DADO_OFICIAL",
+        "PERCEPCAO",
+        "FALA",
+        "ALEGACAO",
+        "INFERENCIA",
+        "HIPOTESE",
+        "RECOMENDACAO"
+      ],
+      "description": "Classifica\u00e7\u00e3o do tipo de evid\u00eancia que sustenta o insight"
+    },
+    "methodology_source": {
+      "type": "string",
+      "default": "DANIEL_PERINI_COMMUNITY_RELATIONS",
+      "description": "Base metodol\u00f3gica aplicada na gera\u00e7\u00e3o deste insight"
+    },
+    "periodo_analise": {
+      "type": "object",
+      "properties": {
+        "inicio": {
+          "type": "string",
+          "format": "date"
+        },
+        "fim": {
+          "type": "string",
+          "format": "date"
+        },
+        "janela_dias": {
+          "type": "number"
+        }
+      }
+    },
+    "dados_utilizados": {
+      "type": "object",
+      "description": "Auditoria: quais dados foram usados na an\u00e1lise (sem chain-of-thought)"
+    }
+  },
+  "required": [
+    "tipo",
+    "titulo",
+    "prioridade"
+  ]
+}

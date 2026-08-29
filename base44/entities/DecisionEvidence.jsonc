@@ -1,0 +1,73 @@
+{
+  "name": "DecisionEvidence",
+  "type": "object",
+  "properties": {
+    "insight_id": {
+      "type": "string",
+      "description": "ID do DecisionInsight ao qual esta evid\u00eancia pertence"
+    },
+    "entidade_tipo": {
+      "type": "string",
+      "enum": [
+        "registro",
+        "demanda",
+        "caso",
+        "stakeholder",
+        "atividade",
+        "documento",
+        "dado_secundario",
+        "risco_social",
+        "compromisso",
+        "agenda"
+      ],
+      "description": "Tipo da entidade usada como evid\u00eancia"
+    },
+    "entidade_id": {
+      "type": "string",
+      "description": "ID da entidade referenciada"
+    },
+    "entidade_titulo": {
+      "type": "string",
+      "description": "T\u00edtulo/nome denormalizado para exibi\u00e7\u00e3o"
+    },
+    "comunidade": {
+      "type": "string"
+    },
+    "municipio": {
+      "type": "string"
+    },
+    "data_ocorrencia": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do evento/registro que serviu de evid\u00eancia"
+    },
+    "trecho_relevante": {
+      "type": "string",
+      "description": "Trecho espec\u00edfico do registro que sustenta o insight (sem inventar)"
+    },
+    "peso_evidencia": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "default": 3,
+      "description": "Peso desta evid\u00eancia no c\u00e1lculo de confian\u00e7a do insight"
+    },
+    "classificacao": {
+      "type": "string",
+      "enum": [
+        "FATO_REGISTRADO",
+        "DADO_OFICIAL",
+        "PERCEPCAO",
+        "FALA",
+        "ALEGACAO",
+        "INFERENCIA"
+      ],
+      "description": "Como esta evid\u00eancia espec\u00edfica foi classificada"
+    }
+  },
+  "required": [
+    "insight_id",
+    "entidade_tipo",
+    "entidade_id"
+  ]
+}
