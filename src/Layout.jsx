@@ -65,11 +65,10 @@ const navigation = [
   { name: 'Mapa de Stakeholders', href: 'MapaStakeholders', icon: Users },
   { name: 'Casos', href: 'Casos', icon: CheckSquare },
   { name: 'Comunidades e Grupos', href: 'ComunidadesGrupos', icon: Home },
-  { name: 'Análise', href: 'Analise', icon: BarChart3 },
   { name: 'Análise Demográfica', href: 'AnaliseDemografica', icon: UsersRound },
   { name: 'Dados Secundários', href: 'DadosSecundarios', icon: Database },
   { name: 'Saúde das Fontes', href: 'SaudeFontes', icon: Activity, secao: 'admin_fontes' },
-  { name: 'Central de Análise', href: 'CentralAnalise', icon: Sparkles },
+  /* Central de Análise oculta — lógica migrada para o Motor de Decisões (backend) */
   { name: 'Gerador de Relatório', href: 'GeradorRelatorioSustentabilidade', icon: Sparkles, secao: 'sustentabilidade' },
   { name: 'Referenciais ESG', href: 'ReferenciaisESG', icon: ShieldCheck, secao: 'sustentabilidade' },
   { name: 'Relatórios Gerados', href: 'RelatoriosGerados', icon: FileText, secao: 'sustentabilidade' },

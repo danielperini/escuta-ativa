@@ -242,6 +242,28 @@ export default async function (req) {
       }
     } catch (e) { /* ignore */ }
 
+    // === FASE 7.5: Insights do Motor de Decisões (contexto estratégico) ===
+    try {
+      const insights = await base44.entities.DecisionInsight.filter({ status: 'ativo' }, '-last_detected_at', 10);
+      if (insights?.length) {
+        const insightsMunicipioFiltrado = munLower
+          ? insights.filter((i: any) =>
+              (i.municipio || '').toLowerCase().includes(munLower) ||
+              (i.comunidade_nome || '').toLowerCase().includes(munLower) ||
+              !i.municipio // insights globais sempre incluídos
+            )
+          : insights;
+        const amostra = insightsMunicipioFiltrado.slice(0, 6);
+        if (amostra.length) {
+          const insightsTxt = amostra.map((i: any) =>
+            `- [${i.tipo}] ${i.titulo}${i.comunidade_nome ? ' (' + i.comunidade_nome + ')' : ''}${i.prioridade ? ' — Prioridade: ' + i.prioridade : ''}${i.confianca ? ' — Confiança: ' + i.confianca : ''}${i.resumo ? ': ' + i.resumo.slice(0, 150) : ''}${i.classificacao_evidencia ? ' [' + i.classificacao_evidencia + ']' : ''}`
+          ).join('\n');
+          contexto.push(`INSIGHTS DO MOTOR DE DECISÕES (${amostra.length} ativos — gerados automaticamente por regras + IA, com auditoria):\n${insightsTxt}\n\nIMPORTANTE: estes insights são gerados com base nos dados reais do app e metodologia de relacionamento comunitário. Use-os como contexto estratégico, sempre diferenciando FATO de INFERÊNCIA conforme classificacao_evidencia de cada item.`);
+          fontesConsultadas.push('DecisionInsight (Motor de Decisões societá.ai)');
+        }
+      }
+    } catch (e) { /* best-effort */ }
+
     // === FASE 8 (NOVA): Documentos / Base de Conhecimento ===
     try {
       const docs = await base44.entities.DocumentoProcessado.list('-created_date', 60);

@@ -1,0 +1,47 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "motor_decisoes_semanal",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "analise_semanal": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "motorDecisoesSocial",
+            "args": {
+              "modo": "rotina_semanal"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "An\u00e1lise Longitudinal Semanal",
+            "description": "Padr\u00f5es, tend\u00eancias e sinais fracos via IA"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 8 * * 1",
+      "one_time_date": null,
+      "timezone": "America/Sao_Paulo",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "description": "Toda segunda-feira executa an\u00e1lise longitudinal com IA: detecta tend\u00eancias, sinais fracos, temas em crescimento e movimentos de stakeholders nos \u00faltimos 30 dias.",
+  "name": "Motor de Decis\u00f5es \u2014 An\u00e1lise Semanal"
+}

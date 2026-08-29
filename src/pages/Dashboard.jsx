@@ -30,6 +30,7 @@ import PainelAgendaDashboard from "@/components/dashboard/PainelAgendaDashboard"
 import PainelDemandasDashboard from "@/components/dashboard/PainelDemandasDashboard";
 import PainelComunidadesDashboard from "@/components/dashboard/PainelComunidadesDashboard";
 import WidgetRelacionamento from "@/components/dashboard/WidgetRelacionamento";
+import WidgetPrioridadesMotor from "@/components/dashboard/WidgetPrioridadesMotor";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -243,6 +244,12 @@ export default function Dashboard() {
                     {widgets.includes('devolutivas') && (
                         <div className="lg:col-span-2"><MonitorDevolutivas /></div>
                     )}
+                </div>
+
+                {/* ===== Motor de Decisões — Prioridades para Atenção ===== */}
+                <div className="space-y-4">
+                    <SectionHeader title="Prioridades para Atenção" />
+                    <WidgetPrioridadesMotor maxItems={6} />
                 </div>
 
                 {/* ===== Próxima Agenda + Agenda e Atividades (§1) ===== */}
