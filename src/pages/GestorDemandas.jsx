@@ -23,8 +23,10 @@ import {
 import VisualizacaoKanban from '@/components/demandas/VisualizacaoKanban';
 import VisualizacaoLista from '@/components/demandas/VisualizacaoLista';
 import DialogAtribuirResponsavel from '@/components/demandas/DialogAtribuirResponsavel';
+import DialogDetalheDemanda from '@/components/demandas/DialogDetalheDemanda';
 import HistoricoDemandas from '@/components/demandas/HistoricoDemandas';
 import EstatisticasDemandas from '@/components/demandas/EstatisticasDemandas';
+import { sincronizarLegadoDevolutiva, statusDevolutiva } from '@/lib/devolutiva';
 
 export default function GestorDemandas() {
   const queryClient = useQueryClient();
@@ -34,7 +36,9 @@ export default function GestorDemandas() {
   const [filtroPrioridade, setFiltroPrioridade] = useState('todos');
   const [filtroComunidade, setFiltroComunidade] = useState('todos');
   const [filtroResponsavel, setFiltroResponsavel] = useState('todos');
+  const [filtroDevolutiva, setFiltroDevolutiva] = useState('todos');
   const [demandaSelecionada, setDemandaSelecionada] = useState(null);
+  const [demandaDetalhe, setDemandaDetalhe] = useState(null);
   const [mostrarHistorico, setMostrarHistorico] = useState(false);
 
   const { data: registros = [], isLoading } = useQuery({
@@ -78,10 +82,11 @@ export default function GestorDemandas() {
       const matchPrioridade = filtroPrioridade === 'todos' || demanda.urgencia === filtroPrioridade;
       const matchComunidade = filtroComunidade === 'todos' || demanda.comunidade === filtroComunidade;
       const matchResponsavel = filtroResponsavel === 'todos' || demanda.responsavel === filtroResponsavel;
+      const matchDevolutiva = filtroDevolutiva === 'todos' || statusDevolutiva(demanda) === filtroDevolutiva;
 
-      return matchBusca && matchStatus && matchPrioridade && matchComunidade && matchResponsavel;
+      return matchBusca && matchStatus && matchPrioridade && matchComunidade && matchResponsavel && matchDevolutiva;
     });
-  }, [todasDemandas, busca, filtroStatus, filtroPrioridade, filtroComunidade, filtroResponsavel]);
+  }, [todasDemandas, busca, filtroStatus, filtroPrioridade, filtroComunidade, filtroResponsavel, filtroDevolutiva]);
 
   // Obter listas únicas para filtros
   const comunidadesUnicas = useMemo(() => 
@@ -98,9 +103,10 @@ export default function GestorDemandas() {
     mutationFn: async ({ registroId, demandaIndex, dadosAtualizados }) => {
       const registro = registros.find(r => r.id === registroId);
       const demandasAtualizadas = [...registro.demandas];
+      const synced = sincronizarLegadoDevolutiva(dadosAtualizados);
       demandasAtualizadas[demandaIndex] = {
         ...demandasAtualizadas[demandaIndex],
-        ...dadosAtualizados
+        ...synced
       };
       return base44.entities.Registro.update(registroId, { demandas: demandasAtualizadas });
     },
@@ -115,6 +121,7 @@ export default function GestorDemandas() {
     setFiltroPrioridade('todos');
     setFiltroComunidade('todos');
     setFiltroResponsavel('todos');
+    setFiltroDevolutiva('todos');
   };
 
   return (
@@ -205,6 +212,19 @@ export default function GestorDemandas() {
                 ))}
               </SelectContent>
             </Select>
+
+            <Select value={filtroDevolutiva} onValueChange={setFiltroDevolutiva}>
+              <SelectTrigger>
+                <SelectValue placeholder="Devolutiva" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas as Devolutivas</SelectItem>
+                <SelectItem value="pendente">🟡 Devolutiva Pendente</SelectItem>
+                <SelectItem value="realizada">🟢 Devolutiva Realizada</SelectItem>
+                <SelectItem value="nao_realizada">🔴 Não Realizada</SelectItem>
+                <SelectItem value="nao_se_aplica">⚪ Não se Aplica</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center justify-between">
@@ -252,13 +272,14 @@ export default function GestorDemandas() {
             <VisualizacaoKanban 
               demandas={demandasFiltradas}
               onAtualizarDemanda={atualizarDemandaMutation.mutate}
-              onSelecionarDemanda={setDemandaSelecionada}
+              onSelecionarDemanda={setDemandaDetalhe}
             />
           ) : (
             <VisualizacaoLista
               demandas={demandasFiltradas}
               onAtualizarDemanda={atualizarDemandaMutation.mutate}
               onSelecionarDemanda={setDemandaSelecionada}
+              onAbrirDetalhe={setDemandaDetalhe}
             />
           )}
         </CardContent>
@@ -285,6 +306,22 @@ export default function GestorDemandas() {
         <HistoricoDemandas
           registros={registros}
           onClose={() => setMostrarHistorico(false)}
+        />
+      )}
+
+      {demandaDetalhe && (
+        <DialogDetalheDemanda
+          demanda={demandaDetalhe}
+          registros={registros}
+          usuarios={usuarios}
+          onAtualizarDemanda={(payload) => {
+            atualizarDemandaMutation.mutate(payload);
+            // mantém o dialog atualizado com a demanda já refletida localmente
+            const { dadosAtualizados } = payload;
+            setDemandaDetalhe(prev => prev ? { ...prev, ...dadosAtualizados } : prev);
+          }}
+          salvando={atualizarDemandaMutation.isPending}
+          onClose={() => setDemandaDetalhe(null)}
         />
       )}
     </div>

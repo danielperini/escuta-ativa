@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Clock, User, AlertCircle } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
+import { statusDevolutiva, devolutivaStatusConfig, devolutivaPendente } from '@/lib/devolutiva';
 
 const statusConfig = {
   pendente: { label: 'Pendente', color: 'bg-slate-100 text-slate-700', border: 'border-slate-300' },
@@ -32,11 +33,25 @@ export default function VisualizacaoKanban({ demandas, onAtualizarDemanda, onSel
   };
 
   const verificarAtraso = (demanda) => {
-    if (!demanda.prazo_devolutiva || demanda.devolutiva_realizada) return null;
+    if (!demanda.prazo_devolutiva || statusDevolutiva(demanda) === 'realizada') return null;
     const prazoDate = new Date(demanda.prazo_devolutiva);
     if (isNaN(prazoDate.getTime())) return null;
     const dias = differenceInDays(new Date(), prazoDate);
     return dias > 0 ? dias : null;
+  };
+
+  const concluirDemanda = (demanda) => {
+    if (devolutivaPendente(demanda)) {
+      const ok = window.confirm(
+        'Esta demanda ainda possui devolutiva pendente.\n\nDeseja concluir mesmo assim? A pendência de devolutiva será registrada.'
+      );
+      if (!ok) return;
+    }
+    onAtualizarDemanda({
+      registroId: demanda.registroId,
+      demandaIndex: demanda.demandaIndex,
+      dadosAtualizados: { status: 'atendida' }
+    });
   };
 
   return (
@@ -67,10 +82,19 @@ export default function VisualizacaoKanban({ demandas, onAtualizarDemanda, onSel
                     onClick={() => onSelecionarDemanda(demanda)}
                   >
                     <CardContent className="p-4 space-y-3">
-                      {/* Urgência */}
-                      <Badge className={urgenciaConfig[demanda.urgencia]?.color || 'bg-slate-100'}>
-                        {demanda.urgencia || 'média'}
-                      </Badge>
+                      <div className="flex items-center justify-between">
+                        {/* Urgência */}
+                        <Badge className={urgenciaConfig[demanda.urgencia]?.color || 'bg-slate-100'}>
+                          {demanda.urgencia || 'média'}
+                        </Badge>
+                        {/* Devolutiva (§6) */}
+                        <span
+                          title={`Devolutiva: ${devolutivaStatusConfig(demanda).label}`}
+                          className={`text-xs font-medium px-2 py-0.5 rounded-full border ${devolutivaStatusConfig(demanda).badge}`}
+                        >
+                          {devolutivaStatusConfig(demanda).emoji} {devolutivaStatusConfig(demanda).label}
+                        </span>
+                      </div>
 
                       {/* Descrição */}
                       <p className="text-sm font-medium text-slate-900 line-clamp-3">
@@ -134,15 +158,7 @@ export default function VisualizacaoKanban({ demandas, onAtualizarDemanda, onSel
                             className="flex-1 text-xs bg-green-600 hover:bg-green-700"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onAtualizarDemanda({
-                                registroId: demanda.registroId,
-                                demandaIndex: demanda.demandaIndex,
-                                dadosAtualizados: { 
-                                  status: 'atendida',
-                                  devolutiva_realizada: true,
-                                  data_devolutiva: new Date().toISOString().split('T')[0]
-                                }
-                              });
+                              concluirDemanda(demanda);
                             }}
                           >
                             Concluir

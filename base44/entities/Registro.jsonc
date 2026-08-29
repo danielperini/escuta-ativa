@@ -17,10 +17,11 @@
         "conversa_campo",
         "visita",
         "demanda",
-        "ocorrencia"
+        "ocorrencia",
+        "devolutiva"
       ],
       "default": "conversa_campo",
-      "description": "Tipo de intera\u00e7\u00e3o"
+      "description": "Tipo de intera\u00e7\u00e3o. 'devolutiva' = atividade de retorno ao territ\u00f3rio que comprova a resposta a uma demanda."
     },
     "descricao": {
       "type": "string",
@@ -185,6 +186,64 @@
           "data_devolutiva": {
             "type": "string",
             "format": "date"
+          },
+          "devolutiva_status": {
+            "type": "string",
+            "enum": [
+              "pendente",
+              "realizada",
+              "nao_realizada",
+              "nao_se_aplica"
+            ],
+            "default": "pendente",
+            "description": "Status do ciclo de devolutiva. pendente=ainda h\u00e1 retorno a fazer; realizada=houve retorno ao territ\u00f3rio; nao_realizada=n\u00e3o houve retorno (mant\u00e9m como pend\u00eancia); nao_se_aplica=sem necessidade de devolutiva."
+          },
+          "devolutiva_data_prevista": {
+            "type": "string",
+            "format": "date",
+            "description": "Data prevista para a devolutiva"
+          },
+          "devolutiva_data_realizada": {
+            "type": "string",
+            "format": "date",
+            "description": "Data em que a devolutiva foi realizada"
+          },
+          "devolutiva_responsavel": {
+            "type": "string",
+            "description": "Respons\u00e1vel por realizar a devolutiva"
+          },
+          "devolutiva_forma": {
+            "type": "string",
+            "enum": [
+              "reuniao",
+              "visita",
+              "telefone",
+              "mensagem",
+              "email",
+              "oficio",
+              "evento",
+              "outra"
+            ],
+            "description": "Forma como a devolutiva foi realizada"
+          },
+          "devolutiva_resumo": {
+            "type": "string",
+            "description": "Resumo do conte\u00fado da devolutiva"
+          },
+          "devolutiva_justificativa": {
+            "type": "string",
+            "description": "Justificativa quando 'nao_se_aplica' ou 'nao_realizada'"
+          },
+          "devolutiva_publico": {
+            "type": "string",
+            "description": "P\u00fablico/Stakeholder alcan\u00e7ado pela devolutiva"
+          },
+          "devolutiva_registro_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "IDs de Registros/Atividades (tipo=devolutiva) que comprovam a devolutiva. Rela\u00e7\u00e3o N:N Demanda \u2194 Registro."
           }
         }
       },
@@ -445,6 +504,27 @@
         "type": "string"
       },
       "description": "IDs de registros de continuidade"
+    },
+    "demanda_relacionada": {
+      "type": "object",
+      "description": "Quando tipo=devolutiva: v\u00ednculo bidirecional com a Demanda que motivou a devolutiva.",
+      "properties": {
+        "registro_origem_id": {
+          "type": "string",
+          "description": "ID do Registro que cont\u00e9m a demanda"
+        },
+        "demanda_index": {
+          "type": "number",
+          "description": "\u00cdndice da demanda no array Registro.demandas"
+        },
+        "descricao": {
+          "type": "string",
+          "description": "Descri\u00e7\u00e3o da demanda (denormalizado)"
+        },
+        "comunidade": {
+          "type": "string"
+        }
+      }
     },
     "status": {
       "type": "string",
