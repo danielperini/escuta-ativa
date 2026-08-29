@@ -10,6 +10,7 @@ import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { relacionamentoLabel, relacionamentoBadgeClass } from "@/lib/relationshipClassification";
 
 const ITEMS_POR_PAGINA = 20;
 
@@ -111,6 +112,11 @@ export default function TabelaRegistros({ registros, onExcluir }) {
                     <Badge variant="outline" className="text-xs">
                       {registro.tipo?.replace('_', ' ')}
                     </Badge>
+                    {registro.relationship_classification?.classificacao && (
+                      <Badge className={cn("text-xs", relacionamentoBadgeClass(registro.relationship_classification.classificacao))}>
+                        {relacionamentoLabel(registro.relationship_classification.classificacao)}
+                      </Badge>
+                    )}
                     {registro.temperatura_territorio && (
                       <Badge className={cn("text-xs", termometroColors[registro.temperatura_territorio])}>
                         {registro.temperatura_territorio}
@@ -199,6 +205,7 @@ export default function TabelaRegistros({ registros, onExcluir }) {
               <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Comunidade</th>
               <ColunaSortable campo="created_date">Data</ColunaSortable>
               <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Tipo</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Relação</th>
               <ColunaSortable campo="temperatura_territorio">Temperatura</ColunaSortable>
               <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Temas</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Status</th>

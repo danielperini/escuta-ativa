@@ -32,6 +32,7 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
       sentimento: 'todos',
       tema: 'todos',
       municipio: 'todas',
+      relacionamento: 'todos',
       dataInicio: '',
       dataFim: ''
     });
@@ -47,6 +48,7 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
     if (filtros.sentimento !== 'todos') count++;
     if (filtros.tema !== 'todos') count++;
     if (filtros.municipio !== 'todas') count++;
+    if (filtros.relacionamento !== 'todos') count++;
     if (filtros.dataInicio || filtros.dataFim) count++;
     return count;
   };
@@ -192,6 +194,21 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
               {municipiosBrasil.filter(m => m !== "Todas").map(m => (
                 <SelectItem key={m} value={m}>{m}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label className="text-xs">Relacionamento</Label>
+          <Select value={filtros.relacionamento || 'todos'} onValueChange={(v) => setFiltros({ ...filtros, relacionamento: v })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="COMUNITARIO">Comunitário</SelectItem>
+              <SelectItem value="INSTITUCIONAL">Institucional</SelectItem>
+              <SelectItem value="COMUNITARIO_INSTITUCIONAL">Comunitário e Institucional</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import OpenAI from 'npm:openai@4.68.0';
 import { secrets } from 'base44:runtime';
+import { classificarRelacionamentoViaIA, montarClassificacao } from '../../shared/relationshipClassification.ts';
 
 // ===================================================================
 // analisarNovoRegistro — Automação da tela "Novo Registro" da societá.ai.
@@ -128,8 +129,35 @@ TAREFA: Extraia TODAS as informações relevantes em UMA ÚNICA análise, seguin
       }, { status: 502 });
     }
 
+    // Classificação do tipo de relacionamento (Comunitário/Institucional/ambos).
+    // Analisa conjuntamente título, descrição, tipo, território, participantes,
+    // temas, demandas e a transcrição original.
+    let relationship_classification = null;
+    try {
+      const contextoRegistro = {
+        titulo: resultado.identificacao?.titulo || '',
+        tipo: resultado.identificacao?.tipo || '',
+        descricao: resultado.identificacao?.resumo || textoLimit,
+        comunidade: resultado.identificacao?.comunidade || comunidade || '',
+        localizacao: { municipio: resultado.identificacao?.municipio || '', estado: '' },
+        participantes: resultado.analise?.participantes || [],
+        temas_identificados: resultado.analise?.temas || [],
+        demandas: resultado.demandas || [],
+        transcricao: textoLimit,
+      };
+      const classificacao = await classificarRelacionamentoViaIA(openai, contextoRegistro);
+      relationship_classification = montarClassificacao(classificacao.classificacao, 'ia', {
+        confianca: classificacao.confianca,
+        justificativa: classificacao.justificativa,
+      });
+    } catch (classErr) {
+      // Falha na classificação não deve derrubar a análise principal.
+      console.error('Erro ao classificar relacionamento:', classErr?.message);
+    }
+
     return Response.json({
       ...resultado,
+      relationship_classification,
       // Mantém compatibilidade com os campos esperados pelo frontend
       // (caso a IA omita alguma seção, garante que existam)
       identificacao: resultado.identificacao || { titulo: '', tipo: 'conversa_campo', resumo: '' },

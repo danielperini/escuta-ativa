@@ -39,6 +39,7 @@ export default function Registros() {
     sentimento: 'todos',
     tema: 'todos',
     municipio: 'todas',
+    relacionamento: 'todos',
     dataInicio: '',
     dataFim: ''
   });
@@ -103,6 +104,11 @@ export default function Registros() {
     // Filtro sentimento
     if (filtros.sentimento !== 'todos' && r.sentimento !== filtros.sentimento) return false;
 
+    // Filtro relacionamento (Comunitário / Institucional / ambos)
+    if (filtros.relacionamento !== 'todos') {
+      if (r.relationship_classification?.classificacao !== filtros.relacionamento) return false;
+    }
+
     // Filtro tema
     if (filtros.tema !== 'todos') {
       if (!r.temas_identificados?.includes(filtros.tema)) return false;
@@ -129,7 +135,7 @@ export default function Registros() {
 
     React.useEffect(() => {
       setCurrentPage(1);
-    }, [filtros.busca, filtros.comunidade, filtros.tipo, filtros.status, filtros.temperatura, filtros.sentimento, filtros.tema, filtros.municipio, filtros.dataInicio, filtros.dataFim]);
+    }, [filtros.busca, filtros.comunidade, filtros.tipo, filtros.status, filtros.temperatura, filtros.sentimento, filtros.tema, filtros.municipio, filtros.relacionamento, filtros.dataInicio, filtros.dataFim]);
 
     return (
       <ErrorBoundary>

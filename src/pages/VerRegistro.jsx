@@ -37,6 +37,8 @@ import { gerarCodigoUnico } from "@/components/codigos/GeradorCodigoUnico";
 import BadgeQualidade from "@/components/qualidade/BadgeQualidade";
 import AvaliacaoQualidadeRegistro from "@/components/qualidade/AvaliacaoQualidadeRegistro";
 import VinculadorReferenciais from "@/components/referenciais/VinculadorReferenciais";
+import { relacionamentoLabel, relacionamentoBadgeClass } from "@/lib/relationshipClassification";
+import { toast } from "sonner";
 
 const tipoConfig = {
   reuniao: { label: 'Reunião', color: 'bg-purple-100 text-purple-700' },
@@ -67,6 +69,32 @@ export default function VerRegistro() {
   const [isGeneratingAta, setIsGeneratingAta] = useState(false);
   const [mostrarGerador, setMostrarGerador] = useState(false);
   const [mostrarAvaliacaoQualidade, setMostrarAvaliacaoQualidade] = useState(false);
+  const [reclassificando, setReclassificando] = useState(false);
+
+  const reavaliarClassificacao = async () => {
+    if (!registro) return;
+    setReclassificando(true);
+    try {
+      const res = await base44.functions.invoke('classificarRelacionamentoRegistros', { registro_id: registro.id });
+      const data = res?.data ?? res;
+      if (data?.error) throw new Error(data.error);
+      const r = data?.resultados?.[0];
+      if (r?.aplicado) {
+        toast.success(`Classificado como ${relacionamentoLabel(r.classificacao)} pela IA`);
+        queryClient.invalidateQueries({ queryKey: ['registro', registroId] });
+      } else if (r?.sugestao_ia) {
+        toast.info(`IA sugere ${relacionamentoLabel(r.sugestao_ia.classificacao)}. Classificação manual mantida — altere no formulário se desejar.`);
+      } else if (r?.erro) {
+        toast.error('Erro na reavaliação: ' + r.erro);
+      } else {
+        toast.info('Nenhuma alteração necessária.');
+      }
+    } catch (err) {
+      toast.error('Erro ao reavaliar classificação: ' + (err?.message || ''));
+    } finally {
+      setReclassificando(false);
+    }
+  };
 
   const getNotaColor = (nota) => {
     if (nota >= 4) return 'bg-emerald-100 text-emerald-700 border-emerald-300';
@@ -205,6 +233,16 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
                   {sentimento.label}
                 </Badge>
               )}
+              {registro.relationship_classification?.classificacao && (
+                <Badge
+                  variant="secondary"
+                  className={cn(relacionamentoBadgeClass(registro.relationship_classification.classificacao))}
+                  title={registro.relationship_classification.justificativa || (registro.relationship_classification.origem === 'manual' ? 'Classificação manual' : 'Classificação automática por IA')}
+                >
+                  {relacionamentoLabel(registro.relationship_classification.classificacao)}
+                  {registro.relationship_classification.origem === 'manual' && <Shield className="w-3 h-3 ml-1" />}
+                </Badge>
+              )}
               <span className="flex items-center gap-1 text-sm text-slate-500">
                 <Calendar className="w-4 h-4" />
                 {registro.created_date ? format(new Date(registro.created_date), "dd MMM yyyy 'às' HH:mm", { locale: ptBR }) : 'Data não disponível'}
@@ -253,6 +291,17 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
             <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="hidden sm:inline">Relatório</span>
             <span className="sm:hidden">PDF</span>
+          </Button>
+          <Button
+            onClick={reavaliarClassificacao}
+            disabled={reclassificando}
+            variant="outline"
+            size="sm"
+            className="gap-1 md:gap-2 flex-1 sm:flex-none text-xs md:text-sm"
+          >
+            {reclassificando ? <Loader2 className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+            <span className="hidden sm:inline">Reavaliar Relação</span>
+            <span className="sm:hidden">Reavaliar</span>
           </Button>
           <BotoesExportacao registro={registro} />
           <Link to={createPageUrl(`AuditoriaRegistro?id=${registro.id}`)} className="flex-1 sm:flex-none">

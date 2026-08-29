@@ -64,6 +64,11 @@ import TranscricaoNativa from '@/components/registro/TranscricaoNativa';
 import SugestoesIARegistro from '@/components/registro/SugestoesIARegistro';
 import AnaliseCriticidade from '@/components/registro/AnaliseCriticidade';
 import { toast } from 'sonner';
+import {
+  RELACIONAMENTO_OPCOES_FORM,
+  RELACIONAMENTO_AUTO,
+  classificacaoParaPersistir,
+} from '@/lib/relationshipClassification';
 
 const tipoOptions = [
   { value: 'reuniao', label: 'Reunião' },
@@ -112,7 +117,9 @@ export default function RegistroUnificado() {
     arquivos: [],
     resumo_automatico: '',
     status: 'rascunho',
-    localizacao: { municipio: '', estado: '' }
+    localizacao: { municipio: '', estado: '' },
+    relationship_input: RELACIONAMENTO_AUTO,
+    relationship_classification: null
   });
   
   const [processando, setProcessando] = useState(false);
@@ -215,7 +222,12 @@ export default function RegistroUnificado() {
         arquivos: registroExistente.arquivos || [],
         resumo_automatico: registroExistente.resumo_automatico || '',
         status: registroExistente.status || 'rascunho',
-        localizacao: registroExistente.localizacao || { municipio: '', estado: '' }
+        localizacao: registroExistente.localizacao || { municipio: '', estado: '' },
+        relationship_classification: registroExistente.relationship_classification || null,
+        relationship_input:
+          registroExistente.relationship_classification?.origem === 'manual'
+            ? registroExistente.relationship_classification.classificacao
+            : RELACIONAMENTO_AUTO
       });
       setTextoConsolidado(registroExistente.transcricao || '');
       setArquivosProcessados(registroExistente.arquivos || []);
@@ -472,6 +484,7 @@ RETORNE: Apenas o texto extraído formatado, sem comentários ou explicações.`
         compromissos: compromissosProcessados,
         proximos_passos: analiseCompleta.proximos_passos || [],
         resumo_automatico: analiseCompleta.identificacao?.resumo || '',
+        relationship_classification: analiseCompleta.relationship_classification || prev.relationship_classification || null,
         localizacao: {
           municipio: municipioExtraido || analiseCompleta.localizacao?.municipio || '',
           estado: estadoExtraido || analiseCompleta.localizacao?.estado || ''
@@ -660,10 +673,13 @@ Extraia:
 
     // Em modo edição, salvar direto sem detectores
     if (modoEdicao) {
+      const relationshipClassification = classificacaoParaPersistir(formData, user?.email);
       const dadosFinais = {
         ...formData,
-        status: 'finalizado'
+        status: 'finalizado',
+        relationship_classification: relationshipClassification
       };
+      delete dadosFinais.relationship_input;
       
       try {
         await base44.entities.Registro.update(registroIdEditar, dadosFinais);
@@ -711,6 +727,7 @@ Extraia:
           : calcularPrazoDevolutiva('media')
       }));
 
+      const relationshipClassification = classificacaoParaPersistir(formData, user?.email);
       const dadosFinais = {
         ...formData,
         demandas,
@@ -721,8 +738,11 @@ Extraia:
         liderancas_vinculadas: stakeholdersVinculados,
         registros_continuidade: continuidades,
         casos_vinculados: casosVinculados,
-        analise_criticidade: analiseCriticidade
+        analise_criticidade: analiseCriticidade,
+        relationship_classification: relationshipClassification
       };
+      // relationship_input é transitório (seletor) — não persistir
+      delete dadosFinais.relationship_input;
 
     try {
       const registroCriado = modoEdicao 
@@ -730,7 +750,17 @@ Extraia:
         : await base44.entities.Registro.create(dadosFinais);
       
       const registroId = modoEdicao ? registroIdEditar : registroCriado.id;
-      
+
+      // Modo automático sem classificação (registro manual sem análise IA):
+      // dispara a classificação automática pela IA (best-effort, não bloqueia).
+      if (!modoEdicao && !relationshipClassification) {
+        try {
+          await base44.functions.invoke('classificarRelacionamentoRegistros', { registro_id: registroId });
+        } catch (classErr) {
+          console.error('Falha ao classificar relacionamento automaticamente:', classErr?.message);
+        }
+      }
+
       // ALIMENTAR TODOS OS MÓDULOS EM PARALELO (apenas em criação)
       if (!modoEdicao) {
         const analiseCompleta = formData.auditoria?.analise_lote_unico;
@@ -1640,6 +1670,25 @@ Extraia:
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div>
+              <Label>Tipo de Relacionamento</Label>
+              <Select
+                value={formData.relationship_input || RELACIONAMENTO_AUTO}
+                onValueChange={(v) => setFormData(p => ({ ...p, relationship_input: v }))}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione o tipo de relacionamento" /></SelectTrigger>
+                <SelectContent>
+                  {RELACIONAMENTO_OPCOES_FORM.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 mt-1">
+                {formData.relationship_input && formData.relationship_input !== RELACIONAMENTO_AUTO
+                  ? 'Classificação manual — prioridade sobre a IA (não será sobrescrita).'
+                  : 'A IA classifica automaticamente. Uma escolha manual tem prioridade e não é sobrescrita.'}
+              </p>
             </div>
             <div>
               <Label>Descrição</Label>
