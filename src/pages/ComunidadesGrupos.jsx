@@ -50,6 +50,7 @@ import { toast } from 'sonner';
 import 'leaflet/dist/leaflet.css';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import ModalNovaComunidade from '@/components/comunidades/ModalNovaComunidade';
 
 const TIPO_COMUNIDADE_CONFIG = {
   bairro: { label: 'Bairro', icon: Home, color: 'bg-blue-100 text-blue-700' },
@@ -692,170 +693,19 @@ export default function ComunidadesGrupos() {
       </Tabs>
 
       {/* Dialog Criar Comunidade */}
-      <Dialog open={showCreateComunidade} onOpenChange={setShowCreateComunidade}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Nova Comunidade Territorial</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nome *</label>
-                <Input
-                  value={formComunidade.nome}
-                  onChange={(e) => setFormComunidade(prev => ({ ...prev, nome: e.target.value }))}
-                  placeholder="Ex: Vila Nova"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tipo *</label>
-                <Select value={formComunidade.tipo} onValueChange={(v) => setFormComunidade(prev => ({ ...prev, tipo: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(TIPO_COMUNIDADE_CONFIG).map(([key, config]) => (
-                      <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Município *</label>
-                <Select 
-                  value={formComunidade.municipio} 
-                  onValueChange={(v) => setFormComunidade(prev => ({ ...prev, municipio: v }))}
-                >
-                  <SelectTrigger><SelectValue placeholder="Selecione o município" /></SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    <SelectItem value="Abreu e Lima">Abreu e Lima</SelectItem>
-                    <SelectItem value="Aracaju">Aracaju</SelectItem>
-                    <SelectItem value="Barueri">Barueri</SelectItem>
-                    <SelectItem value="Belém">Belém</SelectItem>
-                    <SelectItem value="Belo Horizonte">Belo Horizonte</SelectItem>
-                    <SelectItem value="Betim">Betim</SelectItem>
-                    <SelectItem value="Brasília">Brasília</SelectItem>
-                    <SelectItem value="Cabo de Santo Agostinho">Cabo de Santo Agostinho</SelectItem>
-                    <SelectItem value="Campinas">Campinas</SelectItem>
-                    <SelectItem value="Carapicuíba">Carapicuíba</SelectItem>
-                    <SelectItem value="Contagem">Contagem</SelectItem>
-                    <SelectItem value="Curitiba">Curitiba</SelectItem>
-                    <SelectItem value="Diadema">Diadema</SelectItem>
-                    <SelectItem value="Fortaleza">Fortaleza</SelectItem>
-                    <SelectItem value="Goiânia">Goiânia</SelectItem>
-                    <SelectItem value="Guarulhos">Guarulhos</SelectItem>
-                    <SelectItem value="Ipatinga">Ipatinga</SelectItem>
-                    <SelectItem value="Jaboatão dos Guararapes">Jaboatão dos Guararapes</SelectItem>
-                    <SelectItem value="Maracanaú">Maracanaú</SelectItem>
-                    <SelectItem value="Mauá">Mauá</SelectItem>
-                    <SelectItem value="Montes Claros">Montes Claros</SelectItem>
-                    <SelectItem value="Natal">Natal</SelectItem>
-                    <SelectItem value="Olinda">Olinda</SelectItem>
-                    <SelectItem value="Osasco">Osasco</SelectItem>
-                    <SelectItem value="Parauapebas">Parauapebas</SelectItem>
-                    <SelectItem value="Paulista">Paulista</SelectItem>
-                    <SelectItem value="Porto Alegre">Porto Alegre</SelectItem>
-                    <SelectItem value="Recife">Recife</SelectItem>
-                    <SelectItem value="Ribeirão das Neves">Ribeirão das Neves</SelectItem>
-                    <SelectItem value="Rio de Janeiro">Rio de Janeiro</SelectItem>
-                    <SelectItem value="Salvador">Salvador</SelectItem>
-                    <SelectItem value="Santa Luzia">Santa Luzia</SelectItem>
-                    <SelectItem value="Santo André">Santo André</SelectItem>
-                    <SelectItem value="São Bernardo do Campo">São Bernardo do Campo</SelectItem>
-                    <SelectItem value="São Gonçalo">São Gonçalo</SelectItem>
-                    <SelectItem value="São João de Meriti">São João de Meriti</SelectItem>
-                    <SelectItem value="São Luís">São Luís</SelectItem>
-                    <SelectItem value="São Paulo">São Paulo</SelectItem>
-                    <SelectItem value="Taboão da Serra">Taboão da Serra</SelectItem>
-                    <SelectItem value="Uberlândia">Uberlândia</SelectItem>
-                    <SelectItem value="Outro">Outro (digite manualmente)</SelectItem>
-                  </SelectContent>
-                </Select>
-                {formComunidade.municipio === 'Outro' && (
-                  <Input
-                    placeholder="Digite o município"
-                    onChange={(e) => setFormComunidade(prev => ({ ...prev, municipio: e.target.value }))}
-                    className="mt-2"
-                  />
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Estado *</label>
-                <Select value={formComunidade.estado} onValueChange={(v) => setFormComunidade(prev => ({ ...prev, estado: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
-                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">População Estimada</label>
-                <Input
-                  type="number"
-                  value={formComunidade.populacao_estimada}
-                  onChange={(e) => setFormComunidade(prev => ({ ...prev, populacao_estimada: parseInt(e.target.value) || '' }))}
-                  placeholder="Ex: 5000"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Geolocalização</label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="number"
-                  step="any"
-                  value={formComunidade.localizacao?.lat || ''}
-                  onChange={(e) => setFormComunidade(prev => ({ 
-                    ...prev, 
-                    localizacao: { ...prev.localizacao, lat: parseFloat(e.target.value) || null } 
-                  }))}
-                  placeholder="Latitude"
-                />
-                <Input
-                  type="number"
-                  step="any"
-                  value={formComunidade.localizacao?.lng || ''}
-                  onChange={(e) => setFormComunidade(prev => ({ 
-                    ...prev, 
-                    localizacao: { ...prev.localizacao, lng: parseFloat(e.target.value) || null } 
-                  }))}
-                  placeholder="Longitude"
-                />
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={obterCoordenadasAutomaticas}
-                className="w-full"
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                Buscar Coordenadas Automaticamente
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Notas</label>
-              <Textarea
-                value={formComunidade.notas}
-                onChange={(e) => setFormComunidade(prev => ({ ...prev, notas: e.target.value }))}
-                placeholder="Informações adicionais..."
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateComunidade(false)}>Cancelar</Button>
-            <Button 
-              onClick={() => createComunidadeMutation.mutate(formComunidade)}
-              disabled={!formComunidade.nome || !formComunidade.municipio || !formComunidade.tipo}
-              className="bg-[#E31E24] hover:bg-[#B01419]"
-            >
-              Criar Comunidade
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ModalNovaComunidade
+        open={showCreateComunidade}
+        onOpenChange={setShowCreateComunidade}
+        municipiosExistentes={
+          comunidades.map((c) => ({
+            nome: c.municipio,
+            estado: c.estado,
+            ibge: c.municipality_ibge_code,
+            lat: c.localizacao?.lat,
+            lng: c.localizacao?.lng,
+          }))
+        }
+      />
 
       {/* Dialog Editar Comunidade */}
       <Dialog open={showEditComunidade} onOpenChange={setShowEditComunidade}>

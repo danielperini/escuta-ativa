@@ -11,12 +11,18 @@
       "enum": [
         "bairro",
         "vila",
+        "comunidade",
+        "comunidade_rural",
         "distrito",
+        "localidade",
+        "povoado",
         "assentamento",
+        "ocupacao",
+        "conjunto_habitacional",
+        "territorio_tradicional",
         "quilombo",
         "indigena",
         "favela",
-        "povoado",
         "outro"
       ],
       "description": "Tipo de comunidade territorial"
@@ -29,8 +35,37 @@
       "type": "string",
       "description": "Estado (UF)"
     },
+    "municipality_ibge_code": {
+      "type": "string",
+      "description": "C\u00f3digo IBGE do munic\u00edpio para integra\u00e7\u00e3o com Dados Secund\u00e1rios"
+    },
+    "endereco": {
+      "type": "string",
+      "description": "Endere\u00e7o ou refer\u00eancia"
+    },
+    "cep": {
+      "type": "string"
+    },
     "populacao_estimada": {
       "type": "number"
+    },
+    "numero_familias": {
+      "type": "number",
+      "description": "N\u00famero aproximado de fam\u00edlias"
+    },
+    "area_urbana_rural": {
+      "type": "string",
+      "enum": [
+        "urbana",
+        "rural",
+        "periurbana",
+        "nao_informado"
+      ],
+      "default": "nao_informado"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Caracter\u00edsticas gerais, hist\u00f3rico ou observa\u00e7\u00f5es sobre a comunidade"
     },
     "localizacao": {
       "type": "object",
