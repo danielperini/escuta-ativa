@@ -30,7 +30,8 @@ import {
                       Palette,
                       PieChart,
                       UsersRound,
-                      Database
+                      Database,
+                      Activity
                       } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -68,6 +69,7 @@ const navigation = [
   { name: 'Assistente IA', href: 'AssistenteIA', icon: Sparkles },
   { name: 'Análise Demográfica', href: 'AnaliseDemografica', icon: UsersRound },
   { name: 'Dados Secundários', href: 'DadosSecundarios', icon: Database },
+  { name: 'Saúde das Fontes', href: 'SaudeFontes', icon: Activity, secao: 'admin_fontes' },
   { name: 'Central de Análise', href: 'CentralAnalise', icon: Sparkles },
   { name: 'Gerador de Relatório', href: 'GeradorRelatorioSustentabilidade', icon: Sparkles, secao: 'sustentabilidade' },
   { name: 'Referenciais ESG', href: 'ReferenciaisESG', icon: ShieldCheck, secao: 'sustentabilidade' },

@@ -5,6 +5,7 @@ import { IndicadorComFonte } from '@/components/dados-secundarios/IndicadorComFo
 import { SecaoNaoDisponivel } from '@/components/dados-secundarios/SecaoNaoDisponivel';
 import { SecaoTelecomunicacoes } from '@/components/dados-secundarios/SecaoTelecomunicacoes';
 import { SecaoAguaRecursosHidricos } from '@/components/dados-secundarios/SecaoAguaRecursosHidricos';
+import { CoberturaFontes } from '@/components/dados-secundarios/CoberturaFontes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Loader2, Database, Sparkles, Info, Radio, Droplets } from 'lucide-react';
@@ -355,6 +356,8 @@ export default function DadosSecundarios() {
           Cruze dados oficiais, fontes públicas e contexto institucional com os registros de relacionamento comunitário.
         </p>
       </div>
+
+      <CoberturaFontes />
 
       {/* Busca + Fontes */}
       <Card className="p-4 space-y-3">

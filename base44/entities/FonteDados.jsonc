@@ -1,0 +1,111 @@
+{
+  "name": "FonteDados",
+  "type": "object",
+  "properties": {
+    "source_id": {
+      "type": "string",
+      "description": "ID \u00fanico da fonte (ex: IBGE_LOCALIDADES, SICONFI)"
+    },
+    "source_name": {
+      "type": "string",
+      "description": "Nome leg\u00edvel da fonte"
+    },
+    "category": {
+      "type": "string",
+      "description": "Categoria tem\u00e1tica associada (demografia, fiscal, resumo, telecomunicacoes, etc.)"
+    },
+    "endpoint": {
+      "type": "string",
+      "description": "URL/endpoint testado"
+    },
+    "requires_auth": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a fonte requer autentica\u00e7\u00e3o/chave"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ATIVA",
+        "DEGRADADA",
+        "EM_TESTE",
+        "INDISPONIVEL",
+        "ERRO_DE_AUTENTICACAO",
+        "ERRO_DE_ENDPOINT",
+        "SEM_DADOS_PARA_O_MUNICIPIO",
+        "RESPOSTA_INVALIDA",
+        "DESCONTINUADA"
+      ],
+      "description": "Status exposto ao usu\u00e1rio"
+    },
+    "status_tecnico": {
+      "type": "string",
+      "description": "Status t\u00e9cnico interno do \u00faltimo teste (antes da pol\u00edtica de falhas)"
+    },
+    "last_test_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando o \u00faltimo teste foi executado"
+    },
+    "response_time_ms": {
+      "type": "number",
+      "description": "Tempo de resposta em milissegundos"
+    },
+    "http_status": {
+      "type": "number",
+      "description": "C\u00f3digo HTTP retornado"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Mensagem t\u00e9cnica do erro (se houver)"
+    },
+    "sample_municipality": {
+      "type": "string",
+      "description": "Munic\u00edpio usado como amostra no teste"
+    },
+    "sample_result_count": {
+      "type": "number",
+      "description": "N\u00famero de itens v\u00e1lidos retornados no teste"
+    },
+    "schema_valid": {
+      "type": "boolean",
+      "description": "Schema/estrutura da resposta validada"
+    },
+    "data_valid": {
+      "type": "boolean",
+      "description": "Dados tecnicamente + coerentemente v\u00e1lidos (IA n\u00e3o sinalizou inconsist\u00eancia)"
+    },
+    "coherence_observacao": {
+      "type": "string",
+      "description": "Observa\u00e7\u00e3o da IA sobre coer\u00eancia dos dados"
+    },
+    "coherence_consistente": {
+      "type": "boolean",
+      "description": "IA: munic\u00edpio/estrutura corresponde ao esperado"
+    },
+    "coherence_magnitude_ok": {
+      "type": "boolean",
+      "description": "IA: magnitude plaus\u00edvel"
+    },
+    "consecutive_failures": {
+      "type": "number",
+      "default": 0,
+      "description": "Falhas consecutivas \u2014 2=DEGRADADA, 3=INDISPONIVEL/oculta"
+    },
+    "visible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se a fonte \u00e9 exibida em dropdowns/Chat IA"
+    },
+    "deactivated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Marcada como desativada ap\u00f3s 3 falhas consecutivas"
+    }
+  },
+  "required": [
+    "source_id",
+    "source_name",
+    "status"
+  ]
+}
