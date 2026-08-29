@@ -202,7 +202,7 @@ export default function VozComunidade() {
   }, [registros.length]);
 
   return (
-    <div className="space-y-6 bg-slate-50 -mx-3 md:-mx-4 lg:-mx-8 -my-3 md:-my-4 lg:-my-8 p-4 md:p-6 lg:p-8 min-h-[calc(100vh-3.5rem)] md:min-h-[calc(100vh-4rem)]">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

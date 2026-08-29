@@ -90,17 +90,10 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
-  const estiloTema = tema === 'escuro' ? {
-    background: '#1e293b',
-    backgroundAlt: '#0f172a',
-    text: '#f1f5f9',
-    textMuted: '#94a3b8',
-    border: '#334155',
-    cardBg: '#1e293b'
-  } : {
-    background: '#f8fafc',
+  const estiloTema = {
+    background: '#f4f4f4',
     backgroundAlt: '#ffffff',
-    text: '#0f172a',
+    text: '#333333',
     textMuted: '#64748b',
     border: '#e2e8f0',
     cardBg: '#ffffff'
@@ -127,19 +120,12 @@ export default function Layout({ children, currentPageName }) {
         --social-blue: #3B82F6;
         --social-purple: #8B5CF6;
           
-          ${tema === 'escuro' ? `
-            --bg-main: #1e293b;
-            --bg-card: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border-color: #334155;
-          ` : `
-            --bg-main: #f8fafc;
+            --bg-main: #f4f4f4;
             --bg-card: #ffffff;
-            --text-primary: #0f172a;
+            --text-primary: #333333;
             --text-secondary: #64748b;
             --border-color: #e2e8f0;
-          `}
+          }
         }
         
         @keyframes pulse-soft {
