@@ -18,41 +18,41 @@
   }
   h1, h2, h3, h4, h5, h6 { font-weight: 700; letter-spacing: -0.02em; }
 
-  /* ===== PONTE SOCIAL (padrão) ===== */
+  /* ===== PONTE SOCIAL (padrão) - verde institucional ===== */
   :root {
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 145 30% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 145 30% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 221 83% 53%;
+    --popover-foreground: 145 30% 12%;
+    --primary: 145 55% 24%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 146 50% 36%;
+    --secondary: 150 40% 52%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 217 100% 97%;
-    --muted-foreground: 215 25% 35%;
-    --accent: 221 83% 53%;
+    --muted: 145 40% 96%;
+    --muted-foreground: 150 15% 38%;
+    --accent: 145 55% 24%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --success: 146 50% 36%;
+    --success: 145 50% 36%;
     --warning: 38 92% 50%;
-    --border: 215 32% 91%;
-    --input: 215 32% 91%;
-    --ring: 221 83% 53%;
+    --border: 150 25% 90%;
+    --input: 150 25% 90%;
+    --ring: 145 55% 24%;
     --radius: 0.5rem;
     --header: 0 0% 100%;
-    --sidebar-background: 221 76% 48%;
+    --sidebar-background: 145 55% 20%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 221 76% 48%;
+    --sidebar-primary-foreground: 145 55% 20%;
     --sidebar-accent: 0 0% 100%;
-    --sidebar-accent-foreground: 221 76% 48%;
+    --sidebar-accent-foreground: 145 55% 20%;
     --sidebar-border: 0 0% 100%;
-    --sidebar-ring: 221 83% 53%;
-    --chart-1: 221 83% 53%;
-    --chart-2: 146 50% 36%;
+    --sidebar-ring: 145 55% 24%;
+    --chart-1: 145 55% 24%;
+    --chart-2: 150 40% 52%;
     --chart-3: 38 92% 50%;
     --chart-4: 258 90% 66%;
     --chart-5: 0 72% 51%;
