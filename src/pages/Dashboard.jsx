@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, FileText, Calendar, AlertTriangle, Users, Target, TrendingUp, Shield, CheckCircle2 } from "lucide-react";
+import { Plus, FileText, Calendar, AlertTriangle, Users, Target, TrendingUp, Shield, CheckCircle2, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -12,7 +13,6 @@ import { Card } from "@/components/ui/card";
 import KPICard from "@/components/dashboard/KPICard";
 import GraficoTendencias from "@/components/dashboard/GraficoTendencias";
 import PersonalizadorWidgets from "@/components/dashboard/PersonalizadorWidgets";
-import WidgetProximasAgendas from "@/components/dashboard/WidgetProximasAgendas";
 import WidgetRiscosAtivos from "@/components/dashboard/WidgetRiscosAtivos";
 import VozComunidade from "@/components/dashboard/VozComunidade";
 import WidgetTemperaturaTerritorial from "@/components/dashboard/WidgetTemperaturaTerritorial";
@@ -26,6 +26,9 @@ import GraficosKPIAvancados from "@/components/dashboard/GraficosKPIAvancados";
 import WidgetSustentabilidade from "@/components/dashboard/WidgetSustentabilidade";
 import VozesTerritorio from "@/components/dashboard/VozesTerritorio";
 import PainelDicasRelacionamento from "@/components/dashboard/PainelDicasRelacionamento";
+import PainelAgendaDashboard from "@/components/dashboard/PainelAgendaDashboard";
+import PainelDemandasDashboard from "@/components/dashboard/PainelDemandasDashboard";
+import PainelComunidadesDashboard from "@/components/dashboard/PainelComunidadesDashboard";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -38,15 +41,15 @@ export default function Dashboard() {
 
     const widgetsAtivos = user?.configuracoes?.widgets_dashboard || [
         'kpis', 'graficos', 'sustentabilidade', 'demandas_recorrentes', 'devolutivas',
-        'voz_comunidade', 'proximas_agendas', 'riscos_ativos', 'dicas_relacionamento',
-        'comunidades_ativas', 'temas_prioritarios', 'stakeholders_engajados',
-        'temperatura_territorio', 'compromissos_atrasados', 'atividade_recente',
+        'voz_comunidade', 'riscos_ativos', 'dicas_relacionamento',
+        'temas_prioritarios', 'stakeholders_engajados',
+        'temperatura_territorio', 'atividade_recente',
         'temperatura_territorial', 'rede_stakeholders', 'stakeholders_riscos'
     ];
     const [widgets, setWidgets] = useState(widgetsAtivos);
     const [seedVozes, setSeedVozes] = useState(1);
+    const [busca, setBusca] = useState("");
 
-    // Dados existentes (KPIs, gráficos, widgets)
     const { data: registros = [] } = useQuery({
         queryKey: ['registros-dashboard'],
         queryFn: () => base44.entities.Registro.list('-created_date', 100),
@@ -73,20 +76,17 @@ export default function Dashboard() {
         staleTime: 5 * 60 * 1000, refetchOnWindowFocus: false
     });
 
-    // ===== Inteligência Social (vozes + dicas + dica do dia) — 1 chamada backend =====
     const { data: inteligencia, isLoading: intelLoading, isFetching: intelFetching } = useQuery({
         queryKey: ['inteligencia-social', seedVozes],
         queryFn: async () => {
             const res = await base44.functions.invoke('gerarInteligenciaSocial', { seed: String(seedVozes) });
             return res?.data ?? res;
         },
-        staleTime: 5 * 60 * 1000, refetchOnWindowFocus: false,
-        retry: 0
+        staleTime: 5 * 60 * 1000, refetchOnWindowFocus: false, retry: 0
     });
 
     const onTrocarVozes = useCallback(() => setSeedVozes(s => s + 1), []);
 
-    // ===== Controle por usuário (ocultar/fixar vozes e dicas) =====
     const { data: controle } = useQuery({
         queryKey: ['controle-dashboard'],
         queryFn: async () => {
@@ -110,7 +110,6 @@ export default function Dashboard() {
         queryClient.invalidateQueries(['controle-dashboard']);
     }, [controle, queryClient]);
 
-    // KPIs derivados
     const totalRegistros = registros.length;
     const registrosMesAnterior = registros.filter(r => {
         const data = new Date(r.created_date);
@@ -152,7 +151,7 @@ export default function Dashboard() {
     return (
         <div className="min-h-screen p-4 md:p-6 pb-20 md:pb-6 bg-background">
             <div className="max-w-7xl mx-auto space-y-8">
-                {/* ===== Cabeçalho: Visão Geral / Inteligência Social e Territorial ===== */}
+                {/* ===== Cabeçalho ===== */}
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                     <div>
                         <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Visão Geral</p>
@@ -168,6 +167,17 @@ export default function Dashboard() {
                             <Plus className="w-4 h-4 mr-2" /> Novo Registro
                         </Button>
                     </div>
+                </div>
+
+                {/* ===== Busca transversal (§10) ===== */}
+                <div className="relative max-w-2xl">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                        placeholder="Buscar comunidade, registro, fala, demanda, atividade, stakeholder, tema..."
+                        value={busca}
+                        onChange={(e) => setBusca(e.target.value)}
+                        className="pl-10"
+                    />
                 </div>
 
                 {/* ===== Vozes do Território ===== */}
@@ -221,7 +231,6 @@ export default function Dashboard() {
                     {widgets.includes('voz_comunidade') && <VozComunidade />}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {widgets.includes('proximas_agendas') && <WidgetProximasAgendas />}
                         {widgets.includes('riscos_ativos') && <WidgetRiscosAtivos />}
                     </div>
 
@@ -233,38 +242,44 @@ export default function Dashboard() {
                     )}
                 </div>
 
-                {/* ===== Temperatura do Território ===== */}
+                {/* ===== Próxima Agenda + Agenda e Atividades (§1) ===== */}
+                <PainelAgendaDashboard agendas={agendas} registros={registros} busca={busca} />
+
+                {/* ===== Demandas (§3) ===== */}
+                <PainelDemandasDashboard registros={registros} busca={busca} />
+
+                {/* ===== Comunidades (§5-§9) ===== */}
+                <PainelComunidadesDashboard registros={registros} busca={busca} />
+
+                {/* ===== Temperatura do Território (Compromissos removido desta tela — §2) ===== */}
                 <div className="space-y-4">
                     <SectionHeader title="Temperatura do Território" />
                     {widgets.includes('temperatura_territorial') && <WidgetTemperaturaTerritorial />}
-                    {widgets.includes('compromissos_atrasados') && (
+                    {widgets.includes('temperatura_territorio') && (
                         <Card>
                             <div className="p-6">
                                 <h3 className="flex items-center gap-2 text-lg font-semibold mb-3">
-                                    <Calendar className="w-5 h-5 text-red-600" /> Compromissos Atrasados
+                                    <AlertTriangle className="w-5 h-5 text-orange-600" /> Temperatura do Território
                                 </h3>
                                 {(() => {
-                                    const hoje = new Date();
-                                    const atrasados = compromissos.filter(c => c.prazo && new Date(c.prazo) < hoje && c.status !== 'concluido').slice(0, 5);
-                                    return atrasados.length > 0 ? (
-                                        <div className="space-y-3">
-                                            {atrasados.map((c, idx) => {
-                                                const dias = Math.floor((hoje - new Date(c.prazo)) / (1000 * 60 * 60 * 24));
-                                                return (
-                                                    <div key={idx} className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                                                        <p className="text-sm font-medium mb-1">{c.titulo}</p>
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-xs text-slate-600">{c.responsavel}</span>
-                                                            <Badge className="bg-red-100 text-red-700">{dias} dias atraso</Badge>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-6">
-                                            <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-green-500" />
-                                            <p className="text-sm text-slate-500">Nenhum compromisso atrasado</p>
+                                    const t = registros.reduce((acc, r) => {
+                                        if (r.temperatura_territorio) acc[r.temperatura_territorio] = (acc[r.temperatura_territorio] || 0) + 1;
+                                        return acc;
+                                    }, {});
+                                    const tempConfig = {
+                                        critico: { label: 'Crítico', color: 'bg-red-100 text-red-700', count: t.critico || 0 },
+                                        alto: { label: 'Alto', color: 'bg-orange-100 text-orange-700', count: t.alto || 0 },
+                                        medio: { label: 'Médio', color: 'bg-yellow-100 text-yellow-700', count: t.medio || 0 },
+                                        baixo: { label: 'Baixo', color: 'bg-green-100 text-green-700', count: t.baixo || 0 }
+                                    };
+                                    return (
+                                        <div className="space-y-2">
+                                            {Object.entries(tempConfig).map(([key, config]) => (
+                                                <div key={key} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                    <Badge className={config.color}>{config.label}</Badge>
+                                                    <span className="text-lg font-bold">{config.count}</span>
+                                                </div>
+                                            ))}
                                         </div>
                                     );
                                 })()}
@@ -275,34 +290,8 @@ export default function Dashboard() {
 
                 {/* ===== Tendências ===== */}
                 <div className="space-y-4">
-                    <SectionHeader title="Tendências e Comunidades" />
+                    <SectionHeader title="Tendências" />
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {widgets.includes('comunidades_ativas') && (
-                            <Card>
-                                <div className="p-6">
-                                    <h3 className="flex items-center gap-2 text-lg font-semibold mb-3">
-                                        <Target className="w-5 h-5 text-blue-600" /> Comunidades Mais Ativas
-                                    </h3>
-                                    {(() => {
-                                        const comunidadesCount = registros.reduce((acc, r) => {
-                                            if (r.comunidade) acc[r.comunidade] = (acc[r.comunidade] || 0) + 1;
-                                            return acc;
-                                        }, {});
-                                        const top5 = Object.entries(comunidadesCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
-                                        return top5.length > 0 ? (
-                                            <div className="space-y-3">
-                                                {top5.map(([comunidade, count], idx) => (
-                                                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                                        <span className="text-sm font-medium">{comunidade}</span>
-                                                        <Badge className="bg-blue-100 text-blue-700">{count} registros</Badge>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : <p className="text-center text-slate-500 py-6">Nenhum dado disponível</p>;
-                                    })()}
-                                </div>
-                            </Card>
-                        )}
                         {widgets.includes('temas_prioritarios') && (
                             <Card>
                                 <div className="p-6">
@@ -332,7 +321,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* ===== Sentimentos ===== */}
+                {/* ===== Sentimentos e Stakeholders ===== */}
                 <div className="space-y-4">
                     <SectionHeader title="Sentimentos e Stakeholders" />
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -368,73 +357,9 @@ export default function Dashboard() {
                         {widgets.includes('stakeholders_riscos') && <WidgetStakeholdersRiscos />}
                         {widgets.includes('rede_stakeholders') && <WidgetRedeStakeholders />}
                     </div>
-
-                    {widgets.includes('temperatura_territorio') && (
-                        <Card>
-                            <div className="p-6">
-                                <h3 className="flex items-center gap-2 text-lg font-semibold mb-3">
-                                    <AlertTriangle className="w-5 h-5 text-orange-600" /> Temperatura do Território
-                                </h3>
-                                {(() => {
-                                    const t = registros.reduce((acc, r) => {
-                                        if (r.temperatura_territorio) acc[r.temperatura_territorio] = (acc[r.temperatura_territorio] || 0) + 1;
-                                        return acc;
-                                    }, {});
-                                    const tempConfig = {
-                                        critico: { label: 'Crítico', color: 'bg-red-100 text-red-700', count: t.critico || 0 },
-                                        alto: { label: 'Alto', color: 'bg-orange-100 text-orange-700', count: t.alto || 0 },
-                                        medio: { label: 'Médio', color: 'bg-yellow-100 text-yellow-700', count: t.medio || 0 },
-                                        baixo: { label: 'Baixo', color: 'bg-green-100 text-green-700', count: t.baixo || 0 }
-                                    };
-                                    return (
-                                        <div className="space-y-2">
-                                            {Object.entries(tempConfig).map(([key, config]) => (
-                                                <div key={key} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                                    <Badge className={config.color}>{config.label}</Badge>
-                                                    <span className="text-lg font-bold">{config.count}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                })()}
-                            </div>
-                        </Card>
-                    )}
                 </div>
 
-                {/* ===== Mapa / Territórios ===== */}
-                <div className="space-y-4">
-                    <SectionHeader title="Mapa e Territórios" />
-                    {widgets.includes('atividade_recente') && (
-                        <Card>
-                            <div className="p-6">
-                                <h3 className="flex items-center gap-2 text-lg font-semibold mb-3">
-                                    <FileText className="w-5 h-5 text-indigo-600" /> Atividade Recente
-                                </h3>
-                                {(() => {
-                                    const recentes = registros.slice(0, 5);
-                                    return recentes.length > 0 ? (
-                                        <div className="space-y-3">
-                                            {recentes.map((r, idx) => (
-                                                <Link key={idx} to={createPageUrl('VerRegistro') + `?id=${r.id}`}>
-                                                    <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                                                        <p className="text-sm font-medium mb-1">{r.titulo}</p>
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-xs text-slate-500">{r.comunidade}</span>
-                                                            <span className="text-xs text-slate-500">{format(new Date(r.created_date), 'dd/MM HH:mm')}</span>
-                                                        </div>
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    ) : <p className="text-center text-slate-500 py-6">Nenhuma atividade recente</p>;
-                                })()}
-                            </div>
-                        </Card>
-                    )}
-                </div>
-
-                {/* ===== Referenciais e Compromissos ESG ===== */}
+                {/* ===== Referenciais ESG (Mapa oculto desta tela — §4) ===== */}
                 <div className="space-y-4">
                     <SectionHeader title="Referenciais e Compromissos ESG" />
                     {widgets.includes('sustentabilidade') && <WidgetSustentabilidade />}
