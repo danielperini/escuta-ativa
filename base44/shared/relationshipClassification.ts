@@ -5,9 +5,16 @@ import { secrets } from 'base44:runtime';
 // relationshipClassification.ts — Lógica compartilhada de classificação
 // do tipo de relacionamento (Comunitário / Institucional / ambos).
 //
-// Usada por:
-//   - analisarNovoRegistro (classificação automática na criação)
-//   - classificarRelacionamentoRegistros (retroativa + reavaliação)
+// Campos (planos) persistidos no Registro:
+//   relationship_classification          — COMUNITARIO | INSTITUCIONAL | COMUNITARIO_INSTITUCIONAL
+//   relationship_classification_source   — manual | ia | retroativo_ia
+//   relationship_classification_confidence — 0-100
+//   relationship_classification_reason    — justificativa curta
+//   relationship_classification_updated_at — ISO date-time
+//   relationship_classification_user      — email quando manual
+//   relationship_primary_objective        — ESCUTA | INFORMACAO | ... | OUTRO
+//   relationship_community_signals         — sinais comunitários detectados
+//   relationship_institutional_signals     — sinais institucionais detectados
 //
 // Regra de prioridade: classificação MANUAL nunca é sobrescrita pela IA.
 // Evidências (ata, transcrição, lista de presença, fotografia) não geram
@@ -16,11 +23,11 @@ import { secrets } from 'base44:runtime';
 
 export const CLASSIFICACAO_VALUES = ['COMUNITARIO', 'INSTITUCIONAL', 'COMUNITARIO_INSTITUCIONAL'] as const;
 
-export const CLASSIFICACAO_LABELS: Record<string, string> = {
-  COMUNITARIO: 'Relacionamento Comunitário',
-  INSTITUCIONAL: 'Relacionamento Institucional',
-  COMUNITARIO_INSTITUCIONAL: 'Relacionamento Comunitário e Institucional',
-};
+export const PRIMARY_OBJECTIVE_VALUES = [
+  'ESCUTA', 'INFORMACAO', 'NEGOCIACAO', 'ARTICULACAO', 'CONSULTA',
+  'MOBILIZACAO', 'GESTAO_DE_CONFLITO', 'ACOMPANHAMENTO', 'DELIBERACAO',
+  'PARCERIA', 'OUTRO',
+] as const;
 
 export const RELACIONAMENTO_RULES = `Você é o classificador de TIPO DE RELACIONAMENTO da societá.ai — Plataforma de relacionamento comunitário.
 
@@ -30,20 +37,21 @@ Classifique a atividade territorial em UMA das três categorias:
 - INSTITUCIONAL — Relacionamento Institucional
 - COMUNITARIO_INSTITUCIONAL — Relacionamento Comunitário e Institucional
 
-RELACIONAMENTO COMUNITÁRIO quando o foco principal for interação, diálogo, escuta ou atuação junto a: comunidades, moradores, lideranças comunitárias, associações de moradores, coletivos territoriais, grupos comunitários, pessoas diretamente impactadas, públicos de determinado território. Fortes indicadores: assembleia comunitária, reunião com moradores, escuta, diálogo social, visita comunitária, consulta à comunidade, mobilização, encontro comunitário, reunião territorial, demanda comunitária.
+_RELACIONAMENTO COMUNITÁRIO_ quando a finalidade principal for diálogo, escuta ou atuação junto a: comunidades, moradores, lideranças comunitárias, associações de moradores, coletivos territoriais, grupos comunitários, pessoas diretamente impactadas, públicos de determinado território. Fortes indicadores: assembleia comunitária, reunião com moradores, escuta, diálogo social, visita comunitária, consulta à comunidade, mobilização, encontro comunitário, reunião territorial, demanda comunitária.
 
-RELACIONAMENTO INSTITUCIONAL quando o objetivo principal envolver articulação ou relacionamento entre organizações/instituições, incluindo: prefeitura, secretarias, órgãos públicos, Ministério Público, Defensoria Pública, Câmara Municipal, universidades, empresas, fundações, organizações da sociedade civil, conselhos, entidades parceiras, instituições públicas ou privadas.
+_RELACIONAMENTO INSTITUCIONAL_ quando a finalidade principal for articulação entre instituições: prefeitura, secretarias, órgãos públicos, Ministério Público, Defensoria Pública, Câmara Municipal, universidades, empresas, fundações, OSCs, conselhos, entidades parceiras.
 
-COMUNITÁRIO E INSTITUCIONAL apenas quando os DOIS componentes forem materialmente relevantes para o OBJETIVO da atividade.
+_COMUNITÁRIO E INSTITUCIONAL_ apenas quando os DOIS componentes forem materialmente relevantes para o OBJETIVO da atividade.
 
 REGRAS CRÍTICAS:
-1. NÃO classifique como misto (COMUNITARIO_INSTITUCIONAL) apenas porque um representante institucional participou de uma atividade comunitária. A participação isolada de um ator institucional não transforma uma atividade comunitária em mista.
-2. O OBJETIVO PRINCIPAL da atividade determina a classificação — não a lista de presentes.
-3. Exemplo: uma assembleia sobre uma ponte realizada com moradores de Aimorés continua sendo COMUNITARIO mesmo com representantes da prefeitura presentes, quando a finalidade principal é diálogo/escuta da comunidade.
-4. Ata, transcrição, lista de presença e fotografia são EVIDÊNCIAS — jamais geram classificação independente; herdam a classificação do registro principal.
-5. Decida pelo objetivo, não pela presença.
+1. NÃO classifique como misto apenas porque um representante institucional participou de uma atividade comunitária. A presença isolada não transforma a classificação.
+2. O OBJETIVO PRINCIPAL da atividade determina a classificação — em ordem: objetivo declarado, título, descrição, transcrição, ata, participantes, lista de presença, organizações, território, documentos, evidências.
+3. Exemplo: assembleia sobre uma ponte com moradores de Aimorés continua COMUNITARIO mesmo com a prefeitura presente, se a finalidade for ouvir a comunidade.
+4. Ata, transcrição, lista de presença e fotografia são EVIDÊNCIAS — não geram classificação independente; herdam a do registro principal.
+5. Quando houver lista de presença, estime perfil_comunitario_percentual e perfil_institucional_percentual, mas NÃO decida só pela proporção — o objetivo prevalece.
 
-Retorne SOMENTE JSON: {"classificacao":"COMUNITARIO|INSTITUCIONAL|COMUNITARIO_INSTITUCIONAL","confianca":0.0-1.0,"justificativa":"string curta em português"}.`;
+Retorne SOMENTE JSON:
+{"classification":"COMUNITARIO|INSTITUCIONAL|COMUNITARIO_INSTITUCIONAL","confidence":0-100,"reason":"string curta em português","primary_objective":"ESCUTA|INFORMACAO|NEGOCIACAO|ARTICULACAO|CONSULTA|MOBILIZACAO|GESTAO_DE_CONFLITO|ACOMPANHAMENTO|DELIBERACAO|PARCERIA|OUTRO","community_signals":["string"],"institutional_signals":["string"],"mixed_relevance":boolean}`;
 
 // Monta o contexto textual utilizado pela IA para classificar.
 // Considera: título, descrição, tipo, território, participantes, organizações,
@@ -77,12 +85,19 @@ export function montarContextoClassificacao(registro: any): string {
   return partes.join('\n');
 }
 
-// Chama a IA (OpenAI) e devolve a classificação + confiança + justificativa.
-// Lana em caso de erro de parse.
+// Chama a IA (OpenAI) e devolve a classificação estruturada.
 export async function classificarRelacionamentoViaIA(
   openai: OpenAI,
   registro: any
-): Promise<{ classificacao: string; confianca: number; justificativa: string }> {
+): Promise<{
+  classification: string;
+  confidence: number;
+  reason: string;
+  primary_objective: string;
+  community_signals: string[];
+  institutional_signals: string[];
+  mixed_relevance: boolean;
+}> {
   const contexto = montarContextoClassificacao(registro);
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
@@ -98,34 +113,59 @@ export async function classificarRelacionamentoViaIA(
   });
   const raw = completion.choices[0]?.message?.content || '{}';
   const parsed = JSON.parse(raw);
-  const classificacao = CLASSIFICACAO_VALUES.includes(parsed.classificacao)
-    ? parsed.classificacao
+  const classification = CLASSIFICACAO_VALUES.includes(parsed.classification)
+    ? parsed.classification
     : 'COMUNITARIO';
-  const confianca = typeof parsed.confianca === 'number' ? parsed.confianca : 0.6;
-  const justificativa = typeof parsed.justificativa === 'string' ? parsed.justificativa : '';
-  return { classificacao, confianca, justificativa };
+  const confidence = typeof parsed.confidence === 'number'
+    ? Math.max(0, Math.min(100, Math.round(parsed.confidence)))
+    : 60;
+  const primary_objective = PRIMARY_OBJECTIVE_VALUES.includes(parsed.primary_objective)
+    ? parsed.primary_objective
+    : 'OUTRO';
+  return {
+    classification,
+    confidence,
+    reason: typeof parsed.reason === 'string' ? parsed.reason : '',
+    primary_objective,
+    community_signals: Array.isArray(parsed.community_signals) ? parsed.community_signals : [],
+    institutional_signals: Array.isArray(parsed.institutional_signals) ? parsed.institutional_signals : [],
+    mixed_relevance: !!parsed.mixed_relevance,
+  };
 }
 
 // True quando a classificação atual NÃO é manual (pode ser sobrescrita pela IA).
-// Manual tem prioridade e nunca é sobrescrita automaticamente.
 export function podeSobrescreverClassificacao(registro: any): boolean {
-  const rc = registro?.relationship_classification;
-  return !rc || rc.origem !== 'manual';
+  const source = registro?.relationship_classification_source;
+  return source !== 'manual';
 }
 
-// Cria o objeto de classificação a ser persistido.
-export function montarClassificacao(
-  classificacao: string,
-  origem: 'manual' | 'ia',
-  opts: { confianca?: number; justificativa?: string; usuarioEmail?: string } = {}
+// Constrói o payload de campos planos a persistir a partir da análise da IA.
+export function montarClassificacaoIA(
+  analise: any,
+  source: 'ia' | 'retroativo_ia' = 'ia'
 ): any {
   return {
-    classificacao,
-    origem,
-    data_classificacao: new Date().toISOString(),
-    confianca_ia: origem === 'ia' ? (opts.confianca ?? null) : null,
-    justificativa: opts.justificativa || '',
-    usuario_responsavel: origem === 'manual' ? (opts.usuarioEmail || '') : '',
+    relationship_classification: analise.classification,
+    relationship_classification_source: source,
+    relationship_classification_confidence: analise.confidence,
+    relationship_classification_reason: analise.reason,
+    relationship_classification_updated_at: new Date().toISOString(),
+    relationship_classification_user: '',
+    relationship_primary_objective: analise.primary_objective || 'OUTRO',
+    relationship_community_signals: analise.community_signals || [],
+    relationship_institutional_signals: analise.institutional_signals || [],
+  };
+}
+
+// Constrói o payload para uma classificação MANUAL.
+export function montarClassificacaoManual(classificacao: string, usuarioEmail: string, razao = ''): any {
+  return {
+    relationship_classification: classificacao,
+    relationship_classification_source: 'manual',
+    relationship_classification_confidence: 100,
+    relationship_classification_reason: razao,
+    relationship_classification_updated_at: new Date().toISOString(),
+    relationship_classification_user: usuarioEmail || '',
   };
 }
 
@@ -134,14 +174,13 @@ export async function registrarAuditoriaClassificacao(
   base44: any,
   entidadeId: string,
   anterior: any,
-  nova: any,
-  origem: 'manual' | 'ia'
+  nova: any
 ): Promise<void> {
   try {
-    const valorAnterior = anterior?.classificacao
-      ? `${anterior.classificacao} (${anterior.origem || 'ia'})`
+    const valorAnterior = anterior?.relationship_classification
+      ? `${anterior.relationship_classification} (${anterior.relationship_classification_source || 'ia'})`
       : 'sem classificação';
-    const valorNovo = `${nova.classificacao} (${origem})`;
+    const valorNovo = `${nova.relationship_classification} (${nova.relationship_classification_source})`;
     await base44.entities.HistoricoAuditoria.create({
       entidade_tipo: 'Registro',
       entidade_id: entidadeId,
@@ -149,9 +188,13 @@ export async function registrarAuditoriaClassificacao(
       valor_anterior: valorAnterior,
       valor_novo: valorNovo,
       tipo_operacao: 'atualizacao',
-      usuario_responsavel: nova.usuario_responsavel || (origem === 'ia' ? 'sistema_ia' : ''),
-      justificativa: nova.justificativa || '',
-      fonte_origem: origem === 'ia' ? 'classificacao_ia' : 'classificacao_manual',
+      usuario_responsavel: nova.relationship_classification_user || 'sistema_ia',
+      justificativa: nova.relationship_classification_reason || '',
+      fonte_origem: nova.relationship_classification_source === 'ia'
+        ? 'classificacao_ia'
+        : nova.relationship_classification_source === 'retroativo_ia'
+        ? 'classificacao_retroativa_ia'
+        : 'classificacao_manual',
     });
   } catch (e) {
     // auditoria é best-effort: não derrubar o fluxo principal

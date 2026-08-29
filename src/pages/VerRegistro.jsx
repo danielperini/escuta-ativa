@@ -37,7 +37,7 @@ import { gerarCodigoUnico } from "@/components/codigos/GeradorCodigoUnico";
 import BadgeQualidade from "@/components/qualidade/BadgeQualidade";
 import AvaliacaoQualidadeRegistro from "@/components/qualidade/AvaliacaoQualidadeRegistro";
 import VinculadorReferenciais from "@/components/referenciais/VinculadorReferenciais";
-import { relacionamentoLabel, relacionamentoBadgeClass } from "@/lib/relationshipClassification";
+import { relacionamentoLabel, relacionamentoBadgeClass, confiancaBaixa, objetivoLabel } from "@/lib/relationshipClassification";
 import { toast } from "sonner";
 
 const tipoConfig = {
@@ -83,7 +83,7 @@ export default function VerRegistro() {
         toast.success(`Classificado como ${relacionamentoLabel(r.classificacao)} pela IA`);
         queryClient.invalidateQueries({ queryKey: ['registro', registroId] });
       } else if (r?.sugestao_ia) {
-        toast.info(`IA sugere ${relacionamentoLabel(r.sugestao_ia.classificacao)}. Classificação manual mantida — altere no formulário se desejar.`);
+        toast.info(`IA sugere ${relacionamentoLabel(r.sugestao_ia.classification)}. Classificação manual mantida — altere no formulário se desejar.`);
       } else if (r?.erro) {
         toast.error('Erro na reavaliação: ' + r.erro);
       } else {
@@ -233,14 +233,19 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
                   {sentimento.label}
                 </Badge>
               )}
-              {registro.relationship_classification?.classificacao && (
+              {registro.relationship_classification && (
                 <Badge
                   variant="secondary"
-                  className={cn(relacionamentoBadgeClass(registro.relationship_classification.classificacao))}
-                  title={registro.relationship_classification.justificativa || (registro.relationship_classification.origem === 'manual' ? 'Classificação manual' : 'Classificação automática por IA')}
+                  className={cn(relacionamentoBadgeClass(registro.relationship_classification), confiancaBaixa(registro.relationship_classification_confidence) && 'ring-1 ring-amber-400')}
+                  title={registro.relationship_classification_reason || (registro.relationship_classification_source === 'manual' ? 'Classificação manual' : 'Classificação por IA')}
                 >
-                  {relacionamentoLabel(registro.relationship_classification.classificacao)}
-                  {registro.relationship_classification.origem === 'manual' && <Shield className="w-3 h-3 ml-1" />}
+                  {relacionamentoLabel(registro.relationship_classification)}
+                  {registro.relationship_classification_source === 'manual' && <Shield className="w-3 h-3 ml-1" />}
+                </Badge>
+              )}
+              {registro.relationship_primary_objective && (
+                <Badge variant="outline" className="text-xs bg-slate-50">
+                  {objetivoLabel(registro.relationship_primary_objective)}
                 </Badge>
               )}
               <span className="flex items-center gap-1 text-sm text-slate-500">
@@ -313,6 +318,55 @@ Gere uma ata formal e profissional em português, formatada em Markdown, incluin
           </Link>
         </div>
         </div>
+
+      {/* Aviso de baixa confiança na classificação de relacionamento */}
+      {registro.relationship_classification &&
+        registro.relationship_classification_source !== 'manual' &&
+        confiancaBaixa(registro.relationship_classification_confidence) && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-amber-900">
+                  Classificação sugerida pela IA — revisar
+                </p>
+                <p className="text-xs text-amber-700 mt-1">
+                  Confiança: {Math.round(registro.relationship_classification_confidence || 0)}%. {registro.relationship_classification_reason || ''}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Detalhes da classificação de relacionamento */}
+      {registro.relationship_classification && (
+        <Card className="border-slate-200">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <Badge className={cn(relacionamentoBadgeClass(registro.relationship_classification))}>
+                  {relacionamentoLabel(registro.relationship_classification)}
+                </Badge>
+                <span className="text-xs text-slate-500">
+                  {registro.relationship_classification_source === 'manual'
+                    ? `Manual${registro.relationship_classification_user ? ' · ' + registro.relationship_classification_user : ''}`
+                    : `IA${registro.relationship_classification_source === 'retroativo_ia' ? ' (retroativa)' : ''} · confiança ${Math.round(registro.relationship_classification_confidence || 0)}%`}
+                </span>
+              </div>
+              {registro.relationship_primary_objective && (
+                <span className="text-xs text-slate-500">
+                  Objetivo: <span className="font-medium text-slate-700">{objetivoLabel(registro.relationship_primary_objective)}</span>
+                </span>
+              )}
+            </div>
+            {registro.relationship_classification_reason && (
+              <p className="text-xs text-slate-600 mt-2 italic">"{registro.relationship_classification_reason}"</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Nota de Qualidade - Destacada */}
       {registro.avaliacao_qualidade?.nota_final && (

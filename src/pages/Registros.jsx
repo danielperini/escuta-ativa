@@ -104,9 +104,11 @@ export default function Registros() {
     // Filtro sentimento
     if (filtros.sentimento !== 'todos' && r.sentimento !== filtros.sentimento) return false;
 
-    // Filtro relacionamento (Comunitário / Institucional / ambos)
+    // Filtro relacionamento (Comunitário / Institucional / ambos / Não classificado)
     if (filtros.relacionamento !== 'todos') {
-      if (r.relationship_classification?.classificacao !== filtros.relacionamento) return false;
+      if (filtros.relacionamento === 'nao_classificado') {
+        if (r.relationship_classification) return false;
+      } else if (r.relationship_classification !== filtros.relacionamento) return false;
     }
 
     // Filtro tema

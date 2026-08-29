@@ -29,6 +29,7 @@ import PainelDicasRelacionamento from "@/components/dashboard/PainelDicasRelacio
 import PainelAgendaDashboard from "@/components/dashboard/PainelAgendaDashboard";
 import PainelDemandasDashboard from "@/components/dashboard/PainelDemandasDashboard";
 import PainelComunidadesDashboard from "@/components/dashboard/PainelComunidadesDashboard";
+import WidgetRelacionamento from "@/components/dashboard/WidgetRelacionamento";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -217,6 +218,8 @@ export default function Dashboard() {
                                 onClick={() => navigate(createPageUrl("Agenda"))} />
                         </div>
                     )}
+
+                    <WidgetRelacionamento registros={registros} />
 
                     {widgets.includes('graficos') && (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

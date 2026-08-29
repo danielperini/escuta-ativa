@@ -224,9 +224,15 @@ export default function RegistroUnificado() {
         status: registroExistente.status || 'rascunho',
         localizacao: registroExistente.localizacao || { municipio: '', estado: '' },
         relationship_classification: registroExistente.relationship_classification || null,
+        relationship_classification_source: registroExistente.relationship_classification_source || null,
+        relationship_classification_confidence: registroExistente.relationship_classification_confidence ?? null,
+        relationship_classification_reason: registroExistente.relationship_classification_reason || '',
+        relationship_primary_objective: registroExistente.relationship_primary_objective || null,
+        relationship_community_signals: registroExistente.relationship_community_signals || [],
+        relationship_institutional_signals: registroExistente.relationship_institutional_signals || [],
         relationship_input:
-          registroExistente.relationship_classification?.origem === 'manual'
-            ? registroExistente.relationship_classification.classificacao
+          registroExistente.relationship_classification_source === 'manual'
+            ? registroExistente.relationship_classification
             : RELACIONAMENTO_AUTO
       });
       setTextoConsolidado(registroExistente.transcricao || '');
@@ -484,7 +490,9 @@ RETORNE: Apenas o texto extraído formatado, sem comentários ou explicações.`
         compromissos: compromissosProcessados,
         proximos_passos: analiseCompleta.proximos_passos || [],
         resumo_automatico: analiseCompleta.identificacao?.resumo || '',
-        relationship_classification: analiseCompleta.relationship_classification || prev.relationship_classification || null,
+        ...Object.fromEntries(
+          Object.entries(analiseCompleta).filter(([k]) => k.startsWith('relationship_'))
+        ),
         localizacao: {
           municipio: municipioExtraido || analiseCompleta.localizacao?.municipio || '',
           estado: estadoExtraido || analiseCompleta.localizacao?.estado || ''
@@ -673,11 +681,11 @@ Extraia:
 
     // Em modo edição, salvar direto sem detectores
     if (modoEdicao) {
-      const relationshipClassification = classificacaoParaPersistir(formData, user?.email);
+      const relationshipFields = classificacaoParaPersistir(formData, user?.email);
       const dadosFinais = {
         ...formData,
         status: 'finalizado',
-        relationship_classification: relationshipClassification
+        ...(relationshipFields || {})
       };
       delete dadosFinais.relationship_input;
       
@@ -727,7 +735,7 @@ Extraia:
           : calcularPrazoDevolutiva('media')
       }));
 
-      const relationshipClassification = classificacaoParaPersistir(formData, user?.email);
+      const relationshipFields = classificacaoParaPersistir(formData, user?.email);
       const dadosFinais = {
         ...formData,
         demandas,
@@ -739,7 +747,7 @@ Extraia:
         registros_continuidade: continuidades,
         casos_vinculados: casosVinculados,
         analise_criticidade: analiseCriticidade,
-        relationship_classification: relationshipClassification
+        ...(relationshipFields || {})
       };
       // relationship_input é transitório (seletor) — não persistir
       delete dadosFinais.relationship_input;
@@ -753,7 +761,7 @@ Extraia:
 
       // Modo automático sem classificação (registro manual sem análise IA):
       // dispara a classificação automática pela IA (best-effort, não bloqueia).
-      if (!modoEdicao && !relationshipClassification) {
+      if (!modoEdicao && !relationshipFields) {
         try {
           await base44.functions.invoke('classificarRelacionamentoRegistros', { registro_id: registroId });
         } catch (classErr) {

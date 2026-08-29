@@ -145,44 +145,72 @@
       "description": "Sinais de risco identificados"
     },
     "relationship_classification": {
-      "type": "object",
-      "description": "Classifica\u00e7\u00e3o do tipo de relacionamento da atividade. Evid\u00eancias (ata, transcri\u00e7\u00e3o, lista de presen\u00e7a, fotografia) herdam a classifica\u00e7\u00e3o do registro principal \u2014 n\u00e3o geram classifica\u00e7\u00e3o independente.",
-      "properties": {
-        "classificacao": {
-          "type": "string",
-          "enum": [
-            "COMUNITARIO",
-            "INSTITUCIONAL",
-            "COMUNITARIO_INSTITUCIONAL"
-          ],
-          "description": "COMUNITARIO=Relacionamento Comunit\u00e1rio; INSTITUCIONAL=Relacionamento Institucional; COMUNITARIO_INSTITUCIONAL=Relacionamento Comunit\u00e1rio e Institucional"
-        },
-        "origem": {
-          "type": "string",
-          "enum": [
-            "manual",
-            "ia"
-          ],
-          "description": "Origem da classifica\u00e7\u00e3o. manual tem PRIORIDADE sobre ia e n\u00e3o \u00e9 sobrescrita automaticamente pela IA."
-        },
-        "data_classificacao": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Data e hora da classifica\u00e7\u00e3o"
-        },
-        "confianca_ia": {
-          "type": "number",
-          "description": "Confian\u00e7a da IA (0-1) quando origem=ia"
-        },
-        "justificativa": {
-          "type": "string",
-          "description": "Justificativa resumida da classifica\u00e7\u00e3o (IA) ou motivo da escolha manual"
-        },
-        "usuario_responsavel": {
-          "type": "string",
-          "description": "Email do usu\u00e1rio respons\u00e1vel quando origem=manual"
-        }
-      }
+      "type": "string",
+      "enum": [
+        "COMUNITARIO",
+        "INSTITUCIONAL",
+        "COMUNITARIO_INSTITUCIONAL"
+      ],
+      "description": "Classifica\u00e7\u00e3o do tipo de relacionamento da atividade. COMUNITARIO=Relacionamento Comunit\u00e1rio; INSTITUCIONAL=Relacionamento Institucional; COMUNITARIO_INSTITUCIONAL=Relacionamento Comunit\u00e1rio e Institucional. Evid\u00eancias (ata, transcri\u00e7\u00e3o, lista de presen\u00e7a, fotografia) herdam a classifica\u00e7\u00e3o do registro principal \u2014 n\u00e3o geram classifica\u00e7\u00e3o independente."
+    },
+    "relationship_classification_source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "ia",
+        "retroativo_ia"
+      ],
+      "description": "Origem da classifica\u00e7\u00e3o. manual tem PRIORIDADE e nunca \u00e9 sobrescrita automaticamente pela IA; ia=classifica\u00e7\u00e3o autom\u00e1tica na cria\u00e7\u00e3o/reavalia\u00e7\u00e3o; retroativo_ia=backfill de registros antigos."
+    },
+    "relationship_classification_confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Confian\u00e7a da IA de 0 a 100. Abaixo de 70 deve ser sinalizada para revis\u00e3o humana."
+    },
+    "relationship_classification_reason": {
+      "type": "string",
+      "description": "Justificativa curta da classifica\u00e7\u00e3o (IA) ou motivo da escolha manual."
+    },
+    "relationship_classification_updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora da \u00faltima classifica\u00e7\u00e3o."
+    },
+    "relationship_classification_user": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio respons\u00e1vel quando a classifica\u00e7\u00e3o \u00e9 manual."
+    },
+    "relationship_primary_objective": {
+      "type": "string",
+      "enum": [
+        "ESCUTA",
+        "INFORMACAO",
+        "NEGOCIACAO",
+        "ARTICULACAO",
+        "CONSULTA",
+        "MOBILIZACAO",
+        "GESTAO_DE_CONFLITO",
+        "ACOMPANHAMENTO",
+        "DELIBERACAO",
+        "PARCERIA",
+        "OUTRO"
+      ],
+      "description": "Objetivo principal inferido da atividade. Enriquece a an\u00e1lise do relacionamento. Pode ser sugerido pela IA."
+    },
+    "relationship_community_signals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Sinais comunit\u00e1rios detectados pela IA (moradores, assembleia, escuta, etc)."
+    },
+    "relationship_institutional_signals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Sinais institucionais detectados pela IA (prefeitura, secretaria, MP, etc)."
     },
     "demandas": {
       "type": "array",
@@ -236,21 +264,18 @@
               "nao_se_aplica"
             ],
             "default": "pendente",
-            "description": "Status do ciclo de devolutiva. pendente=ainda h\u00e1 retorno a fazer; realizada=houve retorno ao territ\u00f3rio; nao_realizada=n\u00e3o houve retorno (mant\u00e9m como pend\u00eancia); nao_se_aplica=sem necessidade de devolutiva."
+            "description": "Status do ciclo de devolutiva."
           },
           "devolutiva_data_prevista": {
             "type": "string",
-            "format": "date",
-            "description": "Data prevista para a devolutiva"
+            "format": "date"
           },
           "devolutiva_data_realizada": {
             "type": "string",
-            "format": "date",
-            "description": "Data em que a devolutiva foi realizada"
+            "format": "date"
           },
           "devolutiva_responsavel": {
-            "type": "string",
-            "description": "Respons\u00e1vel por realizar a devolutiva"
+            "type": "string"
           },
           "devolutiva_forma": {
             "type": "string",
@@ -263,27 +288,22 @@
               "oficio",
               "evento",
               "outra"
-            ],
-            "description": "Forma como a devolutiva foi realizada"
+            ]
           },
           "devolutiva_resumo": {
-            "type": "string",
-            "description": "Resumo do conte\u00fado da devolutiva"
+            "type": "string"
           },
           "devolutiva_justificativa": {
-            "type": "string",
-            "description": "Justificativa quando 'nao_se_aplica' ou 'nao_realizada'"
+            "type": "string"
           },
           "devolutiva_publico": {
-            "type": "string",
-            "description": "P\u00fablico/Stakeholder alcan\u00e7ado pela devolutiva"
+            "type": "string"
           },
           "devolutiva_registro_ids": {
             "type": "array",
             "items": {
               "type": "string"
-            },
-            "description": "IDs de Registros/Atividades (tipo=devolutiva) que comprovam a devolutiva. Rela\u00e7\u00e3o N:N Demanda \u2194 Registro."
+            }
           }
         }
       },
@@ -340,12 +360,10 @@
             "type": "string"
           },
           "codigo_documento": {
-            "type": "string",
-            "description": "C\u00f3digo DOC gerado para o arquivo"
+            "type": "string"
           },
           "transcricao": {
-            "type": "string",
-            "description": "Transcri\u00e7\u00e3o PT-BR do \u00e1udio/v\u00eddeo"
+            "type": "string"
           }
         }
       },
@@ -361,12 +379,10 @@
     },
     "encaminhamento_realizado": {
       "type": "boolean",
-      "default": false,
-      "description": "Se houve encaminhamento formal"
+      "default": false
     },
     "descricao_encaminhamento": {
-      "type": "string",
-      "description": "Descri\u00e7\u00e3o do encaminhamento realizado"
+      "type": "string"
     },
     "avaliacao_qualidade": {
       "type": "object",
@@ -374,12 +390,10 @@
         "nota_final": {
           "type": "number",
           "minimum": 1,
-          "maximum": 10,
-          "description": "Nota final de qualidade (1-10)"
+          "maximum": 10
         },
         "nota_base": {
-          "type": "number",
-          "description": "Nota base antes dos pesos"
+          "type": "number"
         },
         "forca_fonte": {
           "type": "string",
@@ -387,8 +401,7 @@
             "forte",
             "intermediaria",
             "fraca"
-          ],
-          "description": "Classifica\u00e7\u00e3o da for\u00e7a da fonte"
+          ]
         },
         "tipo_fonte": {
           "type": "string",
@@ -406,16 +419,14 @@
           ]
         },
         "peso_fonte": {
-          "type": "number",
-          "description": "Peso aplicado pela fonte (0-1)"
+          "type": "number"
         },
         "revisao_humana_certificada": {
           "type": "boolean",
           "default": false
         },
         "peso_revisao_humana": {
-          "type": "number",
-          "description": "Peso da revis\u00e3o conforme criticidade (0-0.5)"
+          "type": "number"
         },
         "criticidade_caso": {
           "type": "string",
@@ -424,8 +435,7 @@
             "media",
             "alta",
             "critica"
-          ],
-          "description": "Criticidade para ponderar revis\u00e3o humana"
+          ]
         },
         "revisor_nome": {
           "type": "string"
@@ -470,12 +480,10 @@
     },
     "validado_em": {
       "type": "string",
-      "format": "date-time",
-      "description": "Data da \u00faltima valida\u00e7\u00e3o"
+      "format": "date-time"
     },
     "observacao_validacao": {
-      "type": "string",
-      "description": "Observa\u00e7\u00e3o t\u00e9cnica da valida\u00e7\u00e3o"
+      "type": "string"
     },
     "preenchimento_automatico": {
       "type": "object",
@@ -495,8 +503,7 @@
         "timestamp": {
           "type": "string"
         }
-      },
-      "description": "Metadados do preenchimento autom\u00e1tico"
+      }
     },
     "auditoria": {
       "type": "object",
@@ -531,35 +538,28 @@
             "type": "object"
           }
         }
-      },
-      "description": "Trilha de auditoria completa"
+      }
     },
     "caso_relacionado": {
-      "type": "string",
-      "description": "ID do caso (continuidade) ao qual este registro pertence"
+      "type": "string"
     },
     "registros_continuidade": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "IDs de registros de continuidade"
+      }
     },
     "demanda_relacionada": {
       "type": "object",
-      "description": "Quando tipo=devolutiva: v\u00ednculo bidirecional com a Demanda que motivou a devolutiva.",
       "properties": {
         "registro_origem_id": {
-          "type": "string",
-          "description": "ID do Registro que cont\u00e9m a demanda"
+          "type": "string"
         },
         "demanda_index": {
-          "type": "number",
-          "description": "\u00cdndice da demanda no array Registro.demandas"
+          "type": "number"
         },
         "descricao": {
-          "type": "string",
-          "description": "Descri\u00e7\u00e3o da demanda (denormalizado)"
+          "type": "string"
         },
         "comunidade": {
           "type": "string"
@@ -573,8 +573,7 @@
         "finalizado",
         "arquivado"
       ],
-      "default": "rascunho",
-      "description": "Status do registro"
+      "default": "rascunho"
     },
     "status_sincronizacao": {
       "type": "string",
@@ -584,29 +583,25 @@
         "erro",
         "pendente"
       ],
-      "default": "concluido",
-      "description": "Status da sincroniza\u00e7\u00e3o"
+      "default": "concluido"
     },
     "liderancas_vinculadas": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "IDs de lideran\u00e7as vinculadas automaticamente"
+      }
     },
     "organizacoes_vinculadas": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "IDs de organiza\u00e7\u00f5es vinculadas automaticamente"
+      }
     },
     "agendas_geradas": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "IDs de agendas criadas a partir deste registro"
+      }
     }
   },
   "required": [

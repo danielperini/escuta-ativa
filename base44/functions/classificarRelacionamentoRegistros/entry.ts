@@ -3,7 +3,7 @@ import OpenAI from 'npm:openai@4.68.0';
 import { secrets } from 'base44:runtime';
 import {
   classificarRelacionamentoViaIA,
-  montarClassificacao,
+  montarClassificacaoIA,
   podeSobrescreverClassificacao,
   registrarAuditoriaClassificacao,
 } from '../../shared/relationshipClassification.ts';
@@ -15,12 +15,13 @@ import {
 // ambos) para registros de campo da societá.ai.
 //
 // Modos de uso:
-//  1. Retroativa (sem registro_id): processa registros que ainda NÃO possuem
-//     relationship_classification ou cuja classificação NÃO é manual.
+//  1. Retroativa (sem registro_id): backfill de registros que ainda NÃO
+//     possuem relationship_classification ou cuja origem NÃO é manual.
 //     Registros com classificação MANUAL NUNCA são alterados.
-//  2. Reavaliação de um registro (registro_id): a IA reavalia (ex.: novos
-//     documentos/participantes/transcrições). Se houver classificação
-//     manual, a IA apenas SUGERE (não substitui); o usuário confirma.
+//     Origem persistida: 'retroativo_ia'.
+//  2. Reavaliação (registro_id): a IA reavalia (ex.: novos documentos,
+//     participantes, transcrições). Origem persistida: 'ia'.
+//     Se houver classificação manual, a IA apenas SUGERE (não substitui).
 //
 // Regra de segurança: classificação manual > classificação IA.
 // ===================================================================
@@ -36,6 +37,7 @@ export default async function(req: Request): Promise<Response> {
     const limit = Math.min(Number(body?.limit || 200), 500);
 
     const openai = new OpenAI({ apiKey: secrets.get('OPENAI_API_KEY') });
+    const source: 'ia' | 'retroativo_ia' = registroId ? 'ia' : 'retroativo_ia';
 
     let registros: any[] = [];
     if (registroId) {
@@ -67,27 +69,16 @@ export default async function(req: Request): Promise<Response> {
           continue;
         }
 
-        const nova = montarClassificacao(analise.classificacao, 'ia', {
-          confianca: analise.confianca,
-          justificativa: analise.justificativa,
-        });
-
-        await base44.entities.Registro.update(registro.id, {
-          relationship_classification: nova,
-        });
-        await registrarAuditoriaClassificacao(
-          base44,
-          registro.id,
-          registro.relationship_classification,
-          nova,
-          'ia'
-        );
+        const campos = montarClassificacaoIA(analise, source);
+        await base44.entities.Registro.update(registro.id, campos);
+        await registrarAuditoriaClassificacao(base44, registro.id, registro, campos);
         aplicados++;
         resultados.push({
           registro_id: registro.id,
           titulo: registro.titulo,
-          classificacao: analise.classificacao,
-          confianca: analise.confianca,
+          classificacao: analise.classification,
+          confianca: analise.confidence,
+          objetivo: analise.primary_objective,
           aplicado: true,
         });
       } catch (err) {
@@ -103,6 +94,7 @@ export default async function(req: Request): Promise<Response> {
     return Response.json({
       success: true,
       modo: registroId ? 'reavaliacao' : 'retroativa',
+      origem: source,
       total_processados: registros.length,
       aplicados,
       sugestoes,

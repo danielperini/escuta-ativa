@@ -112,9 +112,9 @@ export default function TabelaRegistros({ registros, onExcluir }) {
                     <Badge variant="outline" className="text-xs">
                       {registro.tipo?.replace('_', ' ')}
                     </Badge>
-                    {registro.relationship_classification?.classificacao && (
-                      <Badge className={cn("text-xs", relacionamentoBadgeClass(registro.relationship_classification.classificacao))}>
-                        {relacionamentoLabel(registro.relationship_classification.classificacao)}
+                    {registro.relationship_classification && (
+                      <Badge className={cn("text-xs", relacionamentoBadgeClass(registro.relationship_classification))}>
+                        {relacionamentoLabel(registro.relationship_classification)}
                       </Badge>
                     )}
                     {registro.temperatura_territorio && (
@@ -258,6 +258,15 @@ export default function TabelaRegistros({ registros, onExcluir }) {
                     <Badge variant="outline" className="text-xs capitalize">
                       {registro.tipo?.replace('_', ' ')}
                     </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    {registro.relationship_classification ? (
+                      <Badge className={cn("text-xs", relacionamentoBadgeClass(registro.relationship_classification))}>
+                        {relacionamentoLabel(registro.relationship_classification)}
+                      </Badge>
+                    ) : (
+                      <span className="text-xs text-slate-400">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <Badge 

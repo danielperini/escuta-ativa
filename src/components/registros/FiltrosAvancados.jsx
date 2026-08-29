@@ -209,6 +209,7 @@ export default function FiltrosAvancados({ filtros, setFiltros, comunidades, tem
               <SelectItem value="COMUNITARIO">Comunitário</SelectItem>
               <SelectItem value="INSTITUCIONAL">Institucional</SelectItem>
               <SelectItem value="COMUNITARIO_INSTITUCIONAL">Comunitário e Institucional</SelectItem>
+              <SelectItem value="nao_classificado">Não classificado</SelectItem>
             </SelectContent>
           </Select>
         </div>
