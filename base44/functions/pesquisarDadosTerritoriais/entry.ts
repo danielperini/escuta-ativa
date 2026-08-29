@@ -1,11 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import OpenAI from 'npm:openai@4.68.0';
+import { secrets } from 'base44:runtime';
 
 // ===================================================================
 // pesquisarDadosTerritoriais — Agente de pesquisa pública territorial.
-// Usa InvokeLLM com acesso à internet (gemini_3_flash) para coletar
-// dados públicos não disponíveis via API estruturada (prefeitos,
-// secretarias, vereadores, conselhos, OSCs, programas sociais, etc.).
-//Persiste resultado na entidade DadoSecundario (cache territorial).
+// Usa a API GPT (OpenAI) diretamente para coletar, com base no
+// conhecimento do modelo, dados públicos não disponíveis via API
+// estruturada (prefeitos, secretarias, vereadores, conselhos, OSCs,
+// programas sociais, etc.).
+// Persiste resultado na entidade DadoSecundario (cache territorial).
+// IMPORTANTE: sem acesso à internet em tempo real (rigor da IA
+// reforçado — nunca inventar links/fonts; se não souber, devolve vazio).
 // ===================================================================
 
 const CATEGORIAS_PERMITIDAS = new Set([
@@ -105,40 +110,44 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 2) Road research via IA (com internet)
+    // 2) Pesquisa via API GPT (OpenAI) — diretamente, sem InvokeLLM/gemini
     let resp;
     try {
-      resp = await base44.integrations.Core.InvokeLLM({
-        prompt: TEMPLATE_PROMPT(categoria, municipio, uf, ibge, fontes, perguntaExtra),
-        add_context_from_internet: true,
-        model: 'gemini_3_flash',
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            items: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  indicator: { type: 'string' },
-                  value: { type: 'string' },
-                  value_number: { type: 'number' },
-                  unit: { type: 'string' },
-                  reference_period: { type: 'string' },
-                  source_url: { type: 'string' },
-                  source_name: { type: 'string' },
-                  orgao: { type: 'string' },
-                  data_publicacao: { type: 'string' },
-                  confidence: { type: 'string', enum: ['oficial', 'nao_verificado', 'inferido_ia'] },
-                  observacao: { type: 'string' }
-                }
-              }
-            },
-            resumo: { type: 'string' },
-            insights: { type: 'array', items: { type: 'string' } }
-          }
-        }
+      const openai = new OpenAI({ apiKey: secrets.get('OPENAI_API_KEY') });
+      const schema_instruction = `Responda SOMENTE com um objeto JSON válido, sem texto extra, seguindo EXATAMENTE este schema:
+{
+  "items": [ {
+    "indicator": "string",
+    "value": "string (valor humano legível)",
+    "value_number": "number ou null",
+    "unit": "string",
+    "reference_period": "string (ex: 2024, 2023-2024)",
+    "source_url": "string (URL rastreável, ou \"\")",
+    "source_name": "string (nome da fonte oficial, ou \"\")",
+    "orgao": "string (órgão responsável, ou \"\")",
+    "data_publicacao": "string (data ou \"\")",
+    "confidence": "oficial | nao_verificado | inferido_ia",
+    "observacao": "string (diferenciação quando aplicável, ou \"\")"
+  } ],
+  "resumo": "string (até 500 caracteres)",
+  "insights": [ "string", "..." ]
+}
+Regras críticas:
+- items deve conter apenas indicadores reais que você conhece com confiança.
+- NÃO invente URLs. Se não conhecer uma URL verificável, deixe source_url vazia.
+- NÃO invente números. Se não souber, omita o item (items pode ser uma lista vazia se nada for confiável).
+- confidence="oficial" apenas quando souber a fonte governamental; "inferido_ia" para derivações; "nao_verificado" para web sem confirmação.`;
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: schema_instruction },
+          { role: 'user', content: TEMPLATE_PROMPT(categoria, municipio, uf, ibge, fontes, perguntaExtra) + '\n\nResponda SOMENTE com o JSON especificado.' },
+        ],
       });
+      const raw = completion.choices[0].message.content || '{}';
+      resp = JSON.parse(raw);
     } catch (e) {
       // Limite de IA atingido ou erro — devolve cache (se houver) com aviso
       if (cache.length) {

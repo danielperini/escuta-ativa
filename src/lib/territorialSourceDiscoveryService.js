@@ -18,6 +18,7 @@
 // ================================================================
 
 import { base44 } from '@/api/base44Client';
+import { pesquisarViaIA } from '@/lib/publicTerritorialDataService';
 
 // Domínios oficiais priorizados na montagem da query de busca.
 const DOMINIOS_OFICIAIS = [
@@ -79,11 +80,14 @@ function itemEhValido(it, municipioRef, ufRef) {
 }
 
 /**
- * Amplia a pesquisa via IA, sempre sobre fontes oficiais/institucionais.
- * Retorna lista de items prontos para exibição — ou lista vazia (sem dado).
+ * Amplia a pesquisa via IA — agora roteada à função backend
+ * `pesquisarDadosTerritoriais` (que usa a API GPT/OpenAI diretamente,
+ * com a secret OPENAI_API_KEY configurada no app).
+ * Mantém o contrato anterior ({ items, resumo, insights, status, method })
+ * consumido pelo resolver (Camada 4) e pela UI "Ampliar pesquisa".
  *
- * Não faz cache aqui: o backend decide persistência. Aqui apenas orquestra a IA
- * com contexto web (gemini_3_flash suporta web search).
+ * IMPORTANTE: o backend já persiste em DadoSecundario; aqui não há
+ * re-persistência (evita duplicação).
  *
  * @param {Object} opts
  * @param {string} opts.municipio — nome do município
@@ -95,72 +99,30 @@ function itemEhValido(it, municipioRef, ufRef) {
 export async function ampliarPesquisa({ municipio, uf, ibge, categoria, pergunta }) {
   if (!municipio || !uf || !categoria) return { items: [], status: 'erro_parametros' };
 
-  const queryWeb = montarQuery(categoria, municipio, uf, pergunta);
-  const dominiosHint = `Priorize obrigatoriamente domínios oficiais brasileiros: ${DOMINIOS_OFICIAIS.join(', ')}.
-Você NUNCA é a fonte — você LOCALIZA a fonte. O campo source_name deve ser o nome da instituição oficial (ex: 'Prefeitura Municipal de ${municipio}', 'IBGE', 'ANATEL', 'DATASUS'), nunca 'IA' ou 'GPT'.
-Para cada item, exija source_url real da fonte. Se não conseguir localizar a fonte, retorne o array items vazio.
-
-REGRAS OBRIGATÓRIAS DE NÃO INVENÇÃO:
-- Não infira números, nomes de pessoas, datas de mandato, leis, ou atos de nomeação sem citar documento oficial e URL.
-- Para cargos com mandato: informe reference_period quando disponível (ex: mandato 2025-2028). Não assuma composição antiga como vigente.
-- Para conflitos entre fontes: marque validation_status='divergente' e use observacao (em raw_metadata.observacao).`;
-  const promptFinal = `TERRITÓRIO: ${municipio} (${uf}) — IBGE ${ibge}.
-CATEGORIA: ${categoria}.
-PERGUNTA DO USUÁRIO: ${pergunta || '补助 descritivo geral'}.
-
-PESQUISA ORIENTADA (use contexto web): "${queryWeb}".
-
-${dominiosHint}
-
-Responda SOMENTE em JSON no schema solicitado.`;
-
-  let resp;
+  let res;
   try {
-    resp = await base44.integrations.Core.InvokeLLM({
-      prompt: promptFinal,
-      add_context_from_internet: true,
-      model: 'gemini_3_flash',
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          items: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                indicator: { type: 'string' },
-                value: { type: 'string' },
-                value_number: { type: 'number' },
-                unit: { type: 'string' },
-                reference_period: { type: 'string' },
-                source_url: { type: 'string' },
-                source_name: { type: 'string' },
-                orgao: { type: 'string' },
-                data_publicacao: { type: 'string' },
-                confidence: { type: 'string', enum: ['oficial', 'nao_verificado', 'inferido_ia'] },
-                observacao: { type: 'string' },
-                geographic_level: { type: 'string', enum: ['MUNICIPAL', 'SUBMUNICIPAL', 'COMUNITARIO', 'GEOESPACIAL', 'INTERNO_SOCIEDATA'] },
-                validation_status: { type: 'string', enum: ['verificado', 'divergente', 'nao_verificado', 'sem_consulta'] }
-              }
-            }
-          },
-          resumo: { type: 'string' },
-          insights: { type: 'array', items: { type: 'string' } }
-        }
-      }
+    res = await pesquisarViaIA({
+      ibge_code: ibge,
+      municipio,
+      uf,
+      categoria,
+      pergunta,
+      force_refresh: true
     });
   } catch (_) {
-    // Não expor 503/timeout ao usuário. Retorna lista vazia com status controlado.
     return { items: [], status: 'ia_indisponivel', method: 'PESQUISA_WEB_IA' };
   }
+  if (!res || res.error) return { items: [], status: 'ia_indisponivel', method: 'PESQUISA_WEB_IA' };
 
-  const itemsRaw = Array.isArray(resp?.items) ? resp.items : [];
+  const itemsRaw = Array.isArray(res?.items) ? res.items : [];
   const items = itemsRaw
     .filter(it => itemEhValido(it, municipio, uf))
     .map(it => ({
       indicator: String(it.indicator),
-      value_text: typeof it.value_text === 'string' ? it.value_text : (typeof it.value === 'string' ? it.value : (it.value_number != null ? String(it.value_number) : '')),
-      value_number: typeof it.value_number === 'number' ? it.value_number : (typeof it.value === 'string' ? (Number(String(it.value).replace(/[^\d.-]/g, '')) || null) : null),
+      value_text: typeof it.value_text === 'string' && it.value_text !== ''
+        ? it.value_text
+        : (it.value_number != null ? String(it.value_number) : ''),
+      value_number: typeof it.value_number === 'number' ? it.value_number : null,
       unit: it.unit || '',
       reference_period: it.reference_period || '',
       source_url: it.source_url || '',
@@ -168,16 +130,25 @@ Responda SOMENTE em JSON no schema solicitado.`;
       orgao: it.orgao || '',
       data_publicacao: it.data_publicacao || '',
       confidence: it.confidence || 'nao_verificado',
-      observacao: it.observacao || '',
+      observacao: it.observacao || it.raw_metadata?.observacao || '',
       method: 'PESQUISA_WEB_IA',
       validation_status: it.validation_status || (it.confidence === 'oficial' ? 'verificado' : 'nao_verificado'),
       geographic_level: it.geographic_level || 'MUNICIPAL'
     }));
 
-  const resumo = String(resp?.resumo || '').slice(0, 700);
-  const insights = Array.isArray(resp?.insights) ? resp.insights.map(String).slice(0, 5) : [];
+  const resumo = String(res?.resumo || '').slice(0, 700);
+  const insights = Array.isArray(res?.insights) ? res.insights.map(String).slice(0, 5) : [];
 
-  return { items, resumo, insights, status: items.length ? 'encontrado' : 'sem_dado', method: 'PESQUISA_WEB_IA' };
+  // Marca que o backend já persistiu — sinaliza ao resolver Camada 4 não
+  // re-criar registros (evita duplicidade em DadoSecundario).
+  return {
+    items,
+    resumo,
+    insights,
+    status: items.length ? 'encontrado' : 'sem_dado',
+    method: 'PESQUISA_WEB_IA',
+    alreadyPersisted: true
+  };
 }
 
 export { PADROES_POR_CATEGORIA, DOMINIOS_OFICIAIS };

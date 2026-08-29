@@ -147,38 +147,42 @@ export async function resolverSeccao({ mun, categoria, fontesSel, forceRefresh, 
   }
 
   // ── Camada 4: IA Discovery (frontend ampliar — sempre sobre fontes oficiais) ──
+  // A partir de agora, ampliarPesquisa roteia à função backend que usa a
+  // API GPT/OpenAI diretamente (OPENAI_API_KEY). Quando o backend já persistiu
+  // os registros em DadoSecundario, NÃO re-criamos aqui (evita duplicidade).
   tentativas.push('ia_discovery');
   try {
     const r = await ampliarPesquisa({ municipio: nome, uf, ibge, categoria, pergunta: ampliarExtra });
     if (Array.isArray(r.items) && r.items.length > 0) {
-      try {
-        // Persiste em cache para uso futuro
-        const now = new Date().toISOString();
-        await base44.entities.DadoSecundario.bulkCreate(
-          r.items.map(it => ({
-            source_id: `${categoria}_${String(it.indicator).slice(0, 40).replace(/\s+/g, '_')}_${ibge}_${Math.floor(Math.random() * 9999)}`,
-            source_name: it.source_name || 'Pesquisa assistida por IA',
-            municipality_ibge_code: ibge,
-            municipality: nome,
-            state: uf,
-            category: categoria,
-            indicator: it.indicator,
-            value_number: it.value_number,
-            value_text: it.value_text,
-            unit: it.unit,
-            reference_period: it.reference_period,
-            source_url: it.source_url,
-            orgao: it.orgao,
-            collected_at: now,
-            updated_at: now,
-            confidence: it.confidence,
-            method: 'PESQUISA_WEB_IA',
-            validation_status: it.validation_status,
-            geographic_level: it.geographic_level || 'MUNICIPAL',
-            raw_metadata: { observacao: it.observacao || '' }
-          }))
-        );
-      } catch (_) { /* persistência falha é aceitável — dados voltam para UI */ }
+      if (!r.alreadyPersisted) {
+        try {
+          const now = new Date().toISOString();
+          await base44.entities.DadoSecundario.bulkCreate(
+            r.items.map(it => ({
+              source_id: `${categoria}_${String(it.indicator).slice(0, 40).replace(/\s+/g, '_')}_${ibge}_${Math.floor(Math.random() * 9999)}`,
+              source_name: it.source_name || 'Pesquisa assistida por IA',
+              municipality_ibge_code: ibge,
+              municipality: nome,
+              state: uf,
+              category: categoria,
+              indicator: it.indicator,
+              value_number: it.value_number,
+              value_text: it.value_text,
+              unit: it.unit,
+              reference_period: it.reference_period,
+              source_url: it.source_url,
+              orgao: it.orgao,
+              collected_at: now,
+              updated_at: now,
+              confidence: it.confidence,
+              method: 'PESQUISA_WEB_IA',
+              validation_status: it.validation_status,
+              geographic_level: it.geographic_level || 'MUNICIPAL',
+              raw_metadata: { observacao: it.observacao || '' }
+            }))
+          );
+        } catch (_) { /* persistência falha é aceitável — dados voltam para UI */ }
+      }
       return {
         items: r.items,
         status: STATUS_DADO.DADO_DISPONIVEL,
