@@ -6,7 +6,7 @@ import { removerDuplicatas } from '@/components/sistema/FiltroDuplicatasAutomati
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Plus, FileText } from 'lucide-react';
-import ExportadorDados from '@/components/shared/ExportadorDados';
+import ExportadorPDFRegistros from '@/components/registros/ExportadorPDFRegistros';
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
@@ -151,19 +151,7 @@ export default function Registros() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <ExportadorDados
-            dados={filteredRegistros}
-            colunas={[
-              { key: 'titulo', label: 'Título' },
-              { key: 'tipo', label: 'Tipo' },
-              { key: 'comunidade', label: 'Comunidade' },
-              { key: 'data_registro', label: 'Data' },
-              { key: 'status', label: 'Status' },
-              { key: 'temperatura_territorio', label: 'Temperatura' }
-            ]}
-            nomeArquivo="registros"
-            titulo="Relatório de Registros"
-          />
+          <ExportadorPDFRegistros registros={filteredRegistros} filtros={filtros} />
           <Link to={createPageUrl('RegistroUnificado') + '?manual=true'}>
             <Button variant="outline" className="gap-2">
               <FileText className="w-4 h-4" />
