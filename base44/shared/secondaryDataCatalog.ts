@@ -356,6 +356,79 @@ export const CATALOG = [
     endpoint: 'CRAS/CREAS / SUAS / Diario',
     active: true,
     descricao: 'Servicos socioassistenciais e Censo SUAS.'
+  },
+
+  // ── Fontes planejadas ativadas (spec §2) ─────────────────────────
+  {
+    source_id: 'MAPBIOMAS',
+    source_name: 'MapBiomas — Uso e cobertura do solo',
+    category: 'meio_ambiente',
+    method: 'GEOSPATIAL',
+    cadence_days: 30,
+    requires_auth: false,
+    endpoint: 'https://mapbiomas.org',
+    test_url: 'https://api.mapbiomas.org/api/v1/coverage',
+    active: true,
+    descricao: 'Uso do solo e mudanças por município — cruzamento por coordenada.'
+  },
+  {
+    source_id: 'INMET',
+    source_name: 'INMET — Meteorologia (estações automáticas)',
+    category: 'meio_ambiente',
+    method: 'API',
+    cadence_days: 1,
+    requires_auth: false,
+    endpoint: 'https://api.inmet.gov.br',
+    test_url: 'https://api.inmet.gov.br/estacoes/T',
+    active: true,
+    descricao: 'Precipitação, temperatura e clima por estação.'
+  },
+  {
+    source_id: 'CAMARA_DEPUTADOS',
+    source_name: 'Câmara dos Deputados — Dados Abertos',
+    category: 'legislacao',
+    method: 'API',
+    cadence_days: 7,
+    requires_auth: false,
+    endpoint: 'https://dadosabertos.camara.leg.br/api/v2',
+    test_url: 'https://dadosabertos.camara.leg.br/api/v2/deputados',
+    active: true,
+    descricao: 'Proposições, parlamentares e tramitações federais.'
+  },
+  {
+    source_id: 'SENADO_FEDERAL',
+    source_name: 'Senado Federal — Dados Abertos',
+    category: 'legislacao',
+    method: 'API',
+    cadence_days: 7,
+    requires_auth: false,
+    endpoint: 'https://legis.senado.leg.br/dadosabertos',
+    test_url: 'https://legis.senado.leg.br/dadosabertos/senador/lista/atual',
+    active: true,
+    descricao: 'Matérias, senadores e comissões federais.'
+  },
+  {
+    source_id: 'OSM_OVERPASS',
+    source_name: 'OpenStreetMap / Overpass (equipamentos)',
+    category: 'meio_ambiente',
+    method: 'GEOSPATIAL',
+    cadence_days: 30,
+    requires_auth: false,
+    endpoint: 'https://overpass-api.de/api/interpreter',
+    test_url: 'https://overpass-api.de/api/interpreter',
+    active: true,
+    descricao: 'Equipamentos, infraestrutura e feições por coordenada da comunidade.'
+  },
+  {
+    source_id: 'OUTRAS_FONTES_PUBLICAS',
+    source_name: 'Outras fontes públicas (pesquisa assistida)',
+    category: 'resumo',
+    method: 'WEB_OFFICIAL_AI',
+    cadence_days: 30,
+    requires_auth: false,
+    endpoint: ' fontes oficiais variadas',
+    active: true,
+    descricao: 'Catálogo de fallback — IA localiza fontes oficiais não listadas.'
   }
 ];
 
