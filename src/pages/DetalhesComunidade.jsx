@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PainelConsolidadoComunidade from "@/components/comunidades/PainelConsolidadoComunidade";
 
 export default function DetalhesComunidade() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -144,13 +145,17 @@ export default function DetalhesComunidade() {
       </div>
 
       {/* Tabelas de Dados */}
-      <Tabs defaultValue="registros">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="painel">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
+          <TabsTrigger value="painel">Painel Consolidado</TabsTrigger>
           <TabsTrigger value="registros">Registros</TabsTrigger>
           <TabsTrigger value="stakeholders">Stakeholders</TabsTrigger>
           <TabsTrigger value="casos">Casos</TabsTrigger>
           <TabsTrigger value="analise">Análise</TabsTrigger>
         </TabsList>
+        <TabsContent value="painel" className="mt-4">
+          <PainelConsolidadoComunidade comunidadeNome={comunidadeNome} />
+        </TabsContent>
 
         <TabsContent value="registros" className="mt-4">
           <Card>

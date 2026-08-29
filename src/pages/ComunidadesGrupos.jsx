@@ -37,7 +37,8 @@ import {
   X,
   Globe,
   Target,
-  TrendingUp
+  TrendingUp,
+  BarChart3
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -47,6 +48,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from 'sonner';
 import 'leaflet/dist/leaflet.css';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 const TIPO_COMUNIDADE_CONFIG = {
   bairro: { label: 'Bairro', icon: Home, color: 'bg-blue-100 text-blue-700' },
@@ -527,6 +530,12 @@ export default function ComunidadesGrupos() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link to={createPageUrl('DetalhesComunidade') + `?nome=${encodeURIComponent(comunidade.nome)}`}>
+                              <BarChart3 className="w-4 h-4 mr-2" />
+                              Painel Consolidado
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEditComunidade(comunidade)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
