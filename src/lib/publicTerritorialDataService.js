@@ -18,6 +18,7 @@ export const FONTES = [
   { id: 'ibge', nome: 'IBGE (estados/municípios)', categoria: 'demografia', ativo: true },
   { id: 'sidra', nome: 'SIDRA / IBGE (agregados)', categoria: 'demografia', ativo: true },
   { id: 'anatel', nome: 'ANATEL (Telecomunicações, SMP, Estações)', categoria: 'telecomunicacoes', ativo: true },
+  { id: 'ana', nome: 'ANA / SNIRH (Água, outorgas, estações)', categoria: 'agua_recursos_hidricos', ativo: true },
   { id: 'datasus', nome: 'DATASUS / DEMAS', categoria: 'saude', ativo: false },
   { id: 'cnes', nome: 'CNES (cadastro saúde)', categoria: 'saude', ativo: false },
   { id: 'siconfi', nome: 'SICONFI / Tesouro Nacional', categoria: 'fiscal', ativo: false },

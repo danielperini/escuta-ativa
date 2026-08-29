@@ -4,9 +4,10 @@ import { FontesDropdown } from '@/components/dados-secundarios/FontesDropdown';
 import { IndicadorComFonte } from '@/components/dados-secundarios/IndicadorComFonte';
 import { SecaoNaoDisponivel } from '@/components/dados-secundarios/SecaoNaoDisponivel';
 import { SecaoTelecomunicacoes } from '@/components/dados-secundarios/SecaoTelecomunicacoes';
+import { SecaoAguaRecursosHidricos } from '@/components/dados-secundarios/SecaoAguaRecursosHidricos';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, Database, Sparkles, Info, Radio } from 'lucide-react';
+import { Loader2, Database, Sparkles, Info, Radio, Droplets } from 'lucide-react';
 import {
   coletarDemografiaIBGE, registrarDemografiaEmCache,
   buscarTodosCaches, pesquisarViaIA, FONTES
@@ -26,7 +27,8 @@ const SECOES = [
   { id: 'legislacao', label: 'Regulatório', icon: Database, viaIA: true },
   { id: 'meio_ambiente', label: 'Meio Ambiente', icon: Database, viaIA: true },
   { id: 'mineracao', label: 'Mineração', icon: Database, viaIA: true },
-  { id: 'telecomunicacoes', label: 'Telecom', icon: Radio, viaIA: true }
+  { id: 'telecomunicacoes', label: 'Telecom', icon: Radio, viaIA: true },
+  { id: 'agua_recursos_hidricos', label: 'Água', icon: Droplets, viaIA: true }
 ];
 
 function formatarData(iso) {
@@ -191,6 +193,18 @@ export default function DadosSecundarios() {
     if (catId === 'telecomunicacoes') {
       return (
         <SecaoTelecomunicacoes
+          key={key}
+          mun={mun}
+          estado={estado}
+          onColetar={() => coletarViaIA(mun, catId)}
+        />
+      );
+    }
+
+    // Água e Recursos Hídricos (card específico — via IA em fontes ANA/SNIRH)
+    if (catId === 'agua_recursos_hidricos') {
+      return (
+        <SecaoAguaRecursosHidricos
           key={key}
           mun={mun}
           estado={estado}
