@@ -42,6 +42,7 @@ import DetectorRiscos from "@/components/mapa/DetectorRiscos";
 import MonitorDevolutivas from "@/components/notificacoes/MonitorDevolutivas";
 import MobileNavigation from "@/components/MobileNavigation";
 import PWASetup from "@/components/PWASetup";
+import ChatIA from "@/components/chatia/ChatIA";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -290,6 +291,9 @@ export default function Layout({ children, currentPageName }) {
         {/* Mobile Navigation */}
         <MobileNavigation currentPageName={currentPageName} />
         </div>
-        </div>
+
+      {/* Chat IA — painel contextual acessível em todas as páginas */}
+      <ChatIA />
+      </div>
         );
         }
