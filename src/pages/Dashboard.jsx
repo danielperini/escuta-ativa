@@ -21,7 +21,7 @@ import WidgetStakeholdersRiscos from "@/components/dashboard/WidgetStakeholdersR
 import ExportadorDashboard from "@/components/dashboard/ExportadorDashboard";
 import MonitorDemandasRecorrentes from "@/components/atores/MonitorDemandasRecorrentes";
 import MonitorDevolutivas from "@/components/devolutiva/MonitorDevolutivas";
-import BotaoPanicoAvancado from "@/components/dashboard/BotaoPanicoAvancado";
+import PainelOrientacaoTerritorial from "@/components/dashboard/PainelOrientacaoTerritorial";
 import GraficosKPIAvancados from "@/components/dashboard/GraficosKPIAvancados";
 import WidgetSustentabilidade from "@/components/dashboard/WidgetSustentabilidade";
 import VozesTerritorio from "@/components/dashboard/VozesTerritorio";
@@ -455,7 +455,7 @@ export default function Dashboard() {
 
                 {/* Botões de Ação */}
                 <div className="flex flex-wrap gap-3">
-                    <BotaoPanicoAvancado />
+                    <PainelOrientacaoTerritorial />
                 </div>
             </div>
         </div>

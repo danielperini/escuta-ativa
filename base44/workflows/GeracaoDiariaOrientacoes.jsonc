@@ -1,0 +1,47 @@
+{
+  "description": "Gera diariamente \u00e0s 06:00 (Bras\u00edlia) 3 cards de orienta\u00e7\u00e3o territorial baseados em dados internos, bibliogra e contexto p\u00fablico. Armazena em DicaTerritorial para exibi\u00e7\u00e3o no painel.",
+  "name": "Gera\u00e7\u00e3o Di\u00e1ria de Orienta\u00e7\u00f5es Territoriais",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "geracao_diaria_orientacoes",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "gerar_dicas": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "gerarDicasTerritorial",
+            "args": {
+              "origem": "workflow_diario"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Gerar orienta\u00e7\u00f5es do dia",
+            "description": "IA + biblioteca + dados internos"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 6 * * *",
+      "one_time_date": null,
+      "timezone": "America/Sao_Paulo",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "name": "DicaTerritorial",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo curto da dica (4\u20137 palavras)"
+    },
+    "texto": {
+      "type": "string",
+      "description": "Texto principal da dica (120\u2013220 caracteres)"
+    },
+    "texto_expandido": {
+      "type": "string",
+      "description": "Explica\u00e7\u00e3o ampliada ao clicar em 'Entenda por qu\u00ea'"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "escuta_dialogo",
+        "risco_territorial",
+        "stakeholder_devolutiva",
+        "presenca_territorio",
+        "confianca_legitimidade",
+        "conflito_mediacao",
+        "materialidade_esg",
+        "memoria_registros",
+        "comunicacao",
+        "investimento_social"
+      ],
+      "description": "Categoria tem\u00e1tica da dica"
+    },
+    "cor_acento": {
+      "type": "string",
+      "enum": [
+        "azul",
+        "laranja",
+        "verde",
+        "vermelho"
+      ],
+      "description": "Cor de acento ODS: azul=escuta/di\u00e1logo, laranja=aten\u00e7\u00e3o/risco, verde=oportunidade, vermelho=urg\u00eancia real"
+    },
+    "territorio": {
+      "type": "string",
+      "description": "Territ\u00f3rio relacionado (ex: Matozinhos, Sete Lagoas, Arcos)"
+    },
+    "municipio": {
+      "type": "string"
+    },
+    "tema": {
+      "type": "string",
+      "description": "Tema principal (ex: tr\u00e1fego, \u00e1gua, licen\u00e7a social)"
+    },
+    "fonte_tipo": {
+      "type": "string",
+      "enum": [
+        "bibliografica",
+        "dados_internos",
+        "web_publica",
+        "combinada"
+      ],
+      "description": "Origem principal da dica"
+    },
+    "fontes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "FATO_VERIFICADO",
+              "ALEGACAO_RECLAMACAO",
+              "ESTUDO_ACADEMICO",
+              "PERCEPCAO_COMUNITARIA",
+              "INFORMACAO_CORPORATIVA",
+              "INFERENCIA_IA",
+              "BIBLIOGRAFIA_INTERNA"
+            ]
+          }
+        }
+      }
+    },
+    "nivel_confianca": {
+      "type": "string",
+      "enum": [
+        "alto",
+        "medio",
+        "baixo"
+      ],
+      "description": "Confiabilidade da evid\u00eancia"
+    },
+    "prioridade": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 100,
+      "description": "Score de prioridade calculado pela IA (relev\u00e2ncia + urg\u00eancia + atualidade)"
+    },
+    "data_referencia": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de refer\u00eancia da an\u00e1lise"
+    },
+    "data_exibicao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data em que esta dica deve ser exibida"
+    },
+    "registro_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de registros internos relacionados"
+    },
+    "stakeholder_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "comunidade_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gerada_por_ia": {
+      "type": "boolean",
+      "default": true
+    },
+    "validada": {
+      "type": "boolean",
+      "default": false
+    },
+    "oculta": {
+      "type": "boolean",
+      "default": false
+    },
+    "fixada": {
+      "type": "boolean",
+      "default": false
+    },
+    "marcada_nao_pertinente": {
+      "type": "boolean",
+      "default": false
+    },
+    "selecionada_do_dia": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se esta dica faz parte do conjunto de 3 selecionadas para o dia"
+    }
+  },
+  "required": [
+    "titulo",
+    "texto",
+    "categoria"
+  ]
+}

@@ -61,6 +61,7 @@ const navigation = [
   { name: 'Casos', href: 'Casos', icon: CheckSquare },
   { name: 'Comunidades e Grupos', href: 'ComunidadesGrupos', icon: Home },
   { name: 'Análise', href: 'Analise', icon: BarChart3 },
+  { name: 'Assistente de IA', href: 'AssistenteIA', icon: Sparkles },
   { name: 'Central de Análise', href: 'CentralAnalise', icon: Sparkles },
   { name: 'Gerador de Relatório', href: 'GeradorRelatorioSustentabilidade', icon: Sparkles, secao: 'sustentabilidade' },
   { name: 'Referenciais ESG', href: 'ReferenciaisESG', icon: ShieldCheck, secao: 'sustentabilidade' },

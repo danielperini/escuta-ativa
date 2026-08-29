@@ -12,6 +12,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import Aparencia from './pages/Aparencia';
 import ReferenciaisESG from './pages/ReferenciaisESG';
+import AssistenteIA from './pages/AssistenteIA';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -71,6 +72,11 @@ const AuthenticatedApp = () => {
       <Route path="/ReferenciaisESG" element={
         <LayoutWrapper currentPageName="ReferenciaisESG">
           <ReferenciaisESG />
+        </LayoutWrapper>
+      } />
+      <Route path="/AssistenteIA" element={
+        <LayoutWrapper currentPageName="AssistenteIA">
+          <AssistenteIA />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />
