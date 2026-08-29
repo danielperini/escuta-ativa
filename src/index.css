@@ -215,6 +215,45 @@
     --chart-5: 0 72% 51%;
   }
 
+  /* ===== ÁGUA (azul profundo + preto) ===== */
+  [data-theme="agua"] {
+    --background: 205 40% 98%;
+    --foreground: 210 45% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 45% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 45% 12%;
+    --primary: 212 85% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 80% 52%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 205 30% 94%;
+    --muted-foreground: 210 25% 42%;
+    --accent: 199 85% 56%;
+    --accent-foreground: 210 45% 12%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 145 45% 36%;
+    --warning: 38 92% 50%;
+    --border: 205 30% 90%;
+    --input: 205 30% 90%;
+    --ring: 212 85% 40%;
+    --header: 0 0% 100%;
+    --sidebar-background: 210 55% 12%;
+    --sidebar-foreground: 205 40% 88%;
+    --sidebar-primary: 56 100% 70%;
+    --sidebar-primary-foreground: 210 55% 12%;
+    --sidebar-accent: 205 35% 22%;
+    --sidebar-accent-foreground: 205 40% 95%;
+    --sidebar-border: 210 40% 20%;
+    --sidebar-ring: 199 85% 56%;
+    --chart-1: 212 85% 40%;
+    --chart-2: 199 85% 56%;
+    --chart-3: 210 80% 60%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 0 72% 51%;
+  }
+
   /* ===== PERINI PROJETOS (laranja / preto / branco) ===== */
   [data-theme="perini"] {
     --background: 0 0% 100%;

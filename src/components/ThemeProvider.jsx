@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useLayoutEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 
-export const TEMAS = ['ponte', 'noite', 'mato', 'terra', 'perini', 'ods'];
+export const TEMAS = ['ponte', 'noite', 'mato', 'terra', 'perini', 'ods', 'agua'];
 
 export const TEMA_INFO = {
   ponte: {
@@ -38,6 +38,12 @@ export const TEMA_INFO = {
     nome: 'ODS',
     descricao: 'Branco institucional premium. Acentos discretos das cores dos Objetivos de Desenvolvimento Sustentável.',
     swatches: ['#00689D', '#4C9F38', '#FCC30B', '#E5243B'],
+    dark: false,
+  },
+  agua: {
+    nome: 'ÁGUA',
+    descricao: 'Azul profundo e preto. Visual contemporâneo, sofisticado e institucional.',
+    swatches: ['#0A1A2F', '#1565C0', '#42A5F5', '#E3F2FD'],
     dark: false,
   },
 };
