@@ -12,16 +12,23 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'OPENAI_API_KEY não configurada.' }, { status: 500 });
     }
 
+    const body = await req.json().catch(() => ({}));
+    const seed = body?.seed != null ? String(body.seed) : '';
+
     // Busca registros recentes com conteúdo textual (fonte das falas reais)
-    const registros = await base44.entities.Registro.list('-created_date', 40);
+    const registros = await base44.entities.Registro.list('-created_date', 80);
     const compromissos = await base44.entities.Compromisso.list('-created_date', 100);
     const hoje = new Date();
 
     // ===== 1) VOZES DO TERRITÓRIO — extrai trechos verbatim das descrições reais =====
-    const candidatos = (registros || [])
+    const baseCands = (registros || [])
       .filter(r => r && r.titulo && r.descricao && r.descricao.trim().length >= 12)
-      .slice(0, 30)
-      .map(r => ({
+      .slice(0, 60);
+    // Quando seed presente, embaralha a ordem dos candidatos para variar a seleção
+    const candidatos = (seed
+      ? shuffleBySeed(baseCands, seed)
+      : baseCands
+    ).slice(0, 40).map(r => ({
         id: r.id,
         titulo: r.titulo,
         tipo: r.tipo,
@@ -44,7 +51,7 @@ Deno.serve(async (req) => {
         properties: {
           vozes: {
             type: 'array',
-            description: 'Trechos verbatim extraídos das descrições fornecidas. Máximo 3 itens. Diversificar: 1 percepção/necessidade, 1 preocupação/demanda, 1 oportunidade/reconhecimento.',
+            description: 'Trechos verbatim extraídos das descrições fornecidas. Máximo 10 itens. Diversifique naturezas: ~3 percepção/necessidade, ~3 preocupação/demanda, ~3 oportunidade/reconhecimento. Varie comunidades e datas.',
             items: {
               type: 'object',
               additionalProperties: false,
@@ -62,12 +69,12 @@ Deno.serve(async (req) => {
         required: ['vozes']
       };
 
-      const promptVozes = `Você é um analista de inteligência social. Abaixo estão registros reais de interações comunitárias.\n\nRegra ABSOLUTA:\n- Cada "trecho" deve ser copiado LITERALMENTE da descricao do registro (mesmas palavras), podendo apenas anonimizar nomes pessoais sensíveis.\n- NUNCA invente, reformule ou sintetize trechos que não existam textualmente na descrição.\n- NUNCA atribua a uma pessoa uma frase que não esteja na fonte.\n- Extraia no MÁXIMO 3 trechos.\n- Busque diversidade: 1 percepção ou necessidade, 1 preocupação ou demanda, 1 oportunidade, expectativa ou reconhecimento.\n- Priorize relevância, atualidade e representatividade territorial.\n- Se não houver trechos que representem efetivamente falas/manifestações, retorne array vazio.\n\nRegistros:\n${contextoVozes}`;
+      const promptVozes = `Você é um analista de inteligência social. Abaixo estão registros reais de interações comunitárias.\n\nRegra ABSOLUTA:\n- Cada "trecho" deve ser copiado LITERALMENTE da descricao do registro (mesmas palavras), podendo apenas anonimizar nomes pessoais sensíveis.\n- NUNCA invente, reformule ou sintetize trechos que não existam textualmente na descrição.\n- NUNCA atribua a uma pessoa uma frase que não esteja na fonte.\n- Extraia até 10 trechos.\n- Busque diversidade: ~3 percepção/necessidade, ~3 preocupação/demanda, ~3 oportunidade/reconhecimento, mais 1 livre.\n- Varie comunidades, datas e temas — evite repetir o mesmo registro.\n- Priorize relevância, atualidade e representatividade territorial.\n- Se não houver trechos que representem efetivamente falas/manifestações, retorne array vazio.${seed ? `\n- Semente de variacao: ${seed}. Use-a para priorizar trechos DIFERENTES dos mais recentes.` : ''}\n\nRegistros:\n${contextoVozes}`;
 
       const openai = new OpenAI({ apiKey });
       const resp = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
-        temperature: 0.2,
+        temperature: seed ? 0.5 : 0.2,
         response_format: { type: 'json_schema', json_schema: { name: 'vozes', schema: schemaVozes, strict: true } },
         messages: [
           { role: 'system', content: 'Você retorna JSON estrito. Os trechos são cópias verbatim de textos já fornecidos.' },
@@ -89,9 +96,10 @@ Deno.serve(async (req) => {
             tema_principal: v.tema_principal || (reg.temas?.[0] || ''),
             natureza: v.natureza || ''
           });
-          if (vozes.length >= 3) break;
+          if (vozes.length >= 10) break;
         }
       }
+      if (vozes.length > 10) vozes = vozes.slice(0, 10);
     }
 
     // ===== 2) DICAS DE RELACIONAMENTO — regras determinísticas sobre dados reais =====
@@ -315,3 +323,29 @@ function listaResponsaveis(arr) {
   return Array.from(set).slice(0, 3).join(', ') || '—';
 }
 function dicainhasNenhuma(arr) { return arr.length === 0; }
+
+// PRNG simples (Mulberry32) determinístico por seed — embaralha os candidatos
+function shuffleBySeed(arr, seedStr) {
+  const seed = hashStr(seedStr) >>> 0;
+  let s = seed || 1;
+  const rng = () => {
+    s |= 0; s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h;
+}

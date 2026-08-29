@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Quote, ChevronLeft, ChevronRight, ArrowRight, Pin, EyeOff, MapPin, Calendar,
-  MessageSquare, Tag, Loader2
+  MessageSquare, Tag, Loader2, Shuffle
 } from 'lucide-react';
 import { corParaChave } from '@/lib/odsCores';
 import ChipComunidade from '@/components/shared/ChipComunidade';
 
 const ROTACAO_MS = 8000;
 
-export default function VozesTerritorio({ vozes = [], controle, onControleChange, loading }) {
+export default function VozesTerritorio({ vozes = [], controle, onControleChange, loading, onTrocar, trocando }) {
   const navigate = useNavigate();
   const [indice, setIndice] = useState(0);
   const [pausado, setPausado] = useState(false);
@@ -71,11 +71,26 @@ export default function VozesTerritorio({ vozes = [], controle, onControleChange
   return (
     <section className="space-y-3" aria-label="Vozes do Território">
       <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
             <MessageSquare className="w-4 h-4 text-primary" />
           </span>
           <h2 className="text-xl font-semibold text-foreground">Vozes do Território</h2>
+          {onTrocar && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto h-8 gap-1.5"
+              onClick={onTrocar}
+              disabled={trocando || loading}
+              title="Trocar frases do carrossel"
+            >
+              {trocando
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Shuffle className="w-3.5 h-3.5" />}
+              Trocar frases
+            </Button>
+          )}
         </div>
         <p className="text-sm text-muted-foreground">O que as pessoas estão dizendo — trechos reais extraídos dos registros</p>
       </div>

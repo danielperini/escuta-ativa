@@ -44,6 +44,7 @@ export default function Dashboard() {
         'temperatura_territorial', 'rede_stakeholders', 'stakeholders_riscos'
     ];
     const [widgets, setWidgets] = useState(widgetsAtivos);
+    const [seedVozes, setSeedVozes] = useState(1);
 
     // Dados existentes (KPIs, gráficos, widgets)
     const { data: registros = [] } = useQuery({
@@ -73,15 +74,17 @@ export default function Dashboard() {
     });
 
     // ===== Inteligência Social (vozes + dicas + dica do dia) — 1 chamada backend =====
-    const { data: inteligencia, isLoading: intelLoading } = useQuery({
-        queryKey: ['inteligencia-social'],
+    const { data: inteligencia, isLoading: intelLoading, isFetching: intelFetching } = useQuery({
+        queryKey: ['inteligencia-social', seedVozes],
         queryFn: async () => {
-            const res = await base44.functions.invoke('gerarInteligenciaSocial', {});
+            const res = await base44.functions.invoke('gerarInteligenciaSocial', { seed: String(seedVozes) });
             return res?.data ?? res;
         },
         staleTime: 5 * 60 * 1000, refetchOnWindowFocus: false,
         retry: 0
     });
+
+    const onTrocarVozes = useCallback(() => setSeedVozes(s => s + 1), []);
 
     // ===== Controle por usuário (ocultar/fixar vozes e dicas) =====
     const { data: controle } = useQuery({
@@ -173,6 +176,8 @@ export default function Dashboard() {
                     controle={controle}
                     onControleChange={onControleChange}
                     loading={intelLoading}
+                    onTrocar={onTrocarVozes}
+                    trocando={intelFetching && !intelLoading}
                 />
 
                 {/* ===== Dicas de Relacionamento ===== */}
