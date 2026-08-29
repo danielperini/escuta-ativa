@@ -176,6 +176,45 @@
     --chart-5: 16 56% 41%;
   }
 
+  /* ===== ODS (branco institucional + acentos multicoloridos discretos) ===== */
+  [data-theme="ods"] {
+    --background: 210 20% 99%;
+    --foreground: 210 32% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 32% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 32% 12%;
+    --primary: 202 78% 34%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 186 65% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 24% 96%;
+    --muted-foreground: 210 12% 42%;
+    --accent: 258 60% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 145 45% 36%;
+    --warning: 38 92% 50%;
+    --border: 210 18% 91%;
+    --input: 210 18% 91%;
+    --ring: 202 78% 34%;
+    --header: 0 0% 100%;
+    --sidebar-background: 215 55% 18%;
+    --sidebar-foreground: 207 36% 90%;
+    --sidebar-primary: 38 92% 50%;
+    --sidebar-primary-foreground: 215 55% 14%;
+    --sidebar-accent: 207 36% 90%;
+    --sidebar-accent-foreground: 215 55% 18%;
+    --sidebar-border: 215 30% 22%;
+    --sidebar-ring: 38 92% 50%;
+    --chart-1: 202 78% 34%;
+    --chart-2: 145 45% 36%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 258 60% 55%;
+    --chart-5: 0 72% 51%;
+  }
+
   /* ===== PERINI PROJETOS (laranja / preto / branco) ===== */
   [data-theme="perini"] {
     --background: 0 0% 100%;

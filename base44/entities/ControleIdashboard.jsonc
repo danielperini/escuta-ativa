@@ -1,0 +1,46 @@
+{
+  "name": "ControleIdashboard",
+  "type": "object",
+  "properties": {
+    "usuario_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio propriet\u00e1rio deste controle"
+    },
+    "voz_fixada_id": {
+      "type": "string",
+      "description": "ID do registro cuja voz est\u00e1 fixada no topo do carrossel"
+    },
+    "vozes_ocultas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de registros cujas vozes foram ocultadas"
+    },
+    "dica_fixada": {
+      "type": "string",
+      "description": "ID da dica fixada"
+    },
+    "dicas_ocultas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dicas_analisadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dicas_nao_pertinentes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "usuario_email"
+  ]
+}
