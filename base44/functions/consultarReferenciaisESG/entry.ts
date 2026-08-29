@@ -84,28 +84,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Informe o parâmetro "pergunta".' }, { status: 400 });
     }
 
-    const apiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!apiKey) {
-      return Response.json({ error: 'OPENAI_API_KEY não configurada.' }, { status: 500 });
-    }
-
     const evidencias = await base44.entities.ReferencialEvidencia.list('-created_date', 500);
     const configs = await base44.entities.ConfiguracaoESG.list('-created_date', 1);
     const config = configs[0] || null;
 
     const contexto = montarContexto(evidencias, config);
 
-    const openai = new OpenAI({ apiKey });
-    const completion = await openai.chat.completions.create({
+    // Reaproveita a função openaiChat já deployada (mesma chave OpenAI e mesmo modelo).
+    const res = await base44.functions.invoke('openaiChat', {
+      prompt: pergunta,
+      contexto,
       model: 'gpt-4o-mini',
-      temperature: 0.3,
-      messages: [
-        { role: 'system', content: contexto },
-        { role: 'user', content: pergunta }
-      ],
+      temperatura: 0.3,
     });
 
-    const resposta = completion.choices[0]?.message?.content || '';
+    const data = res?.data ?? res;
+    const resposta = (data && (data.resultado || data.resposta)) || (typeof data === 'string' ? data : '') || '';
 
     return Response.json({
       resposta,
