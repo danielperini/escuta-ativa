@@ -62,13 +62,14 @@ async function testarHTTP(src) {
   try {
     const headers = { 'Accept': 'application/json' };
     if (src.requires_auth) {
-      const key = secrets.get('PORTAL_TRANSPARENCIA_API_KEY') || secrets.get('PORTAL_TRANSPARENCIA_CHAVE');
+      let key = '';
+      try { key = secrets.get('PORTAL_TRANSPARENCIA_CHAVE') || ''; } catch (_) { key = ''; }
       if (!key) {
         return {
           status: 'ERRO_DE_AUTENTICACAO',
           http_status: null,
           response_time_ms: null,
-          error_message: 'Sem chave de API configurada (secret PORTAL_TRANSPARENCIA_API_KEY ausente)',
+          error_message: 'Sem chave de API configurada (secret PORTAL_TRANSPARENCIA_CHAVE ausente)',
           sample_result_count: 0,
           sample_data: null,
           schema_valid: false,
