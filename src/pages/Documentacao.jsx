@@ -21,7 +21,8 @@ import {
   AlertTriangle,
   Clock,
   Lightbulb,
-  Leaf
+  Leaf,
+  Palette
 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -56,9 +57,9 @@ const sections = [
         'Gráficos de tendências dos últimos 7 dias',
         'Demandas recorrentes por comunidade',
         'Monitor de devolutivas pendentes',
-        'Voz da Comunidade com falas reais',
-        'Dicas de relacionamento contextualizadas',
-        'Botão de pânico para situações críticas'
+        'Vozes do Território (citações reais e anonimizadas)',
+        'Dicas de Relacionamento contextualizadas',
+        'Painel de Orientação Territorial com 3 cards diários de IA'
       ],
       howTo: [
         'Personalize os widgets clicando em "Personalizar Widgets"',
@@ -338,6 +339,84 @@ const sections = [
         'IA classifica automaticamente as ações em categorias ESG',
         'Revise o preview com vinculações GRI, ODS, Pacto Global, ESRS',
         'Gere relatório final em PDF ou DOCX'
+      ]
+    }
+  },
+  {
+    id: 'orientacao-territorial',
+    title: 'Painel de Orientação Territorial',
+    icon: Lightbulb,
+    color: 'bg-amber-100 text-amber-600',
+    content: {
+      description: 'Evolução do Botão do Pânico: orientações práticas diárias geradas por IA a partir da bibliografia "Relacionamento Comunitário" do Perini-Santos e dos dados internos da plataforma.',
+      features: [
+        '3 cards curtos, objetivos e acionáveis trocados todo dia',
+        'Cores de acento: azul (escuta/diálogo), laranja (atenção), verde (oportunidade), vermelho (urgência)',
+        '"Entenda por quê" expande explicação com fonte e nível de confiança',
+        'Fontes diferenciadas: bibliografia interna, dados internos, web pública ou combinada',
+        'Distingue fato, percepção e alegação conforme princípios éticos',
+        'Ações: fixar, ocultar e marcar como não pertinente',
+        'Geração automática diária às 06h (workflow)',
+        'Botão de pânico preservado (segure 15s ou clique 10x para emergência)'
+      ],
+      howTo: [
+        'Acesse pelo botão "Orientações Territoriais" no Dashboard',
+        'Leia os 3 cards do dia e aplique as orientações práticas',
+        'Clique em "Entenda por quê" para ver fonte e justificativa',
+        'Fixe cartões importantes para não perdê-los',
+        'Oculte os que não se aplicam ao seu contexto',
+        'Use o botão de pânico compacto em emergências'
+      ]
+    }
+  },
+  {
+    id: 'assistente-ia',
+    title: 'Assistente de IA',
+    icon: Sparkles,
+    color: 'bg-violet-100 text-violet-600',
+    content: {
+      description: 'Chat inteligente que responde perguntas sobre como usar o sistema E analisa os dados reais cadastrados na plataforma.',
+      features: [
+        'Responde perguntas sobre uso do app (como fazer X)',
+        'Acesso em tempo real a registros, stakeholders, casos e demandas',
+        'Compreende linguagem natural (ex: "quantos registros de Matozinhos este mês?")',
+        'Gera insights, prioridades e recomendações baseadas em dados',
+        'Mostra as consultas executadas (transparência)',
+        'Aplica princípios éticos: distingue fato, percepção e alegação',
+        'Pode ser conectado a WhatsApp e Telegram',
+        'Cada conversa é independente — inicie nova a qualquer momento'
+      ],
+      howTo: [
+        'Acesse "Assistente de IA" no menu lateral',
+        'Use as sugestões rápidas ou digite sua pergunta',
+        'Para perguntas sobre dados, cite comunidade/território quando possível',
+        'O assistente consulta as entidades e responde com números reais',
+        'Clique em "Nova conversa" para começar do zero',
+        'Para erro de IA, reformule a pergunta com mais contexto'
+      ]
+    }
+  },
+  {
+    id: 'temas-visuais',
+    title: 'Aparência e Temas Visuais',
+    icon: Palette,
+    color: 'bg-rose-100 text-rose-600',
+    content: {
+      description: 'Personalização da identidade visual do sistema com múltiplos temas prontos.',
+      features: [
+        'Ponte Social: verde institucional (padrão)',
+        'ODS: branco institucional com acentos multicoloridos discretos',
+        'Água: azul profundo para visual institucional',
+        'Perini: laranja, preto e branco',
+        'Noite: escuro sofisticado',
+        'Mato e Terra: paletas naturais alternativas',
+        'A preferência é salva no perfil do usuário'
+      ],
+      howTo: [
+        'Acesse "Aparência" no menu lateral',
+        'Veja a paleta de cores de cada tema',
+        'Clique para aplicar — a mudança é imediata',
+        'O tema escolhido é salvo e carregado no próximo acesso'
       ]
     }
   },
