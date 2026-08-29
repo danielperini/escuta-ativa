@@ -1,4 +1,6 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { BuscaTerritorio } from '@/components/dados-secundarios/BuscaTerritorio';
 import { FontesDropdown } from '@/components/dados-secundarios/FontesDropdown';
 import { IndicadorComFonte } from '@/components/dados-secundarios/IndicadorComFonte';
@@ -6,13 +8,18 @@ import { SecaoNaoDisponivel } from '@/components/dados-secundarios/SecaoNaoDispo
 import { SecaoTelecomunicacoes } from '@/components/dados-secundarios/SecaoTelecomunicacoes';
 import { SecaoAguaRecursosHidricos } from '@/components/dados-secundarios/SecaoAguaRecursosHidricos';
 import { CoberturaFontes } from '@/components/dados-secundarios/CoberturaFontes';
+import { CardCobertura } from '@/components/dados-secundarios/CardCobertura';
+import { SeletorComunidades } from '@/components/dados-secundarios/SeletorComunidades';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, Database, Sparkles, Info, Radio, Droplets } from 'lucide-react';
+import { Loader2, Database, Sparkles, Info, Radio, Droplets, RefreshCw } from 'lucide-react';
 import {
-  coletarDemografiaIBGE, registrarDemografiaEmCache,
-  buscarTodosCaches, pesquisarViaIA, FONTES
+  buscarTodosCaches, FONTES
 } from '@/lib/publicTerritorialDataService';
+import {
+  resolverSeccao, STATUS_DADO
+} from '@/lib/secondaryDataResolver';
 
 const SECOES = [
   { id: 'resumo', label: 'Resumo', icon: Sparkles },
@@ -44,13 +51,77 @@ export default function DadosSecundarios() {
   const [fontesSel, setFontesSel] = useState(['ibge', 'sidra', 'prefeitura', 'camara_municipal', 'conselhos_municipais']);
   const [comparando, setComparando] = useState(false);
   const [secaoAtiva, setSecaoAtiva] = useState('resumo');
-  const [dados, setDados] = useState({}); // { [ibge+categoria]: { items, carregando, erro, ultimaAtual } }
-  const [cacheCarregado, setCacheCarregado] = useState(false);
+  const [dados, setDados] = useState({}); // { [ibge+categoria]: { items, carregando, status, fonte_final, ultimaAtual, aviso_validade, erro_class } }
+  const [comunidadesSel, setComunidadesSel] = useState([]);
 
   const municipiosSelecionados = selecao.filter(s => s.tipo === 'municipio');
-
-  // Key por territorio+categoria
   const keyDados = useCallback((ibge, cat) => `${ibge || 'semIbge'}__${cat}`, []);
+
+  // Carrega comunidades cadastradas para os municípios selecionados
+  const { data: comunidadesMunicipio = [] } = useQuery({
+    queryKey: ['comunidades-por-municipio', municipiosSelecionados.map(m => m.nome).join('|')],
+    queryFn: async () => {
+      if (municipiosSelecionados.length === 0) return [];
+      const result = await Promise.allSettled(
+        municipiosSelecionados.map(m => base44.entities.Comunidade.filter({ municipio: m.nome }))
+      );
+      const lista = [];
+      const seen = new Set();
+      for (const r of result) {
+        if (r.status === 'fulfilled') {
+          for (const c of (r.value || [])) {
+            if (!seen.has(c.id)) {
+              seen.add(c.id);
+              lista.push({ id: c.id, nome: c.nome, municipio: c.municipio, tipo: c.tipo });
+            }
+          }
+        }
+      }
+      return lista;
+    },
+    enabled: municipiosSelecionados.length > 0
+  });
+
+  // Coletor único usando resolver centralizado — substitui coletarDemografia/coletarViaIA
+  const coletarSeccaoParaMun = useCallback(async (mun, categoria, opts = {}) => {
+    const key = keyDados(mun.ibge, categoria);
+    setDados(d => ({
+      ...d,
+      [key]: { ...(d[key] || {}), carregando: true, erro: null, status: 'BUSCANDO' }
+    }));
+    try {
+      const res = await resolverSeccao({
+        mun,
+        categoria,
+        fontesSel,
+        forceRefresh: !!opts.forceRefresh
+      });
+      setDados(d => ({
+        ...d,
+        [key]: {
+          items: res.items || [],
+          carregando: false,
+          erro: null,
+          status: res.status,
+          fonte_final: res.fonte_final,
+          ultimaAtual: formatarData(res.ultimaAtual),
+          aviso_validade: res.aviso_validade,
+          erro_class: res.erro_class
+        }
+      }));
+    } catch (e) {
+      setDados(d => ({
+        ...d,
+        [key]: {
+          ...(d[key] || { items: [] }),
+          carregando: false,
+          erro: null,
+          status: STATUS_DADO.SOURCE_TEMPORARILY_UNAVAILABLE,
+          erro_class: 'unknown'
+        }
+      }));
+    }
+  }, [keyDados, fontesSel]);
 
   // Carregar cache inicial (uma vez, e sempre que muda seleção/seção)
   useEffect(() => {
@@ -61,101 +132,78 @@ export default function DadosSecundarios() {
       const novo = { ...dados };
       for (const cod of ibges) {
         const key = keyDados(cod, secaoAtiva);
-        if ((caches[cod] || []).length > 0) {
+        const items = (caches[cod] && caches[cod].length > 0) ? caches[cod] : [];
+        if (items.length > 0) {
           novo[key] = {
-            items: caches[cod],
+            items,
             carregando: false,
             erro: null,
-            ultimaAtual: formatarData(caches[cod][0]?.updated_at)
+            status: STATUS_DADO.DADO_DISPONIVEL,
+            fonte_final: items[0]?.source_name,
+            ultimaAtual: formatarData(items[0]?.updated_at)
           };
+        } else if (!novo[key]) {
+          novo[key] = { items: [], carregando: false, status: 'PRONTO_PARA_COLETA' };
         }
       }
       setDados(novo);
-      setCacheCarregado(true);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selecao, secaoAtiva]);
 
-  const coletarDemografia = useCallback(async (mun) => {
-    const key = keyDados(mun.ibge, 'demografia');
-    setDados(d => ({ ...d, [key]: { ...(d[key] || {}), carregando: true, erro: null } }));
-    try {
-      const demografia = await coletarDemografiaIBGE(mun.ibge, mun.uf);
-      if (demografia?.error) throw new Error(demografia.error);
-      await registrarDemografiaEmCache(mun.ibge, mun.nome, mun.uf, demografia);
-      const cache = await buscarTodosCaches([mun.ibge], 'demografia');
-      setDados(d => ({
-        ...d,
-        [key]: {
-          items: cache[mun.ibge] || [],
-          carregando: false,
-          erro: null,
-          ultimaAtual: formatarData(new Date().toISOString())
-        }
-      }));
-    } catch (e) {
-      setDados(d => ({ ...d, [key]: { ...(d[key] || { items: [] }), carregando: false, erro: e.message || 'Falha ao coletar' } }));
-    }
-  }, [keyDados]);
-
-  const coletarViaIA = useCallback(async (mun, categoria) => {
-    const key = keyDados(mun.ibge, categoria);
-    setDados(d => ({ ...d, [key]: { ...(d[key] || {}), carregando: true, erro: null } }));
-    try {
-      const res = await pesquisarViaIA({
-        ibge_code: mun.ibge,
-        municipio: mun.nome,
-        uf: mun.uf,
-        categoria,
-        fontes: FONTES.filter(f => fontesSel.includes(f.id)).map(f => f.nome)
-      });
-      if (res?.error) throw new Error(res.error);
-      const cache = await buscarTodosCaches([mun.ibge], categoria);
-      setDados(d => ({
-        ...d,
-        [key]: {
-          items: cache[mun.ibge] || [],
-          carregando: false,
-          erro: null,
-          ultimaAtual: formatarData(res?.ultima_atualizacao || new Date().toISOString())
-        }
-      }));
-    } catch (e) {
-      setDados(d => ({ ...d, [key]: { ...(d[key] || { items: [] }), carregando: false, erro: e.message || 'Falha na coleta via IA' } }));
-    }
-  }, [keyDados, fontesSel]);
-
-  // Trigger automático: quando muda seleção/seção, decarrega cache; coleta demografia imediata se nada no cache
+  // Trigger automático: para TODAS as seções dispara a coleta automaticamente
+  // se o cache está pronto para coleta e ainda não há dados. Comparar não dispara.
   useEffect(() => {
-    if (secaoAtiva === 'demografia' && municipiosSelecionados.length > 0) {
-      for (const mun of municipiosSelecionados) {
-        const key = keyDados(mun.ibge, 'demografia');
-        if (!dados[key] || (dados[key].items?.length === 0 && !dados[key].carregando && !dados[key].erro)) {
-          coletarDemografia(mun);
-        }
+    if (comparando) return;
+    if (municipiosSelecionados.length === 0) return;
+    if (secaoAtiva === 'resumo') return;
+    for (const mun of municipiosSelecionados) {
+      const key = keyDados(mun.ibge, secaoAtiva);
+      const estado = dados[key];
+      if (!estado) continue;
+      if (estado.status === 'PRONTO_PARA_COLETA' && !estado.carregando && (estado.items || []).length === 0) {
+        coletarSeccaoParaMun(mun, secaoAtiva);
       }
     }
-  }, [selecao, secaoAtiva, dados, coletarDemografia, municipiosSelecionados, keyDados]);
+  }, [selecao, secaoAtiva, dados, coletarSeccaoParaMun, municipiosSelecionados, keyDados, comparando]);
+
+  // Cobertura dos Dados — resumo da seção ativa
+  const cobertura = useMemo(() => {
+    let encontrados = 0, indisponiveis = 0, semCobertura = 0;
+    for (const mun of municipiosSelecionados) {
+      const key = keyDados(mun.ibge, secaoAtiva);
+      const e = dados[key];
+      if (!e) continue;
+      if (e.status === STATUS_DADO.DADO_DISPONIVEL && (e.items || []).length > 0) encontrados += 1;
+      else if (e.status === STATUS_DADO.SOURCE_TEMPORARILY_UNAVAILABLE) indisponiveis += 1;
+      else if (e.status === STATUS_DADO.SEM_COBERTURA || e.status === STATUS_DADO.DADO_NAO_LOCALIZADO) semCobertura += 1;
+    }
+    return { encontrados, indisponiveis, semCobertura };
+  }, [dados, secaoAtiva, municipiosSelecionados, keyDados]);
 
   // ============ Rendering por seção ============
   const renderSecao = (mun, catId) => {
     const key = keyDados(mun.ibge, catId);
-    const estado = dados[key] || { items: [], carregando: false, erro: null };
+    const estado = dados[key] || { items: [], carregando: false, status: 'PRONTO_PARA_COLETA' };
     const secao = SECOES.find(s => s.id === catId) || { label: catId };
 
     if (estado.carregando) {
+      const buscandoAlt = estado.status === 'SOURCE_TEMPORARILY_UNAVAILABLE' || (estado.erro_class && /SOURCE_TEMPORARILY/i.test(estado.erro_class));
       return (
         <Card key={key} className="p-6">
           <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm py-6">
             <Loader2 className="w-5 h-5 animate-spin text-primary" />
-            Coletando dados de {secao.label.toLowerCase()} para {mun.label}…
+            {buscandoAlt
+              ? 'Fonte temporariamente indisponível. Buscando alternativa…'
+              : `Coletando dados de ${secao.label.toLowerCase()} para ${mun.label}…`}
           </div>
         </Card>
       );
     }
 
-    // Demografia (via IBGE — conhecida)
+    // Demografia (via IBGE — conhece campos diretos)
     if (catId === 'demografia') {
+      const isDisponivel = estado.status === STATUS_DADO.DADO_DISPONIVEL && (estado.items || []).length > 0;
       return (
         <Card key={key} className="p-4">
           <CardHeader className="pb-2">
@@ -164,7 +212,7 @@ export default function DadosSecundarios() {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {estado.items?.map((it, i) => (
+            {(estado.items || []).map((it, i) => (
               <IndicadorComFonte
                 key={it.id || i}
                 rotulo={it.indicator}
@@ -175,60 +223,66 @@ export default function DadosSecundarios() {
                 periodo={it.reference_period}
               />
             ))}
-            {(!estado.items || estado.items.length === 0) && !estado.erro && (
-              <div className="col-span-full text-center text-sm text-muted-foreground py-6">
-                Aguardando coleta IBGE…
+            {!isDisponivel && (
+              <div className="col-span-full">
+                <SecaoNaoDisponivel
+                  categoria={catId}
+                  onColetar={() => coletarSeccaoParaMun(mun, 'demografia', { forceRefresh: true })}
+                  status={estado.status}
+                  aviso_validade={estado.aviso_validade}
+                  ultimaAtualizacao={estado.ultimaAtual}
+                  detalhes_admin={estado.erro_class}
+                  fonte_final={estado.fonte_final}
+                />
               </div>
             )}
-            {estado.erro && (
-              <div className="col-span-full text-center text-sm text-amber-700 py-4">
-                {estado.erro}
-              </div>
+            {estado.aviso_validade && isDisponivel && (
+              <p className="col-span-full text-xs italic text-amber-700">{estado.aviso_validade}</p>
             )}
           </CardContent>
         </Card>
       );
     }
 
-    // Telecomunicações (card específico — via IA em fontes ANATEL)
+    // Telecomunicações
     if (catId === 'telecomunicacoes') {
       return (
         <SecaoTelecomunicacoes
           key={key}
           mun={mun}
           estado={estado}
-          onColetar={() => coletarViaIA(mun, catId)}
+          onColetar={() => coletarSeccaoParaMun(mun, catId, { forceRefresh: true })}
         />
       );
     }
-
-    // Água e Recursos Hídricos (card específico — via IA em fontes ANA/SNIRH)
+    // Água
     if (catId === 'agua_recursos_hidricos') {
       return (
         <SecaoAguaRecursosHidricos
           key={key}
           mun={mun}
           estado={estado}
-          onColetar={() => coletarViaIA(mun, catId)}
+          onColetar={() => coletarSeccaoParaMun(mun, catId, { forceRefresh: true })}
         />
       );
     }
 
-    // Seções via IA
-    if (!estado.items || estado.items.length === 0) {
+    // Outras seções via IA/web
+    if (estado.status !== STATUS_DADO.DADO_DISPONIVEL || (estado.items || []).length === 0) {
       return (
         <SecaoNaoDisponivel
           key={key}
           categoria={catId}
-          onColetar={() => coletarViaIA(mun, catId)}
-          carregando={estado.carregando}
+          onColetar={() => coletarSeccaoParaMun(mun, catId, { forceRefresh: true })}
+          status={estado.status}
+          aviso_validade={estado.aviso_validade}
           ultimaAtualizacao={estado.ultimaAtual}
-          erro={estado.erro}
+          detalhes_admin={estado.erro_class}
+          fonte_final={estado.fonte_final}
         />
       );
     }
 
-    // Renderizar items coletados via IA
     const resumo = estado.items.find(i => i.indicator === 'Resumo Executivo Territorial');
     const insights = estado.items.filter(i => (i.source_id || '').startsWith('IA_INSIGHT'));
     const indicators = estado.items.filter(i => i.indicator !== 'Resumo Executivo Territorial' && !(i.source_id || '').startsWith('IA_INSIGHT'));
@@ -238,7 +292,7 @@ export default function DadosSecundarios() {
         <CardHeader className="pb-1">
           <CardTitle className="text-sm flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" /> {mun.label} — {secao.label}
-            <span className="text-xs font-normal text-muted-foreground">via IA web</span>
+            <span className="text-xs font-normal text-muted-foreground">via {estado.fonte_final || 'IA / Web'}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -272,6 +326,9 @@ export default function DadosSecundarios() {
               </ul>
             </div>
           )}
+          {estado.aviso_validade && (
+            <p className="text-xs italic text-amber-700">{estado.aviso_validade}</p>
+          )}
         </CardContent>
       </Card>
     );
@@ -282,7 +339,6 @@ export default function DadosSecundarios() {
     if (municipiosSelecionados.length < 2) return null;
     const catId = secaoAtiva === 'resumo' ? 'demografia' : secaoAtiva;
     const muns = municipiosSelecionados;
-    // Indicadores comuns: junta keys únicas
     const setInd = new Set();
     for (const m of muns) {
       const items = (dados[keyDados(m.ibge, catId)] || {}).items || [];
@@ -329,7 +385,7 @@ export default function DadosSecundarios() {
               ))}
               {indicadores.length === 0 && (
                 <tr><td colSpan={muns.length + 1} className="p-6 text-center text-muted-foreground text-xs">
-                  Nenhum dado comparável coletado ainda. Colete a seção "{SECOES.find(s => s.id === catId)?.label}" para cada território.
+                  Nenhum dado comparável coletado ainda. Espere as coletas automáticas finalizarem ou clique “Atualizar dados”.
                 </td></tr>
               )}
             </tbody>
@@ -359,7 +415,7 @@ export default function DadosSecundarios() {
 
       <CoberturaFontes />
 
-      {/* Busca + Fontes */}
+      {/* Busca + Fontes + Atualizar */}
       <Card className="p-4 space-y-3">
         <BuscaTerritorio
           selecao={selecao}
@@ -369,13 +425,47 @@ export default function DadosSecundarios() {
         />
         <div className="flex items-center justify-between flex-wrap gap-2">
           <FontesDropdown selecionadas={fontesSel} onChange={setFontesSel} />
-          <p className="text-xs text-muted-foreground">
-            {selecao.length === 0
-              ? 'Selecione um município ou comunidade para começar.'
-              : `${selecao.length} território(s) selecionado(s).`}
-          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => {
+                for (const mun of municipiosSelecionados) {
+                  coletarSeccaoParaMun(mun, secaoAtiva, { forceRefresh: true });
+                }
+              }}
+              variant="outline"
+              size="sm"
+              disabled={municipiosSelecionados.length === 0 || secaoAtiva === 'resumo'}
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Atualizar dados
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              {selecao.length === 0
+                ? 'Selecione um município ou comunidade para começar.'
+                : `${selecao.length} território(s) selecionado(s).`}
+            </p>
+          </div>
         </div>
       </Card>
+
+      {/* Seletor de Comunidades */}
+      {municipiosSelecionados.length > 0 && (
+        <SeletorComunidades
+          municipios={municipiosSelecionados}
+          comunidades={comunidadesMunicipio}
+          selecionadas={comunidadesSel}
+          onChange={setComunidadesSel}
+        />
+      )}
+
+      {/* Cobertura dos Dados — summary da seção ativa */}
+      {municipiosSelecionados.length > 0 && secaoAtiva !== 'resumo' && (
+        <CardCobertura
+          encontrados={cobertura.encontrados}
+          indisponiveis={cobertura.indisponiveis}
+          semCobertura={cobertura.semCobertura}
+          secaoLabel={SECOES.find(s => s.id === secaoAtiva)?.label}
+        />
+      )}
 
       {/* Conteúdo */}
       {selecao.length === 0 ? (
@@ -404,8 +494,8 @@ export default function DadosSecundarios() {
                   {renderComparacao()}
                   <div className="text-xs text-muted-foreground flex items-start gap-1.5">
                     <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                    Comparação territorial exige que cada município já tenha coletado a seção — clique em
-                    “Coletar via IA” dentro de cada município se ainda não houver dados.
+                    Comparação territorial exige que cada município já tenha coletado a seção — espere as coletas
+                    automáticas ou clique “Atualizar dados” para forçar.
                   </div>
                 </div>
               ) : (
@@ -417,12 +507,12 @@ export default function DadosSecundarios() {
                     </p>
                   )}
                   {municipiosSelecionados.map(mun => renderSecao(mun, s.id))}
-                  {selecao.some(s => s.tipo === 'comunidade') && (
-                    <Card className="p-3 text-xs text-muted-foreground bg-muted/30">
-                      <p className="flex items-center gap-1.5">
-                        <Info className="w-3.5 h-3.5" />
-                        Comunidades selecionadas serão tratadas no contexto do município ao qual pertencem.
-                        Para esta versão, a coleta é feita no nível municipal — ajuste fino por comunidade em versões futuras.
+                  {comunidadesSel.length > 0 && (
+                    <Card className="p-3 bg-muted/30">
+                      <p className="text-xs text-muted-foreground">
+                        {comunidadesSel.length} comunidade(s) selecionada(s) — a coleta de dados públicos
+                        continua no nível municipal; para indicadores da comunidade específica, use os dados
+                        internos cadastrados no módulo Registros/Stakeholders/Demandas associados a essa comunidade.
                       </p>
                     </Card>
                   )}
@@ -438,8 +528,9 @@ export default function DadosSecundarios() {
         <p className="text-xs text-muted-foreground flex items-start gap-2">
           <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           Toda informação pública possui fonte rastreável. Dados individuais (CPF, NIS, dados médicos)
-          não são armazenados — apenas dados agregados territoriais. Quando a IA-Based inference é usada,
-          fica rotulada como inferência, nunca afirmada como fato.
+          não são armazenados — apenas dados agregados territoriais. Quando a inferência via IA é usada,
+          fica rotulada como inferência, nunca afirmada como fato. Erros técnicos (503, timeout) são
+          interceptados e convertidos em mensagens funcionais.
         </p>
       </Card>
     </div>
