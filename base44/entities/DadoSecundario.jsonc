@@ -1,0 +1,112 @@
+{
+  "name": "DadoSecundario",
+  "type": "object",
+  "properties": {
+    "source_id": {
+      "type": "string",
+      "description": "ID da fonte/origem (ex: IBGE_POP_2022, SICONFI_DESP_PESSOAL_2023)"
+    },
+    "source_name": {
+      "type": "string",
+      "description": "Nome leg\u00edvel da fonte (ex: IBGE/SIDRA, Tesouro/SICONFI, Portal Transpar\u00eancia)"
+    },
+    "municipality_ibge_code": {
+      "type": "string",
+      "description": "C\u00f3digo IBGE do munic\u00edpio (identificador territorial principal)"
+    },
+    "municipality": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "demografia",
+        "fiscal",
+        "social",
+        "saude",
+        "educacao",
+        "economia",
+        "cultura",
+        "esporte",
+        "saneamento",
+        "meio_ambiente",
+        "mineracao",
+        "conselhos",
+        "osc",
+        "governo_municipal",
+        "camara_municipal",
+        "legislacao",
+        "politicas_publicas",
+        "resumo"
+      ],
+      "description": "Categoria tem\u00e1tica do dado secund\u00e1rio"
+    },
+    "indicator": {
+      "type": "string",
+      "description": "Nome do indicador (ex: Popula\u00e7\u00e3o total, Despesa com pessoal, Bolsa Fam\u00edlia - fam\u00edlias)"
+    },
+    "value_number": {
+      "type": "number",
+      "description": "Valor num\u00e9rico (quando aplic\u00e1vel)"
+    },
+    "value_text": {
+      "type": "string",
+      "description": "Valor textual ou label (quando n\u00e3o-num\u00e9rico, ou JSON serializado)"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unidade (hab, R$, %, etc.)"
+    },
+    "reference_period": {
+      "type": "string",
+      "description": "Per\u00edodo de refer\u00eancia (AAAA, AAAA-MM, intervalo)"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "URL rastre\u00e1vel da fonte"
+    },
+    "orgao": {
+      "type": "string",
+      "description": "\u00d3rg\u00e3o respons\u00e1vel pela fonte"
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando o dado foi coletado pela primeira vez"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima atualiza\u00e7\u00e3o do cache"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "oficial",
+        "estimado",
+        "inferido_ia",
+        "nao_verificado"
+      ],
+      "default": "nao_verificado",
+      "description": "oficial=fonte governamental verificada; estimado=derivado; inferido_ia=sugest\u00e3o IA; nao_verificado=encontrado via web, n\u00e3o validado"
+    },
+    "raw_metadata": {
+      "type": "object",
+      "description": "Metadados completos da fonte original (CDC/DDF)"
+    },
+    "data_publicacao": {
+      "type": "string",
+      "description": "Data de publica\u00e7\u00e3o na fonte, quando dispon\u00edvel"
+    }
+  },
+  "required": [
+    "source_id",
+    "source_name",
+    "municipality_ibge_code",
+    "category",
+    "indicator"
+  ]
+}

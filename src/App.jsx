@@ -14,6 +14,7 @@ import Aparencia from './pages/Aparencia';
 import ReferenciaisESG from './pages/ReferenciaisESG';
 import AssistenteIA from './pages/AssistenteIA';
 import AnaliseDemografica from './pages/AnaliseDemografica';
+import DadosSecundarios from './pages/DadosSecundarios';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -83,6 +84,11 @@ const AuthenticatedApp = () => {
       <Route path="/AnaliseDemografica" element={
         <LayoutWrapper currentPageName="AnaliseDemografica">
           <AnaliseDemografica />
+        </LayoutWrapper>
+      } />
+      <Route path="/DadosSecundarios" element={
+        <LayoutWrapper currentPageName="DadosSecundarios">
+          <DadosSecundarios />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />
