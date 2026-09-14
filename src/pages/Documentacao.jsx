@@ -1,695 +1,440 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Book, 
-  Search, 
-  FileText, 
-  Users, 
-  MapPin, 
-  Target, 
-  MessageCircle,
-  Calendar,
-  CheckSquare,
-  BarChart3,
-  Shield,
-  Download,
-  Sparkles,
-  Home,
-  TrendingUp,
-  AlertTriangle,
-  Clock,
-  Lightbulb,
-  Leaf,
-  Palette
-} from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import {
+  Book, Search, CheckSquare, Lightbulb, Download, Printer,
+  ChevronRight, Sparkles, Rocket
+} from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { TOUR_MODULES, TOUR_GROUPS } from '@/lib/tourModuleRegistry';
 
-const sections = [
-  {
-    id: 'introducao',
-    title: 'Introdução',
-    icon: Book,
-    color: 'bg-blue-100 text-blue-600',
-    content: {
-      description: 'O societa.ai é uma plataforma de escuta social ativa desenvolvida para gestão de relacionamento comunitário, análise territorial e prevenção de riscos sociais. O menu lateral agora está organizado em grupos colapsáveis.',
-      features: [
-        'Dashboard — visão executiva com o Motor Global de Decisões',
-        'Escuta & Registro — Registros, Voz da Comunidade, Gestão de Demandas, Casos',
-        'Território — Mapa, Comunidades e Grupos, Análise Demográfica, Dados Secundários',
-        'Relacionamento — Stakeholders, Mapa de Stakeholders, Agenda, Materialidade',
-        'Relatórios & ESG — Gerador de Relatório, Relatórios Gerados, Referenciais ESG, ODS, Configurações ESG',
-        'Sistema — Equipes, Usuários, Integrações, Saúde das Fontes, Limpeza de Dados, Aparência, Documentação',
-        'Chat IA — assistente contextual acessível pelo canto inferior em qualquer página',
-        'Tour Guiado — ícone de ônibus à esquerda do Chat IA'
-      ]
-    }
-  },
-  {
-    id: 'dashboard',
-    title: 'Dashboard',
-    icon: BarChart3,
-    color: 'bg-emerald-100 text-emerald-600',
-    content: {
-      description: 'Visão executiva consolidada com KPIs, tendências e alertas em tempo real.',
-      features: [
-        'KPIs principais: registros, demandas urgentes, riscos ativos, agendas',
-        'Gráficos de tendências dos últimos 7 dias',
-        'Demandas recorrentes por comunidade',
-        'Monitor de devolutivas pendentes',
-        'Vozes do Território (citações reais e anonimizadas)',
-        'Dicas de Relacionamento contextualizadas',
-        'Painel de Orientação Territorial com 3 cards diários de IA',
-        'Widget Prioridades do Motor — insights automáticos com evidências'
-      ],
-      howTo: [
-        'Personalize os widgets clicando em "Personalizar Widgets"',
-        'Navegue entre os cards para acessar detalhes',
-        'Use o gráfico de tendências para identificar padrões',
-        'Monitore alertas vermelhos de alta prioridade'
-      ]
-    }
-  },
-  {
-    id: 'registros',
-    title: 'Registros',
-    icon: FileText,
-    color: 'bg-purple-100 text-purple-600',
-    content: {
-      description: 'Sistema de registro de interações comunitárias com processamento inteligente de áudio, texto e imagens.',
-      features: [
-        'Registro manual ou com IA assistida',
-        'Transcrição automática de áudio/vídeo',
-        'Detecção automática de stakeholders, temas e demandas',
-        'Geração de ATA com IA',
-        'Análise de sentimento e temperatura territorial',
-        'Vínculo automático com casos e compromissos',
-        'Exportação em PDF, XLSX e DOCX',
-        'Sistema de códigos únicos (RE-UT-XXXXXX-AAAA)'
-      ],
-      howTo: [
-        'Clique em "+ Novo Registro" para iniciar',
-        'Escolha entre "Assistido por IA" ou "Manual"',
-        'Grave áudio, faça upload de arquivo ou digite',
-        'IA extrai automaticamente: participantes, temas, demandas, compromissos',
-        'Revise e ajuste as sugestões da IA',
-        'Finalize para gerar código único e vincular stakeholders'
-      ]
-    }
-  },
-  {
-    id: 'stakeholders',
-    title: 'Stakeholders',
-    icon: Users,
-    color: 'bg-orange-100 text-orange-600',
-    content: {
-      description: 'Gestão inteligente de stakeholders com detecção automática, histórico completo e análise de rede.',
-      features: [
-        'Cadastro automático a partir de registros',
-        'Detecção de duplicatas e conflitos',
-        'Perfil completo: contatos, influência, demandas, timeline',
-        'Rede de relacionamentos visualizada',
-        'Segmentação avançada por temas e localidade',
-        'Histórico de auditoria completo (LGPD)',
-        'Score de influência calculado automaticamente',
-        'Alertas de atualização necessária'
-      ],
-      howTo: [
-        'IA detecta e cria stakeholders automaticamente dos registros',
-        'Valide e complete informações no perfil',
-        'Use "Segmentação Avançada" para filtros complexos',
-        'Acesse "Mapa de Stakeholders" para visualização de rede',
-        'Resolva conflitos em "Resolver Conflitos"',
-        'Exporte listas segmentadas para comunicação direcionada'
-      ]
-    }
-  },
-  {
-    id: 'casos',
-    title: 'Casos',
-    icon: CheckSquare,
-    color: 'bg-red-100 text-red-600',
-    content: {
-      description: 'Gestão de situações que exigem devolutiva, acompanhamento ou resolução formal.',
-      features: [
-        'Criação automática a partir de devolutivas',
-        'Consolidação de casos similares (IA detecta duplicatas)',
-        'Rastreamento de prazo (padrão 15 dias)',
-        'Alertas de atraso automáticos',
-        'Histórico de atualizações e evidências',
-        'Vínculo com stakeholders e registros',
-        'Status: em aberto, em andamento, concluído, cancelado',
-        'Análise estratégica por IA'
-      ],
-      howTo: [
-        'Casos são criados automaticamente quando há demanda com devolutiva',
-        'Ou crie manualmente com "+ Novo Caso"',
-        'IA sugere informações com base no contexto',
-        'Acompanhe status e prazos na timeline',
-        'Adicione evidências (fotos, documentos, atas)',
-        'Conclua o caso registrando a devolutiva realizada'
-      ]
-    }
-  },
-  {
-    id: 'agenda',
-    title: 'Agenda',
-    icon: Calendar,
-    color: 'bg-indigo-100 text-indigo-600',
-    content: {
-      description: 'Gestão de compromissos, reuniões e devolutivas com alertas de atraso.',
-      features: [
-        'Criação automática de agendas a partir de registros',
-        'Detecção de datas futuras mencionadas em conversas',
-        'Alertas automáticos de atraso',
-        'Vínculo com casos e stakeholders',
-        'Status: confirmada, prevista, acordada, realizada',
-        'Justificativa obrigatória para não realização',
-        'Calendário visual mensal',
-        'Exportação de agenda em PDF'
-      ],
-      howTo: [
-        'IA detecta datas futuras mencionadas em registros',
-        'Valide e confirme agendas sugeridas',
-        'Adicione participantes e responsáveis',
-        'Receba alertas 24h antes e no dia',
-        'Marque como "Realizada" após executar',
-        'Vincule registro de devolutiva quando aplicável'
-      ]
-    }
-  },
-  {
-    id: 'mapa',
-    title: 'Mapa Territorial',
-    icon: MapPin,
-    color: 'bg-teal-100 text-teal-600',
-    content: {
-      description: 'Visualização geográfica de registros, riscos, stakeholders e temperatura social por localidade.',
-      features: [
-        'Mapa interativo com Leaflet',
-        'Camadas: registros, riscos, stakeholders, comunidades',
-        'Heatmap de densidade de interações',
-        'Temperatura territorial por comunidade',
-        'Filtros por período, tipo, sentimento',
-        'Criação de registro diretamente no mapa (clique no local)',
-        'Detecção automática de coordenadas',
-        'Clustering de pontos próximos'
-      ],
-      howTo: [
-        'Selecione camadas no controle superior direito',
-        'Clique em marcadores para ver detalhes',
-        'Use filtros para análise temporal',
-        'Cores indicam temperatura: verde (baixo), amarelo (médio), vermelho (crítico)',
-        'Clique no mapa para criar registro no local',
-        'Exporte visualização como imagem'
-      ]
-    }
-  },
-  {
-    id: 'materialidade',
-    title: 'Materialidade ESG',
-    icon: Target,
-    color: 'bg-green-100 text-green-600',
-    content: {
-      description: 'Matriz de macrotemas ESG com classificação visual e cálculo automático de risco social.',
-      features: [
-        'Matriz de Macrotemas (Ambiental, Social, Governança)',
-        'Classificação por cores: vermelho (crítico), amarelo (médio), verde (positivo), branco (ausente)',
-        'Drives de avaliação: impacto cotidiano, clima de diálogo, influência stakeholders, presença equipes, protestos, confiança',
-        'Cálculo automático de Índice de Risco Social (0-100)',
-        'Classificação: Baixo, Médio, Alto',
-        'Ações sugeridas por IA',
-        'Vínculo com stakeholders e localidades',
-        'Observações qualitativas contextuais'
-      ],
-      howTo: [
-        'Adicione macrotemas em "Macrotemas"',
-        'Avalie Nível de Impacto (1-5), Presença (1-5) e Percepção Comunidade (1-5)',
-        'IA calcula automaticamente classificação de cor',
-        'Preencha Drives de Avaliação para refinar risco social',
-        'Matriz visual mostra panorama consolidado',
-        'Exporte relatório de materialidade'
-      ]
-    }
-  },
-  {
-    id: 'voz-comunidade',
-    title: 'Voz da Comunidade',
-    icon: MessageCircle,
-    color: 'bg-pink-100 text-pink-600',
-    content: {
-      description: 'Exibição de falas reais e autênticas da comunidade, sem filtros institucionais.',
-      features: [
-        'Apenas declarações diretas de pessoas (não atas)',
-        'Filtro rigoroso: exclui documentos formais e resumos',
-        'Exibição literal das transcrições',
-        'Contexto: quem disse, localidade, tema, sentimento',
-        'Timeline de demandas comunitárias',
-        'Temas recorrentes com ranking',
-        'Análise de sentimento geral',
-        'Filtros por comunidade e urgência'
-      ],
-      howTo: [
-        'Falas aparecem automaticamente de registros tipo "conversa_campo" ou "visita"',
-        'Textos são exibidos exatamente como foram ditos',
-        'Use filtros para segmentar por comunidade',
-        'Clique em uma fala para ver registro completo',
-        'Temas recorrentes indicam prioridades comunitárias'
-      ]
-    }
-  },
-  {
-    id: 'analise',
-    title: 'Central de Análise',
-    icon: Sparkles,
-    color: 'bg-yellow-100 text-yellow-600',
-    content: {
-      description: 'Hub de análises avançadas com IA: riscos sociais, lideranças emergentes, predição de tensão.',
-      features: [
-        'Análise automática de riscos sociais',
-        'Detecção de lideranças emergentes',
-        'Modelo preditivo de tensão territorial',
-        'Grafo de rede de stakeholders',
-        'Análise de sentimento agregado',
-        'Comparativo entre períodos',
-        'Resumo executivo por tema',
-        'Dashboard de temperatura e risco',
-        'Feedback loop para melhorar IA'
-      ],
-      howTo: [
-        'Acesse análises pré-processadas no dashboard',
-        'Clique em "Gerar Nova Análise" para insights atualizados',
-        'Valide ou corrija sugestões da IA (feedback)',
-        'Use grafo de rede para identificar conexões críticas',
-        'Exporte relatórios para tomada de decisão'
-      ]
-    }
-  },
-  {
-    id: 'comunidades',
-    title: 'Comunidades e Grupos',
-    icon: Home,
-    color: 'bg-cyan-100 text-cyan-600',
-    content: {
-      description: 'Gestão de comunidades territoriais e grupos coletivos (culturais, artísticos, esportivos).',
-      features: [
-        'Cadastro de comunidades (bairros, vilas, distritos, quilombos, etc.)',
-        'Cadastro de grupos coletivos (culturais, artísticos, ambientais)',
-        'Termômetro social por comunidade',
-        'Total de registros e última interação',
-        'Principais temas identificados',
-        'População estimada e geolocalização',
-        'Vínculo com stakeholders e registros',
-        'Timeline de interações por localidade'
-      ],
-      howTo: [
-        'Cadastre comunidades manualmente',
-        'IA extrai comunidades mencionadas em registros',
-        'Termômetro social atualiza automaticamente',
-        'Grupos coletivos facilitam engajamento cultural',
-        'Use para segmentar comunicação por território'
-      ]
-    }
-  },
-  {
-    id: 'sustentabilidade',
-    title: 'Módulo Sustentabilidade',
-    icon: Leaf,
-    color: 'bg-emerald-100 text-emerald-600',
-    content: {
-      description: 'Geração automática de relatórios ESG alinhados aos padrões GRI, ODS, Pacto Global e CSRD/ESRS.',
-      features: [
-        'Classificação automática de ações sociais',
-        'Vinculação com GRI Standards (413, 403, 404, 405, 406, 408, 409, 102/103)',
-        'Mapeamento de ODS prioritários (1, 4, 5, 8, 10, 11, 16, 17)',
-        'Alinhamento com Pacto Global da ONU',
-        'Crosswalk automático GRI → ESRS (CSRD)',
-        'Gestão completa de metas ODS',
-        'Visualizações gráficas de progresso',
-        'Exportação em PDF e DOCX',
-        'Integração com perfil da empresa, território e comunidades',
-        'Metodologia auditável e rastreável'
-      ],
-      howTo: [
-        'Configure dados da empresa em "Configurações ESG"',
-        'Acesse "ODS" para definir metas e acompanhar progresso',
-        'Defina metas quantitativas para cada ODS prioritário',
-        'Acompanhe ações vinculadas automaticamente aos ODS',
-        'Acesse "Gerador de Relatório de Sustentabilidade"',
-        'Selecione escopo (plataforma completa, comunidade, território)',
-        'IA classifica automaticamente as ações em categorias ESG',
-        'Revise o preview com vinculações GRI, ODS, Pacto Global, ESRS',
-        'Gere relatório final em PDF ou DOCX'
-      ]
-    }
-  },
-  {
-    id: 'orientacao-territorial',
-    title: 'Painel de Orientação Territorial',
-    icon: Lightbulb,
-    color: 'bg-amber-100 text-amber-600',
-    content: {
-      description: 'Evolução do Botão do Pânico: orientações práticas diárias geradas por IA a partir da bibliografia "Relacionamento Comunitário" do Perini-Santos e dos dados internos da plataforma.',
-      features: [
-        '3 cards curtos, objetivos e acionáveis trocados todo dia',
-        'Cores de acento: azul (escuta/diálogo), laranja (atenção), verde (oportunidade), vermelho (urgência)',
-        '"Entenda por quê" expande explicação com fonte e nível de confiança',
-        'Fontes diferenciadas: bibliografia interna, dados internos, web pública ou combinada',
-        'Distingue fato, percepção e alegação conforme princípios éticos',
-        'Ações: fixar, ocultar e marcar como não pertinente',
-        'Geração automática diária às 06h (workflow)',
-        'Botão de pânico preservado (segure 15s ou clique 10x para emergência)'
-      ],
-      howTo: [
-        'Acesse pelo botão "Orientações Territoriais" no Dashboard',
-        'Leia os 3 cards do dia e aplique as orientações práticas',
-        'Clique em "Entenda por quê" para ver fonte e justificativa',
-        'Fixe cartões importantes para não perdê-los',
-        'Oculte os que não se aplicam ao seu contexto',
-        'Use o botão de pânico compacto em emergências'
-      ]
-    }
-  },
-  {
-    id: 'assistente-ia',
-    title: 'Assistente de IA',
-    icon: Sparkles,
-    color: 'bg-violet-100 text-violet-600',
-    content: {
-      description: 'Chat inteligente que responde perguntas sobre como usar o sistema E analisa os dados reais cadastrados na plataforma.',
-      features: [
-        'Responde perguntas sobre uso do app (como fazer X)',
-        'Acesso em tempo real a registros, stakeholders, casos e demandas',
-        'Compreende linguagem natural (ex: "quantos registros de Matozinhos este mês?")',
-        'Gera insights, prioridades e recomendações baseadas em dados',
-        'Mostra as consultas executadas (transparência)',
-        'Aplica princípios éticos: distingue fato, percepção e alegação',
-        'Pode ser conectado a WhatsApp e Telegram',
-        'Cada conversa é independente — inicie nova a qualquer momento'
-      ],
-      howTo: [
-        'Acesse pelo Chat IA no canto inferior direito (disponível em qualquer página)',
-        'Use as sugestões rápidas ou digite sua pergunta',
-        'Para perguntas sobre dados, cite comunidade/território quando possível',
-        'O assistente consulta as entidades e responde com números reais',
-        'Clique em "Nova conversa" para começar do zero',
-        'Para erro de IA, reformule a pergunta com mais contexto'
-      ]
-    }
-  },
-  {
-    id: 'temas-visuais',
-    title: 'Aparência e Temas Visuais',
-    icon: Palette,
-    color: 'bg-rose-100 text-rose-600',
-    content: {
-      description: 'Personalização da identidade visual do sistema com múltiplos temas prontos.',
-      features: [
-        'Ponte Social: verde institucional (padrão)',
-        'ODS: branco institucional com acentos multicoloridos discretos',
-        'Água: azul profundo para visual institucional',
-        'Perini: laranja, preto e branco',
-        'Noite: escuro sofisticado',
-        'Mato e Terra: paletas naturais alternativas',
-        'A preferência é salva no perfil do usuário'
-      ],
-      howTo: [
-        'Acesse "Aparência" no menu lateral',
-        'Veja a paleta de cores de cada tema',
-        'Clique para aplicar — a mudança é imediata',
-        'O tema escolhido é salvo e carregado no próximo acesso'
-      ]
-    }
-  },
-  {
-    id: 'permissoes',
-    title: 'Equipes e Permissões',
-    icon: Shield,
-    color: 'bg-slate-100 text-slate-600',
-    content: {
-      description: 'Gestão granular de usuários, equipes e permissões por entidade.',
-      features: [
-        'Papéis: Admin, Usuário',
-        'Equipes territoriais (por município/comunidade)',
-        'Permissões granulares por entidade (CRUD)',
-        'Histórico de alterações de permissões',
-        'Auditoria completa de acessos',
-        'Convite de usuários por email',
-        'Segurança LGPD para dados sensíveis',
-        'Acesso via PWA (instalável no celular)'
-      ],
-      howTo: [
-        'Admin cria equipes em "Gerenciar Equipes"',
-        'Atribua usuários a equipes específicas',
-        'Configure permissões por entidade',
-        'Usuários veem apenas dados de sua equipe',
-        'Histórico registra todas alterações'
-      ]
-    }
-  }
-];
+// Passo a passo por módulo (manual_section). Fonte complementar ao registry.
+const HOWTO_BY_SECTION = {
+  dashboard: [
+    'Personalize os widgets em "Personalizar Widgets" para montar sua visão',
+    'Monitore os KPIs do topo: registros, demandas urgentes, riscos e agendas',
+    'Acompanhe o gráfico de tendências dos últimos 7 dias',
+    'Leia as "Vozes do Território" — citações reais e anonimizadas',
+    'Confira o Painel de Orientação Territorial (3 cards diários de IA)',
+    'Actue sobre os insights do Motor Global de Decisões no widget Prioridades'
+  ],
+  registros: [
+    'Clique em "+ Novo Registro"',
+    'Escolha "Assistido por IA" ou "Manual"',
+    'Grave áudio, faça upload de arquivo ou digite a descrição',
+    'A IA transcreve e extrai participantes, temas, demandas e compromissos',
+    'Revise e ajuste as sugestões da IA',
+    'Defina classificação de relacionamento (Comunitário/Institucional) — manual tem prioridade',
+    'Finalize para gerar código único (RE-UT-XXXXXX-AAAA) e vincular stakeholders'
+  ],
+  'voz-comunidade': [
+    'Falas aparecem automaticamente de registros do tipo "conversa de campo" ou "visita"',
+    'Os textos são exibidos exatamente como foram ditos, entre aspas',
+    'Use filtros para segmentar por comunidade',
+    'Clique numa fala para abrir o registro completo',
+    'Temas recorrentes indicam prioridades comunitárias'
+  ],
+  'gestor-demandas': [
+    'As demandas surgem automaticamente dos registros',
+    'Arraste cards no Kanban: pendente → em andamento → atendida',
+    'Atribua responsáveis pelo botão do card',
+    'Filtre por urgência, comunidade e tema',
+    'Acompanhe estatísticas de tempo de resposta'
+  ],
+  casos: [
+    'Casos são criados automaticamente quando há demanda com devolutiva',
+    'Ou crie manualmente com "+ Novo Caso"',
+    'A IA sugere informações com base no contexto',
+    'Acompanhe status e prazo (padrão 15 dias) na timeline',
+    'Adicione evidências (fotos, documentos, atas)',
+    'Conclua o caso registrando a devolutiva realizada'
+  ],
+  mapa: [
+    'Selecione camadas no controle (registros, riscos, stakeholders, comunidades)',
+    'Clique em marcadores para ver detalhes',
+    'Cores indicam temperatura: verde (baixo), amarelo (médio), vermelho (crítico)',
+    'Clique no mapa para criar um registro naquele local',
+    'Use filtros por período, tipo e sentimento'
+  ],
+  comunidades: [
+    'Cadastre comunidades manualmente (bairro, vila, distrito, quilombo…)',
+    'A IA extrai comunidades mencionadas em registros',
+    'O termômetro social atualiza automaticamente com os registros',
+    'Cadastre grupos coletivos (culturais, artísticos, ambientais)',
+    'Use as comunidades para segmentar comunicação por território'
+  ],
+  'analise-demografica': [
+    'Selecione um município no filtro de localidade',
+    'Veja a pirâmide etária e a distribuição por cor/raça',
+    'Compare indicadores entre territórios',
+    'Dados vêm do IBGE'
+  ],
+  'dados-secundarios': [
+    'Selecione um município ou comunidade',
+    'Navegue pelas categorias: demografia, economia, saúde, educação, etc.',
+    'Cada indicador traz fonte, URL e período de referência rastreáveis',
+    'Fontes oficiais: IBGE, ANATEL, etc.'
+  ],
+  stakeholders: [
+    'A IA detecta e cria stakeholders automaticamente a partir dos registros',
+    'Valide e complete as informações no perfil',
+    'Use "Segmentação Avançada" para filtros complexos',
+    'Acesse "Mapa de Stakeholders" para a visualização de rede',
+    'Resolva duplicatas em "Resolver Conflitos"',
+    'Exporte listas segmentadas para comunicação direcionada'
+  ],
+  agenda: [
+    'A IA detecta datas futuras mencionadas em registros e sugere agendas',
+    'Valide e confirme as agendas sugeridas',
+    'Adicione participantes e responsáveis',
+    'Receba alertas automáticos de atraso',
+    'Marque como "Realizada" após executar',
+    'Vincule o registro de devolutiva quando aplicável'
+  ],
+  materialidade: [
+    'Vá em "Materialidade" → aba "Macrotemas"',
+    'Clique em "+ Adicionar Macrotema"',
+    'Preencha Nome, Categoria ESG e Níveis (1-5)',
+    'Complete os Drives de Avaliação para refinar o risco social',
+    'A IA calcula a classificação de cor e o Índice de Risco Social',
+    'Visualize a matriz consolidada na aba "Matriz"'
+  ],
+  sustentabilidade: [
+    'Configure os dados da organização em "Configurações ESG"',
+    'Defina metas quantitativas em "ODS"',
+    'Acesse "Gerador de Relatório"',
+    'Selecione o escopo (plataforma, comunidade, território)',
+    'A IA classifica automaticamente as ações em categorias ESG',
+    'Revise o preview com vinculações GRI, ODS, Pacto Global e ESRS',
+    'Inclua Dados Secundários do território',
+    'Gere o relatório final em PDF ou DOCX'
+  ],
+  'saude-fontes': [
+    'Acesse "Saúde das Fontes" no menu Sistema',
+    'Veja o status de cada fonte de dados pública',
+    'Confira tempo de resposta e disponibilidade',
+    'Teste a conexão por município',
+    'Diagnostique falhas e erros pelo histórico de validações'
+  ],
+  'permissoes': [
+    'O admin cria equipes em "Equipes"',
+    'Convide membros por email e atribua papéis',
+    'Configure permissões granulares por entidade',
+    'Usuários veem apenas dados de sua equipe',
+    'O histórico registra todas as alterações'
+  ],
+  'temas-visuais': [
+    'Acesse "Aparência" no menu Sistema',
+    'Veja a paleta de cada tema',
+    'Clique para aplicar — a mudança é imediata',
+    'O tema é salvo no seu perfil e carregado no próximo acesso'
+  ],
+  'assistente-ia': [
+    'Acesse pelo Chat IA no canto inferior direito (em qualquer página)',
+    'Use as sugestões rápidas ou digite sua pergunta em linguagem natural',
+    'Para perguntas sobre dados, cite comunidade/território quando possível',
+    'O assistente consulta as entidades e responde com números reais',
+    'Clique em "Nova conversa" para começar do zero',
+    'Inicie o Tour Guiado pelo ícone de ônibus à esquerda do Chat IA'
+  ],
+  analise: [
+    'A inteligência da Central de Análise foi migrada para o Motor Global de Decisões',
+    'Acesse os insights pelo widget Prioridades no Dashboard',
+    'Use o Chat IA para análises contextualizadas'
+  ]
+};
 
-const howToGuides = [
+const QUICK_GUIDES = [
   {
-    title: 'Como criar um registro com IA',
+    title: 'Primeiros passos',
+    icon: Rocket,
     steps: [
-      'Acesse "Registros" → "+ Novo Registro"',
-      'Escolha "Assistido por IA"',
-      'Grave áudio ou faça upload de arquivo',
-      'IA transcreve e extrai automaticamente participantes, temas, demandas',
-      'Revise sugestões e ajuste se necessário',
-      'Clique em "Finalizar Registro"'
+      'Configure sua organização em "Configurações ESG" (nome, CNPJ, setores)',
+      'Cadastre suas comunidades em "Comunidades e Grupos"',
+      'Crie sua equipe em "Equipes" e convite os membros',
+      'Escolha seu tema visual em "Aparência"',
+      'Faça seu primeiro registro em "Registros"'
     ]
   },
   {
-    title: 'Como configurar um caso de devolutiva',
+    title: 'Ciclo completo de uma demanda',
+    icon: Sparkles,
     steps: [
-      'Registre interação com demanda que exige resposta',
-      'Marque "Requer Devolutiva" na demanda',
-      'IA cria caso automaticamente',
-      'Prazo padrão: 15 dias',
-      'Adicione evidências ao longo do processo',
-      'Conclua caso registrando devolutiva realizada'
-    ]
-  },
-  {
-    title: 'Como usar a Matriz de Macrotemas',
-    steps: [
-      'Vá em "Materialidade" → "Macrotemas"',
-      'Clique em "+ Adicionar Macrotema"',
-      'Preencha: Nome, Categoria ESG, Níveis (1-5)',
-      'Complete Drives de Avaliação',
-      'IA calcula classificação de cor e risco social',
-      'Visualize matriz consolidada na aba "Matriz"'
-    ]
-  },
-  {
-    title: 'Como exportar relatórios',
-    steps: [
-      'Acesse a página relevante (Registros, Casos, Stakeholders)',
-      'Aplique filtros desejados',
-      'Clique em "Exportar"',
-      'Escolha formato: PDF (narrativo), XLSX (dados), DOCX (editável)',
-      'Personalize campos a incluir',
-      'Download automático ao finalizar'
+      'Registre a interação no campo (Registros → IA assistida)',
+      'A IA extrai a demanda automaticamente',
+      'A demanda entra no Kanban (Gestão de Demandas)',
+      'Se exigir devolutiva, um Caso é criado com prazo de 15 dias',
+      'Agende a devolutiva na Agenda',
+      'Registre a devolutiva realizada e conclua o caso',
+      'Gere o relatório de sustentabilidade com a evidência'
     ]
   }
 ];
 
 export default function Documentacao() {
   const [search, setSearch] = useState('');
-  const [activeSection, setActiveSection] = useState('introducao');
+  const [activeId, setActiveId] = useState('introducao');
 
-  React.useEffect(() => {
-    const hash = window.location.hash.substring(1);
-    if (hash && sections.find(s => s.id === hash)) {
-      setActiveSection(hash);
-    }
+  // Constrói a árvore: topo (Dashboard + Meu Perfil) + grupos com módulos
+  const tree = useMemo(() => {
+    const top = TOUR_MODULES.filter(m => !m.sidebar_group).sort((a, b) => a.tour_order - b.tour_order);
+    const groups = TOUR_GROUPS.map(g => ({
+      ...g,
+      modules: TOUR_MODULES.filter(m => m.sidebar_group === g.key).sort((a, b) => a.tour_order - b.tour_order)
+    }));
+    return { top, groups };
   }, []);
 
-  const handleSectionChange = (sectionId) => {
-    setActiveSection(sectionId);
-    window.location.hash = sectionId;
+  const activeModule = TOUR_MODULES.find(m => m.route === activeId);
+
+  const matchesSearch = (m) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return m.title.toLowerCase().includes(q) ||
+      m.description.toLowerCase().includes(q) ||
+      (m.features || []).some(f => f.toLowerCase().includes(q));
   };
 
-  const filteredSections = sections.filter(s => {
-    const matchTitle = s.title.toLowerCase().includes(search.toLowerCase());
-    const matchDescription = s.content.description.toLowerCase().includes(search.toLowerCase());
-    const matchFeatures = (s.content.features || []).some(f => f.toLowerCase().includes(search.toLowerCase()));
-    const matchHowTo = (s.content.howTo || []).some(h => h.toLowerCase().includes(search.toLowerCase()));
-    return matchTitle || matchDescription || matchFeatures || matchHowTo;
-  });
-
-  const currentSection = sections.find(s => s.id === activeSection);
+  const filteredTop = tree.top.filter(matchesSearch);
+  const filteredGroups = tree.groups.map(g => ({ ...g, modules: g.modules.filter(matchesSearch) })).filter(g => g.modules.length > 0);
+  const hasResults = filteredTop.length > 0 || filteredGroups.length > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-background text-foreground p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <img 
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2 flex-wrap">
+            <img
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/8a81a6207_transparent-Photoroom12.png"
               alt="societa.ai"
               className="h-10 object-contain"
             />
-            <h1 className="text-3xl font-bold text-slate-900">societa.ai</h1>
-            <Badge className="bg-[#E31E24]">v2.1</Badge>
+            <h1 className="text-2xl md:text-3xl font-bold">Manual do Sistema</h1>
+            <Badge variant="secondary">v2.1</Badge>
           </div>
-          <p className="text-slate-600">Documentação Completa do Sistema</p>
+          <p className="text-muted-foreground">Guia completo de todas as funcionalidades do societa.ai</p>
         </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+        {/* Search + print */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
-              placeholder="Buscar na documentação..."
+              placeholder="Buscar funcionalidade..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10 h-12 text-base"
             />
           </div>
+          <Button variant="outline" className="h-12 px-6" onClick={() => window.print()}>
+            <Printer className="w-4 h-4 mr-2" />
+            Imprimir / Salvar PDF
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
+          {/* Sidebar nav */}
+          <div className="lg:col-span-1 print:hidden">
             <Card className="sticky top-6">
-              <CardHeader>
-                <CardTitle className="text-lg">Navegação</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                {filteredSections.map(section => {
-                const Icon = section.icon;
-                return (
-                  <button
-                    key={section.id}
-                    onClick={() => handleSectionChange(section.id)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
-                      activeSection === section.id
-                        ? "bg-[#E31E24] text-white"
-                        : "hover:bg-slate-100 text-slate-700"
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {section.title}
-                  </button>
-                );
-                })}
-              </CardContent>
-            </Card>
-
-            <Card className="mt-4">
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Download className="w-5 h-5" />
-                  Exportar Manual
+                  <Book className="w-5 h-5" />
+                  Navegação
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600 mb-3">
-                  Gere um manual completo em PDF
-                </p>
-                <Button className="w-full bg-[#E31E24] hover:bg-[#B01419]">
-                  <Download className="w-4 h-4 mr-2" />
-                  Gerar PDF
-                </Button>
+              <CardContent className="space-y-1 max-h-[70vh] overflow-y-auto">
+                <button
+                  onClick={() => setActiveId('introducao')}
+                  className={cn(
+                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    activeId === 'introducao' ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground"
+                  )}
+                >
+                  <Book className="w-4 h-4" />
+                  Introdução & Guias
+                </button>
+
+                {filteredTop.length > 0 && (
+                  <div className="pt-2">
+                    {filteredTop.map(m => (
+                      <button key={m.route} onClick={() => setActiveId(m.route)}
+                        className={cn("w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all",
+                          activeId === m.route ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground")}>
+                        <m.icon className="w-4 h-4" />
+                        {m.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {filteredGroups.map(g => (
+                  <div key={g.key} className="pt-2">
+                    <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                      <g.icon className="w-3.5 h-3.5" />
+                      {g.title}
+                    </p>
+                    {g.modules.map(m => (
+                      <button key={m.route} onClick={() => setActiveId(m.route)}
+                        className={cn("w-full flex items-center gap-2 pl-7 pr-3 py-2 rounded-lg text-sm transition-all",
+                          activeId === m.route ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground")}>
+                        <m.icon className="w-4 h-4" />
+                        <span className="truncate">{m.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                ))}
+
+                {!hasResults && (
+                  <p className="text-sm text-muted-foreground px-3 py-4">Nenhum resultado para "{search}".</p>
+                )}
               </CardContent>
             </Card>
           </div>
 
           {/* Content */}
           <div className="lg:col-span-3 space-y-6">
-            {currentSection && (
-              <>
-                {/* Section Header */}
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-4">
-                      <div className={cn("p-3 rounded-lg", currentSection.color)}>
-                        <currentSection.icon className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-2xl">{currentSection.title}</CardTitle>
-                        <p className="text-slate-600 mt-1">{currentSection.content.description}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Card>
-
-                {/* Features */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Funcionalidades</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                        {(currentSection.content.features || []).map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <CheckSquare className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                {/* How To */}
-                {currentSection.content.howTo && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Lightbulb className="w-5 h-5 text-amber-500" />
-                        Como Usar
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ol className="space-y-3">
-                        {(currentSection.content.howTo || []).map((step, idx) => (
-                          <li key={idx} className="flex items-start gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E31E24] text-white flex items-center justify-center text-xs font-medium">
-                              {idx + 1}
-                            </span>
-                            <span className="text-sm pt-0.5">{step}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
-            )}
-
-            {/* Guides */}
-            {activeSection === 'introducao' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Guias Rápidos</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {howToGuides.map((guide, idx) => (
-                    <div key={idx} className="p-4 bg-slate-50 rounded-lg">
-                      <h4 className="font-semibold text-slate-900 mb-3">{guide.title}</h4>
-                      <ol className="space-y-2">
-                        {guide.steps.map((step, stepIdx) => (
-                          <li key={stepIdx} className="flex items-start gap-2 text-sm text-slate-700">
-                            <span className="font-medium text-[#E31E24]">{stepIdx + 1}.</span>
-                            <span>{step}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
+            {activeId === 'introducao' && <Introduction tree={tree} onNavigate={setActiveId} />}
+            {activeModule && <ModuleDetail module={activeModule} />}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function Introduction({ tree, onNavigate }) {
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl flex items-center gap-3">
+            <Sparkles className="w-6 h-6 text-primary" />
+            Bem-vindo ao societa.ai
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm text-muted-foreground">
+          <p>
+            O <strong className="text-foreground">societa.ai</strong> é uma plataforma de escuta social ativa
+            para gestão de relacionamento comunitário, análise territorial e prevenção de riscos sociais.
+            O menu lateral está organizado em grupos colapsáveis para reduzir a carga cognitiva.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {tree.groups.map(g => (
+              <button key={g.key} onClick={() => onNavigate(g.modules[0]?.route)}
+                className="text-left p-3 rounded-lg border border-border hover:border-primary hover:bg-muted transition-all">
+                <div className="flex items-center gap-2 mb-1 font-medium text-foreground">
+                  <g.icon className="w-4 h-4 text-primary" />
+                  {g.title}
+                </div>
+                <p className="text-xs text-muted-foreground">{g.description}</p>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Rocket className="w-5 h-5 text-primary" />
+            Guias Rápidos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {QUICK_GUIDES.map((guide, idx) => (
+            <div key={idx} className="p-4 rounded-lg bg-muted">
+              <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <guide.icon className="w-4 h-4 text-primary" />
+                {guide.title}
+              </h4>
+              <ol className="space-y-2">
+                {guide.steps.map((step, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
+                      {i + 1}
+                    </span>
+                    <span className="pt-0.5 text-foreground">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+function ModuleDetail({ module }) {
+  const Icon = module.icon;
+  const howTo = HOWTO_BY_SECTION[module.manual_section] || [];
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg bg-primary/10 text-primary">
+              <Icon className="w-6 h-6" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl">{module.title}</CardTitle>
+              <p className="text-muted-foreground mt-1">{module.description}</p>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Funcionalidades</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="grid sm:grid-cols-2 gap-2">
+            {(module.features || []).map((feature, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm">
+                <CheckSquare className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      {howTo.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-amber-500" />
+              Como usar
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="space-y-3">
+              {howTo.map((step, idx) => (
+                <li key={idx} className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
+                    {idx + 1}
+                  </span>
+                  <span className="text-sm pt-0.5">{step}</span>
+                </li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardContent className="py-4 flex items-center gap-2 text-sm text-muted-foreground">
+          <ChevronRight className="w-4 h-4" />
+          Acesse este módulo pelo menu lateral, em
+          {module.sidebar_group
+            ? ` ${TOUR_GROUPS.find(g => g.key === module.sidebar_group)?.title || module.sidebar_group} → ${module.title}.`
+            : ` ${module.title}.`}
+        </CardContent>
+      </Card>
+    </>
   );
 }
