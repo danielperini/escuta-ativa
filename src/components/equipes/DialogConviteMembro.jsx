@@ -83,7 +83,7 @@ export default function DialogConviteMembro({ open, onOpenChange, equipe }) {
         body: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <img src="https://media.base44.com/images/public/693acc814baf8083c262896b/948d757aa_ChatGPTImage14desetde202616_57_541.png" alt="Scambio.ia" style="height: 60px;" />
+              <img src="https://media.base44.com/images/public/693acc814baf8083c262896b/d82e6782a_ChatGPTImage14desetde202617_02_44.png" alt="Scambio.ia" style="height: 60px;" />
             </div>
             <h2 style="color: #E31E24; margin-bottom: 20px;">Você foi convidado para a equipe ${equipe.nome}!</h2>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">

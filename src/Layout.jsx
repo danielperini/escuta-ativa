@@ -186,15 +186,12 @@ export default function Layout({ children, currentPageName }) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
-            <div className="flex flex-col">
+            <div className="flex items-center gap-3">
               <img 
-                src="https://media.base44.com/images/public/693acc814baf8083c262896b/948d757aa_ChatGPTImage14desetde202616_57_541.png"
+                src="https://media.base44.com/images/public/693acc814baf8083c262896b/d82e6782a_ChatGPTImage14desetde202617_02_44.png"
                 alt="Scambio.ia"
-                className="h-7 object-contain"
+                className="h-9 object-contain rounded bg-white/95 px-1.5 py-0.5"
               />
-              <span className="text-[10px] text-white/55 tracking-wide font-medium mt-0.5">
-                Relacionamento, escuta, evidências e decisão.
-              </span>
             </div>
             <button 
               onClick={() => setSidebarOpen(false)}

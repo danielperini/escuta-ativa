@@ -171,7 +171,7 @@ export default function GerenciarUsuarios() {
         body: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <img src="https://media.base44.com/images/public/693acc814baf8083c262896b/948d757aa_ChatGPTImage14desetde202616_57_541.png" alt="Scambio.ia" style="height: 80px;" />
+              <img src="https://media.base44.com/images/public/693acc814baf8083c262896b/d82e6782a_ChatGPTImage14desetde202617_02_44.png" alt="Scambio.ia" style="height: 80px;" />
             </div>
             <h2 style="color: #E31E24; margin-bottom: 20px;">Olá, ${inviteData.full_name}!</h2>
             <p style="font-size: 16px; line-height: 1.6; color: #333;">
