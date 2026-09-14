@@ -185,12 +185,15 @@ export default function Layout({ children, currentPageName }) {
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="relative flex items-center justify-center h-16 px-6 border-b border-white/10">
-            <img 
-              src="https://media.base44.com/images/public/693acc814baf8083c262896b/9f1f22498_ChatGPTImage14desetde202617_03_45.png"
-              alt="Scambio.ia"
-              className="h-12 object-contain mix-blend-lighten"
-            />
+          <div className="relative flex items-center justify-center h-16 px-6 border-b border-white/10 overflow-hidden">
+            <div className="overflow-hidden flex items-start" style={{height: '36px'}}>
+              <img
+                src="https://media.base44.com/images/public/693acc814baf8083c262896b/9f1f22498_ChatGPTImage14desetde202617_03_45.png"
+                alt="Scambio.ia"
+                className="h-[58px] w-auto object-top mix-blend-lighten"
+                style={{objectPosition: 'top'}}
+              />
+            </div>
             <button 
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden absolute right-4 text-white/70 hover:text-white"
