@@ -31,10 +31,12 @@ export default function Landing() {
           <div className="h-1 w-24 bg-[#74C69D] mx-auto rounded-full" />
         </div>
 
-        {/* Subtitle */}
-        <p className="text-[#B7E4C7] max-w-xl mx-auto text-lg">
-          Sistema inteligente de registro, análise e gestão de relacionamento comunitário 
-          com processamento automático por IA
+        {/* Slogan + conceito institucional */}
+        <p className="text-white max-w-xl mx-auto text-2xl md:text-3xl font-semibold tracking-tight">
+          Relacionamento, escuta e decisão.
+        </p>
+        <p className="text-[#B7E4C7] max-w-xl mx-auto text-base md:text-lg mt-2">
+          Vozes e saberes que geram inteligência.
         </p>
 
         {/* CTA Button */}
