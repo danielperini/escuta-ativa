@@ -5,7 +5,7 @@ import { FileText, Download, Database, Code, Shield, Zap } from 'lucide-react';
 
 export default function DocumentacaoTecnica() {
   const baixarDocumentacao = () => {
-    const conteudo = `SOCIETA.AI - DOCUMENTAÇÃO TÉCNICA
+    const conteudo = `SCAMBIO.IA - DOCUMENTAÇÃO TÉCNICA
 
 =====================================================
 
@@ -26,7 +26,7 @@ INDICE
 1. VISAO GERAL
 
 ### Propósito
-Societa.ai é uma plataforma de inteligência social para gestão de relacionamento comunitário empresarial. O sistema permite registrar, analisar e gerenciar interações com comunidades territoriais, identificando demandas, riscos sociais, compromissos e continuidades através de IA.
+Scambio.ia é uma plataforma de inteligência social para gestão de relacionamento comunitário empresarial. O sistema permite registrar, analisar e gerenciar interações com comunidades territoriais, identificando demandas, riscos sociais, compromissos e continuidades através de IA.
 
 ### Principais Capacidades
 - ✅ Registro multimídia de interações (áudio, vídeo, foto, documentos)
@@ -318,7 +318,7 @@ Status: Producao
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'DOCUMENTACAO_TECNICA_SOCIETA.txt';
+    a.download = 'DOCUMENTACAO_TECNICA_SCAMBIO.txt';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -337,7 +337,7 @@ Status: Producao
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="text-center space-y-3">
         <h1 className="text-3xl font-bold text-slate-900">Documentação Técnica</h1>
-        <p className="text-slate-600">Societa.ai - Sistema de Inteligência Social</p>
+        <p className="text-slate-600">Scambio.ia - Sistema de Inteligência Social</p>
       </div>
 
       <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">

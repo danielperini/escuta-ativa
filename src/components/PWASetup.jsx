@@ -63,8 +63,8 @@ export default function PWASetup() {
 
     // Manifest dinâmico
     const manifestData = {
-      name: 'Societa.ai',
-      short_name: 'Societa',
+      name: 'Scambio.ia',
+      short_name: 'Scambio',
       description: 'Sistema de Gestão de Relacionamento Comunitário',
       start_url: '/',
       display: 'standalone',
@@ -94,7 +94,7 @@ export default function PWASetup() {
       { name: 'mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
-      { name: 'apple-mobile-web-app-title', content: 'Societa' },
+      { name: 'apple-mobile-web-app-title', content: 'Scambio' },
       { name: 'theme-color', content: '#E31E24' }
     ];
 
@@ -120,7 +120,7 @@ export default function PWASetup() {
       
       // Mostrar toast após 3 segundos
       setTimeout(() => {
-        toast.info('Instale o Societa.ai como app!', {
+        toast.info('Instale o Scambio.ia como app!', {
           description: 'Acesse mais rápido instalando no seu celular',
           action: {
             label: 'Instalar',

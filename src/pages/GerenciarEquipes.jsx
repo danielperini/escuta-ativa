@@ -271,11 +271,11 @@ export default function GerenciarEquipes() {
       const linkConvite = `${window.location.origin}/aceitar-convite?token=${token}&equipe=${selectedEquipe.id}`;
       await base44.integrations.Core.SendEmail({
         to: inviteData.email,
-        subject: `Convite para equipe: ${selectedEquipe.nome} - Societa.ai`,
+        subject: `Convite para equipe: ${selectedEquipe.nome} - Scambio.ia`,
         body: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/6ef53ae31_transparent-Photoroom12.png" alt="Societa.ai" style="height: 60px;" />
+              <img src="https://media.base44.com/images/public/693acc814baf8083c262896b/948d757aa_ChatGPTImage14desetde202616_57_541.png" alt="Scambio.ia" style="height: 60px;" />
             </div>
             <h2 style="color: #E31E24;">Você foi convidado para a equipe ${selectedEquipe.nome}!</h2>
             <p><strong>Permissão:</strong> ${PERMISSOES_CONFIG[inviteData.permissao].label}</p>

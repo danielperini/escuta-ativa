@@ -21,12 +21,12 @@ export default function Welcome() {
       <div className="text-center space-y-6 p-8">
         <div className="mb-6">
           <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/8a81a6207_transparent-Photoroom12.png"
-            alt="societa.ai"
+            src="https://media.base44.com/images/public/693acc814baf8083c262896b/948d757aa_ChatGPTImage14desetde202616_57_541.png"
+            alt="Scambio.ia"
             className="h-20 mx-auto object-contain mb-4"
           />
           <h1 className="text-4xl font-bold bg-gradient-to-r from-[#E31E24] to-[#B01419] bg-clip-text text-transparent">
-            societa.ai
+            Scambio.ia
           </h1>
           <p className="text-slate-600 text-lg mt-2">Versão 2.1</p>
         </div>

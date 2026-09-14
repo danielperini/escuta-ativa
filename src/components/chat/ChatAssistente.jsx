@@ -96,7 +96,7 @@ export default function ChatAssistente({ agentName = 'assistente_societa' }) {
         agent_name: agentName,
         metadata: {
           name: `Conversa ${reset ? 'nova' : 'com'} ${user?.full_name || 'Usuário'}`,
-          description: 'Assistente Societa.ai'
+          description: 'Assistente Scambio.ia'
         }
       });
       setConversationId(conversation.id);
@@ -130,7 +130,7 @@ export default function ChatAssistente({ agentName = 'assistente_societa' }) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
-            Assistente Inteligente Societa.ai
+            Assistente Inteligente Scambio.ia
           </CardTitle>
           <Button
             variant="ghost"

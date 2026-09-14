@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 
-// Configuração otimizada do QueryClient para societa.ai v2.1
+// Configuração otimizada do QueryClient para Scambio.ia v2.1
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

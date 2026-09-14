@@ -337,7 +337,7 @@ async function gerarPDF(registros, filtros) {
   const aaa = hoje.getFullYear();
   const mm = String(hoje.getMonth() + 1).padStart(2, '0');
   const dd = String(hoje.getDate()).padStart(2, '0');
-  const sufixo = municipioSel ? '-' + limparSlug(municipioSel) : '-societa';
+  const sufixo = municipioSel ? '-' + limparSlug(municipioSel) : '-scambio';
   doc.save(`registros-campo${sufixo}-${aaa}-${mm}-${dd}.pdf`);
 }
 

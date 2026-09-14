@@ -143,7 +143,7 @@ export default function Layout({ children, currentPageName }) {
       <DetectorRiscos />
       <MonitorDevolutivas />
       <style>{`
-      /* societa.ai v2.1 - Sistema consolidado de escuta social */
+      /* Scambio.ia v2.1 - Sistema consolidado de escuta social */
       :root {
         --societa-red: #E31E24;
         --societa-red-dark: #B01419;
@@ -188,8 +188,8 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
             <div className="flex items-center gap-3">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/8a81a6207_transparent-Photoroom12.png"
-                alt="Societa.ai"
+                src="https://media.base44.com/images/public/693acc814baf8083c262896b/948d757aa_ChatGPTImage14desetde202616_57_541.png"
+                alt="Scambio.ia"
                 className="h-8 object-contain"
               />
             </div>

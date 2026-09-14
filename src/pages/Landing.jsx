@@ -17,8 +17,8 @@ export default function Landing() {
         {/* Logo */}
         <div className="flex justify-center">
           <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/0e1bf5b7b_ChatGPTImage11dedezde202515_14_03.png"
-            alt="societa.ai"
+            src="https://media.base44.com/images/public/693acc814baf8083c262896b/948d757aa_ChatGPTImage14desetde202616_57_541.png"
+            alt="Scambio.ia"
             className="h-32 object-contain drop-shadow-2xl"
           />
         </div>
@@ -26,7 +26,7 @@ export default function Landing() {
         {/* Title */}
         <div className="space-y-4">
           <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight">
-            societa.ai
+            Scambio.ia
           </h1>
           <div className="h-1 w-24 bg-[#74C69D] mx-auto rounded-full" />
         </div>

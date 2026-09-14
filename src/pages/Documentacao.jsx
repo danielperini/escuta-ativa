@@ -208,14 +208,14 @@ export default function Documentacao() {
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2 flex-wrap">
             <img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/8a81a6207_transparent-Photoroom12.png"
-              alt="societa.ai"
+              src="https://media.base44.com/images/public/693acc814baf8083c262896b/948d757aa_ChatGPTImage14desetde202616_57_541.png"
+              alt="Scambio.ia"
               className="h-10 object-contain"
             />
             <h1 className="text-2xl md:text-3xl font-bold">Manual do Sistema</h1>
             <Badge variant="secondary">v2.1</Badge>
           </div>
-          <p className="text-muted-foreground">Guia completo de todas as funcionalidades do societa.ai</p>
+          <p className="text-muted-foreground">Guia completo de todas as funcionalidades do Scambio.ia</p>
         </div>
 
         {/* Search + print */}
@@ -312,12 +312,12 @@ function Introduction({ tree, onNavigate }) {
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-3">
             <Sparkles className="w-6 h-6 text-primary" />
-            Bem-vindo ao societa.ai
+            Bem-vindo ao Scambio.ia
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
           <p>
-            O <strong className="text-foreground">societa.ai</strong> é uma plataforma de escuta social ativa
+            O <strong className="text-foreground">Scambio.ia</strong> é uma plataforma de escuta social ativa
             para gestão de relacionamento comunitário, análise territorial e prevenção de riscos sociais.
             O menu lateral está organizado em grupos colapsáveis para reduzir a carga cognitiva.
           </p>

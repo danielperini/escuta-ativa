@@ -61,7 +61,7 @@ export default function GeradorNotificacoesInteligente() {
 
               if (user.configuracoes_notificacoes.email_ativo) {
                 await enviarEmailNotificacao(user.email, {
-                  assunto: `[Societa.ai] Demanda ${demanda.urgencia === 'critica' ? 'Crítica' : 'Urgente'}`,
+                  assunto: `[Scambio.ia] Demanda ${demanda.urgencia === 'critica' ? 'Crítica' : 'Urgente'}`,
                   corpo: `Nova demanda de prioridade ${demanda.urgencia}:\n\n${demanda.descricao}\n\nComunidade: ${registro.comunidade || 'N/A'}`
                 });
               }
@@ -230,15 +230,15 @@ async function enviarEmailNotificacao(email, { assunto, corpo }) {
       body: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/6ef53ae31_transparent-Photoroom12.png" 
-                 alt="Societa.ai" style="height: 60px;" />
+            <img src="https://media.base44.com/images/public/693acc814baf8083c262896b/948d757aa_ChatGPTImage14desetde202616_57_541.png" 
+                 alt="Scambio.ia" style="height: 60px;" />
           </div>
           <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #E31E24;">
             <pre style="font-family: Arial, sans-serif; white-space: pre-wrap; color: #333;">${corpo}</pre>
           </div>
           <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;" />
           <p style="text-align: center; font-size: 12px; color: #999;">
-            Societa.ai - Inteligência Social<br/>
+            Scambio.ia - Inteligência Social<br/>
             <a href="${window.location.origin}" style="color: #E31E24;">Acessar plataforma</a>
           </p>
         </div>

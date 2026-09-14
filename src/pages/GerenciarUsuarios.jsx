@@ -167,15 +167,15 @@ export default function GerenciarUsuarios() {
       // Enviar email de convite
       await base44.integrations.Core.SendEmail({
         to: inviteData.email,
-        subject: 'Convite para Societa.ai - Inteligência Social',
+        subject: 'Convite para Scambio.ia - Inteligência Social',
         body: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693acc814baf8083c262896b/6ef53ae31_transparent-Photoroom12.png" alt="Societa.ai" style="height: 80px;" />
+              <img src="https://media.base44.com/images/public/693acc814baf8083c262896b/948d757aa_ChatGPTImage14desetde202616_57_541.png" alt="Scambio.ia" style="height: 80px;" />
             </div>
             <h2 style="color: #E31E24; margin-bottom: 20px;">Olá, ${inviteData.full_name}!</h2>
             <p style="font-size: 16px; line-height: 1.6; color: #333;">
-              Você foi convidado para fazer parte da plataforma <strong>Societa.ai</strong> - 
+              Você foi convidado para fazer parte da plataforma <strong>Scambio.ia</strong> - 
               Inteligência Social para gestão territorial.
             </p>
             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
@@ -206,7 +206,7 @@ export default function GerenciarUsuarios() {
             </p>
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;" />
             <p style="font-size: 12px; color: #999; text-align: center;">
-              Societa.ai - Inteligência Social<br/>
+              Scambio.ia - Inteligência Social<br/>
               Este é um email automático, não responda.
             </p>
           </div>
