@@ -33,7 +33,7 @@ export default function Landing() {
 
         {/* Slogan + conceito institucional */}
         <p className="text-white max-w-xl mx-auto text-2xl md:text-3xl font-semibold tracking-tight">
-          Relacionamento, escuta e decisão.
+          Relacionamento, escuta, evidências e decisão.
         </p>
         <p className="text-[#B7E4C7] max-w-xl mx-auto text-base md:text-lg mt-2">
           Vozes e saberes que geram inteligência.

@@ -193,7 +193,7 @@ export default function Layout({ children, currentPageName }) {
                 className="h-7 object-contain"
               />
               <span className="text-[10px] text-white/55 tracking-wide font-medium mt-0.5">
-                Relacionamento, escuta e decisão.
+                Relacionamento, escuta, evidências e decisão.
               </span>
             </div>
             <button 
