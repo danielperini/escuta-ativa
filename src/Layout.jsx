@@ -185,17 +185,15 @@ export default function Layout({ children, currentPageName }) {
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
-            <div className="flex items-center gap-3">
-              <img 
-                src="https://media.base44.com/images/public/693acc814baf8083c262896b/9f1f22498_ChatGPTImage14desetde202617_03_45.png"
-                alt="Scambio.ia"
-                className="h-10 object-contain"
-              />
-            </div>
+          <div className="relative flex items-center justify-center h-16 px-6 border-b border-white/10">
+            <img 
+              src="https://media.base44.com/images/public/693acc814baf8083c262896b/9f1f22498_ChatGPTImage14desetde202617_03_45.png"
+              alt="Scambio.ia"
+              className="h-10 object-contain mix-blend-lighten"
+            />
             <button 
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-white/70 hover:text-white"
+              className="lg:hidden absolute right-4 text-white/70 hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
