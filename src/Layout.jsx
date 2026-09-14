@@ -188,9 +188,9 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
             <div className="flex items-center gap-3">
               <img 
-                src="https://media.base44.com/images/public/693acc814baf8083c262896b/d82e6782a_ChatGPTImage14desetde202617_02_44.png"
+                src="https://media.base44.com/images/public/693acc814baf8083c262896b/9f1f22498_ChatGPTImage14desetde202617_03_45.png"
                 alt="Scambio.ia"
-                className="h-9 object-contain rounded bg-white/95 px-1.5 py-0.5"
+                className="h-10 object-contain"
               />
             </div>
             <button 
@@ -296,8 +296,13 @@ export default function Layout({ children, currentPageName }) {
                     <Menu className="w-5 h-5 md:w-6 md:h-6" />
                   </button>
 
-            <div className="hidden lg:block flex-1 min-w-0">
-              <h1 className="text-base md:text-lg font-semibold truncate text-foreground">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <img
+                src="https://media.base44.com/images/public/693acc814baf8083c262896b/9f1f22498_ChatGPTImage14desetde202617_03_45.png"
+                alt="Scambio.ia"
+                className="h-8 md:h-9 object-contain rounded shrink-0"
+              />
+              <h1 className="hidden lg:block text-base md:text-lg font-semibold truncate text-foreground">
                 {(() => {
                   const flat = navigation.flatMap(n => n.children ? n.children : [n]);
                   return flat.find(n => n.href === currentPageName)?.name || currentPageName;
