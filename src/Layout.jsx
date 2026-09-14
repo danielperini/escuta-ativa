@@ -189,7 +189,7 @@ export default function Layout({ children, currentPageName }) {
             <img 
               src="https://media.base44.com/images/public/693acc814baf8083c262896b/9f1f22498_ChatGPTImage14desetde202617_03_45.png"
               alt="Scambio.ia"
-              className="h-10 object-contain mix-blend-lighten"
+              className="h-12 object-contain mix-blend-lighten"
             />
             <button 
               onClick={() => setSidebarOpen(false)}
