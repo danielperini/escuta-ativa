@@ -185,11 +185,11 @@ export default function Layout({ children, currentPageName }) {
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="relative flex items-center justify-center h-16 px-6 border-b border-white/10">
+          <div className="relative flex items-center justify-center h-20 px-6 border-b border-white/10">
             <img
               src="https://media.base44.com/images/public/693acc814baf8083c262896b/d492e77ce_ChatGPTImage15desetde202600_08_54.png"
               alt="Scambio.ia"
-              className="h-10 w-auto object-contain mix-blend-screen"
+              className="h-16 w-auto object-contain mix-blend-screen"
             />
             <button 
               onClick={() => setSidebarOpen(false)}
