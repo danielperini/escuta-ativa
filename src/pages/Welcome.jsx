@@ -21,7 +21,7 @@ export default function Welcome() {
       <div className="text-center space-y-6 p-8">
         <div className="mb-6">
           <img 
-            src="https://media.base44.com/images/public/693acc814baf8083c262896b/d82e6782a_ChatGPTImage14desetde202617_02_44.png"
+            src="https://media.base44.com/images/public/693acc814baf8083c262896b/b6a0311f5_ChatGPTImage14desetde202617_23_08.png"
             alt="Scambio.ia"
             className="h-20 mx-auto object-contain mb-4"
           />
