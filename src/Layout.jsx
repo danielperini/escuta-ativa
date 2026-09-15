@@ -187,7 +187,7 @@ export default function Layout({ children, currentPageName }) {
           {/* Logo */}
           <div className="relative flex items-center justify-center h-16 px-6 border-b border-white/10">
             <img
-              src="https://media.base44.com/images/public/693acc814baf8083c262896b/f939ac894_ChatGPTImage15desetde202600_10_59.png"
+              src="https://media.base44.com/images/public/693acc814baf8083c262896b/c85341db7_ChatGPTImage15desetde202600_19_24.png"
               alt="Scambio.ia"
               className="h-12 w-auto object-contain mix-blend-screen"
             />
