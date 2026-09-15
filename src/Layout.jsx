@@ -187,9 +187,9 @@ export default function Layout({ children, currentPageName }) {
           {/* Logo */}
           <div className="relative flex items-center justify-center h-16 px-6 border-b border-white/10">
             <img
-              src="https://media.base44.com/images/public/693acc814baf8083c262896b/b4a6ae01a_ChatGPTImage14desetde202617_26_06.png"
+              src="https://media.base44.com/images/public/693acc814baf8083c262896b/25d05218c_ChatGPTImage15desetde202600_08_54.png"
               alt="Scambio.ia"
-              className="h-10 w-auto object-contain"
+              className="h-10 w-auto object-contain mix-blend-screen"
             />
             <button 
               onClick={() => setSidebarOpen(false)}
@@ -296,7 +296,7 @@ export default function Layout({ children, currentPageName }) {
 
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <img
-                src="https://media.base44.com/images/public/693acc814baf8083c262896b/b6a0311f5_ChatGPTImage14desetde202617_23_08.png"
+                src="https://media.base44.com/images/public/693acc814baf8083c262896b/25d05218c_ChatGPTImage15desetde202600_08_54.png"
                 alt="Scambio.ia"
                 className="h-8 md:h-9 object-contain rounded shrink-0"
               />

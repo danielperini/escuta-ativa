@@ -17,9 +17,9 @@ export default function Landing() {
         {/* Logo */}
         <div className="flex justify-center">
           <img 
-            src="https://media.base44.com/images/public/693acc814baf8083c262896b/b6a0311f5_ChatGPTImage14desetde202617_23_08.png"
+            src="https://media.base44.com/images/public/693acc814baf8083c262896b/25d05218c_ChatGPTImage15desetde202600_08_54.png"
             alt="Scambio.ia"
-            className="h-32 object-contain drop-shadow-2xl"
+            className="h-32 object-contain drop-shadow-2xl mix-blend-screen"
           />
         </div>
 
